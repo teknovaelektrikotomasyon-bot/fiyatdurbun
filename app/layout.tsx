@@ -20,7 +20,7 @@ export default async function Kok({ children }: { children: React.ReactNode }) {
             <Link href="/" aria-label="Fiyat Dürbün ana sayfa"><Logo /></Link>
             <form className="arama" action="/ara" role="search">
               <input name="q" placeholder="Ürün, marka ya da model ara" aria-label="Ara" />
-              <button>Ara</button>
+              <button aria-label="Ara"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" strokeWidth="2.4" /><path d="M15.5 15.5 21 21" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" /></svg></button>
             </form>
             <Link className="ust-link gizle" href="/magazalar">Mağazalar</Link>
             <Link className="ust-link" href={u ? "/hesabim" : "/giris"}>{u ? "Takip listem" : "Giriş yap"}</Link>
@@ -38,7 +38,7 @@ export default async function Kok({ children }: { children: React.ReactNode }) {
         <footer className="alt">
           <div className="kap">
             <span>Fiyat Dürbün fiyatları mağazaların herkese açık sayfalarından okur; satın almadan önce mağazadaki fiyatı kontrol edin.</span>
-            <span><Link href="/magazalar">Mağazalar ve güven kontrolü</Link> · <Link href="/bot">Botumuz hakkında</Link></span>
+            <nav className="alt-linkler" aria-label="Alt bağlantılar"><Link href="/magazalar">Mağazalar ve güven kontrolü</Link><Link href="/bot">Botumuz hakkında</Link></nav>
           </div>
         </footer>
       </body>

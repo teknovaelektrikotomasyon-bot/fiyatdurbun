@@ -64,16 +64,16 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
         <div className="urun-gorsel">{u.gorsel ? <img src={u.gorsel} alt={ad} /> : <span className="soluk">görsel yok</span>}</div>
         <div className="urun-bilgi">
           <h1>{ad} {u.varyant}</h1>
-          <div className="anahtar-ozellikler">
-            {o.ram_gb && <span><b>{String(o.ram_gb)} GB</b> RAM</span>}
-            {o.ekran_inc && <span><b>{String(o.ekran_inc)}″</b> {String(o.ekran_tipi ?? "")}</span>}
-            {o.arka_kamera_mp && <span><b>{String(o.arka_kamera_mp)} MP</b> kamera</span>}
-            {o.batarya_mah && <span><b>{String(o.batarya_mah)} mAh</b></span>}
-            {o["5g"] === true && <span><b>5G</b></span>}
-          </div>
+          <ul className="anahtar-ozellikler">
+            {o.ram_gb && <li><b>{String(o.ram_gb)} GB</b> RAM</li>}
+            {o.ekran_inc && <li><b>{String(o.ekran_inc)}″</b> {String(o.ekran_tipi ?? "ekran")}</li>}
+            {o.arka_kamera_mp && <li><b>{String(o.arka_kamera_mp)} MP</b> kamera</li>}
+            {o.batarya_mah && <li><b>{String(o.batarya_mah)}</b> mAh</li>}
+            {o["5g"] === true && <li><b>5G</b></li>}
+          </ul>
           {enUcuz ? <Olcek fiyat={u.fiyat ?? enUcuz.fiyat} gecmis={gunlukMin} magazaSayisi={u.magaza_sayisi} /> : <div className="not">Şu an hiçbir mağazada stokta görünmüyor. Takip edin, stoğa girince haber verelim.</div>}
           <div className="takip-form">
-            {enUcuz && <a className="dugme mercek" href={`/git/${enUcuz.id}?k=urun-ust`} rel="nofollow sponsored">En ucuzu: {enUcuz.magaza}</a>}
+            {enUcuz && <a className="dugme mercek" href={`/git/${enUcuz.id}?k=urun-ust`} rel="nofollow sponsored">{enUcuz.magaza} sitesine git</a>}
             {ben ? (
               takip ? (
                 <form action={takiptenCik}><input type="hidden" name="urun" value={u.id} /><input type="hidden" name="slug" value={u.slug} />
@@ -102,7 +102,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
                 <tr key={t.id} className={i === 0 && t.stokta ? "en-ucuz" : undefined}>
                   <td>
                     <div className="magaza-ad">{t.magaza}</div>
-                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
+                    <div className="rozetler">
                       {t.magaza_durum === "onayli" ? <span className="rozet yesil">Kontrol edildi</span> : t.magaza_durum === "uyari" ? <span className="rozet kirmizi">Dikkat</span> : <span className="rozet">Kontrol sürüyor</span>}
                       {t.yetkili_satici && <span className="rozet">{t.yetkili_satici}</span>}
                     </div>

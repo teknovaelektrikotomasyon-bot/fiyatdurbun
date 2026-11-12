@@ -5,7 +5,7 @@ export type Ozellik = { anahtar: string; ad: string; tur: string; birim: string 
 export type UrunKart = {
   id: number; slug: string; model: string; varyant: string | null; marka: string; gorsel: string | null;
   ozellikler: Record<string, string | number | boolean>;
-  fiyat: number | null; magaza_sayisi: number; once30: number | null; enDusuk30: number | null;
+  fiyat: number | null; magaza_sayisi: number; once30: number | null; enDusuk30: number | null; enYuksek30: number | null;
 };
 export type Filtre = Record<string, string | undefined>;
 
@@ -29,11 +29,13 @@ const URUN_TABAN = `
   ), g as (
     select urun_id,
       (select min(f2.fiyat) from fiyat_gecmisi f2 where f2.urun_id = f.urun_id and f2.gun = (select min(gun) from fiyat_gecmisi f3 where f3.urun_id = f.urun_id and f3.gun >= current_date - 30))::float8 as once30,
-      min(fiyat) filter (where gun >= current_date - 30 and gun < current_date)::float8 as en_dusuk30
+      min(fiyat) filter (where gun >= current_date - 30 and gun < current_date)::float8 as en_dusuk30,
+      -- Ölçek için: son 30 günde "günün en ucuzu"nun ulaştığı en yüksek değer.
+      (select max(dm) from (select min(f4.fiyat) as dm from fiyat_gecmisi f4 where f4.urun_id = f.urun_id and f4.gun >= current_date - 30 group by f4.gun) z)::float8 as en_yuksek30
     from fiyat_gecmisi f group by urun_id
   )
   select u.id, u.slug, u.model, u.varyant, mk.ad as marka, u.gorsel, u.ozellikler, t.fiyat, coalesce(t.magaza_sayisi,0) as magaza_sayisi,
-         g.once30 as "once30", g.en_dusuk30 as "enDusuk30", u.kategori_id
+         g.once30 as "once30", g.en_dusuk30 as "enDusuk30", g.en_yuksek30 as "enYuksek30", u.kategori_id
   from urun u join marka mk on mk.id = u.marka_id
   left join t on t.urun_id = u.id left join g on g.urun_id = u.id`;
 

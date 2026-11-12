@@ -1,47 +1,68 @@
 import Link from "next/link";
 import { UrunKarti } from "@/components/UrunKarti";
-import { enCokDusenler, populer } from "@/lib/sorgular.ts";
+import { Olcek } from "@/components/Olcek";
+import { enCokDusenler, fiyatGecmisi, populer } from "@/lib/sorgular.ts";
 import { q1 } from "@/lib/db.ts";
 
 export const dynamic = "force-dynamic";
 
 export default async function AnaSayfa() {
   const [dusen, pop, say] = await Promise.all([
-    enCokDusenler(8), populer(8),
-    q1<{ urun: number; teklif: number; magaza: number }>(`select (select count(*)::int from urun) as urun, (select count(*)::int from teklif where stokta) as teklif, (select count(*)::int from magaza where aktif) as magaza`),
+    enCokDusenler(8), populer(12),
+    q1<{ urun: number; magaza: number }>(`select (select count(*)::int from urun u where exists (select 1 from teklif t where t.urun_id=u.id and t.stokta)) as urun, (select count(*)::int from magaza where aktif) as magaza`),
   ]);
+  // "Bugün dürbünde": en çok düşen ürün; yoksa en çok mağazada satılan.
+  const vitrin = dusen[0] ?? pop[0];
+  const gecmis = vitrin ? await fiyatGecmisi(vitrin.id, 30) : [];
+  const gunlukMin = Object.values(gecmis.reduce<Record<string, { gun: string; fiyat: number }>>((a, g) => {
+    if (!a[g.gun] || g.fiyat < a[g.gun].fiyat) a[g.gun] = { gun: g.gun, fiyat: g.fiyat };
+    return a;
+  }, {}));
+
   return (
     <>
-      <section className="giris">
-        <div>
-          <h1>Aynı telefon, farklı fiyat. Hangisi gerçekten ucuz, bakın.</h1>
-          <p>Fiyat Dürbün mağazaların fiyatlarını gün içinde birkaç kez okur, geçmişini saklar. İndirim gerçek mi, bugün almak mantıklı mı, tek sayfada görürsünüz.</p>
-          <form className="buyuk-arama" action="/ara" role="search">
-            <input name="q" placeholder="ör. iPhone 17 256 GB" aria-label="Ürün ara" />
-            <button>Fiyatları bul</button>
-          </form>
-          <div className="ornek-aramalar">
-            <span>Sık arananlar:</span>
-            <Link href="/ara?q=iphone 17">iPhone 17</Link>
-            <Link href="/ara?q=galaxy s">Galaxy S serisi</Link>
-            <Link href="/kategori/akilli-telefon?5g=1&fiyat=-20000">20.000 TL altı 5G</Link>
+      <section className="bant">
+        <div className="kap bant-ic">
+          <div className="bant-metin">
+            <h1>Fiyatı yakından görün.</h1>
+            <p>Fiyat Dürbün telefon fiyatlarını mağaza mağaza okur ve her gün kaydeder. Bugünkü fiyatın son 30 günün neresinde durduğunu tek bakışta gösterir.</p>
+            <form className="buyuk-arama" action="/ara" role="search">
+              <input name="q" placeholder="ör. iPhone 17 256 GB" aria-label="Ürün ara" />
+              <button>Fiyatları bul</button>
+            </form>
+            <p className="ornek-aramalar">
+              Sık arananlar: <Link href="/ara?q=iphone 17">iPhone 17</Link>, <Link href="/ara?q=galaxy s">Galaxy S serisi</Link>, <Link href="/kategori/akilli-telefon?5g=1&fiyat=-20000">20.000 TL altı 5G telefonlar</Link>
+            </p>
           </div>
-        </div>
-        <div className="sayac">
-          <div><b className="sayi">{say?.urun ?? 0}</b><span>ürün</span></div>
-          <div><b className="sayi">{say?.teklif ?? 0}</b><span>güncel fiyat</span></div>
-          <div><b className="sayi">{say?.magaza ?? 0}</b><span>mağaza</span></div>
+          {vitrin?.fiyat != null && (
+            <Link href={`/urun/${vitrin.slug}`} className="vitrin">
+              <div className="vitrin-baslik">
+                <span>Bugün dürbünde</span>
+                {vitrin.gorsel && <img src={vitrin.gorsel} alt="" />}
+              </div>
+              <Olcek
+                fiyat={vitrin.fiyat}
+                gecmis={gunlukMin}
+                magazaSayisi={vitrin.magaza_sayisi}
+                baslik={<div className="vitrin-ad">{vitrin.marka} {vitrin.model} {vitrin.varyant}</div>}
+              />
+            </Link>
+          )}
         </div>
       </section>
 
+      <p className="kapsam">
+        Şu an <b>{say?.magaza ?? 0} mağazada</b> satılan <b>{say?.urun ?? 0} telefonu</b> izliyoruz. Fiyatlar günde dört kez okunuyor. <Link href="/magazalar">Hangi mağazalar, nasıl kontrol ediliyor?</Link>
+      </p>
+
       {dusen.length > 0 && (
-        <section>
-          <div className="serit-baslik"><h2>Son 30 günde en çok düşenler</h2><Link href="/kategori/akilli-telefon?sirala=dusen" className="kucuk">Tümü</Link></div>
+        <section className="serit">
+          <div className="serit-baslik"><h2>Son 30 günde en çok düşenler</h2><Link href="/kategori/akilli-telefon?sirala=dusen">Tümünü gör</Link></div>
           <div className="izgara">{dusen.map((u) => <UrunKarti key={u.id} u={u} />)}</div>
         </section>
       )}
-      <section>
-        <div className="serit-baslik"><h2>Akıllı telefonlar</h2><Link href="/kategori/akilli-telefon" className="kucuk">Tüm telefonlar ve filtreler</Link></div>
+      <section className="serit">
+        <div className="serit-baslik"><h2>Akıllı telefonlar</h2><Link href="/kategori/akilli-telefon">Tüm telefonlar ve filtreler</Link></div>
         {pop.length ? <div className="izgara">{pop.map((u) => <UrunKarti key={u.id} u={u} />)}</div> : <div className="kutu bos">Henüz fiyat okunmadı. Toplayıcı ilk turunu bitirince burası dolacak.</div>}
       </section>
     </>
