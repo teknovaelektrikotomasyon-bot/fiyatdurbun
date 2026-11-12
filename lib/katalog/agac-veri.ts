@@ -2,7 +2,7 @@
 // g = Google ürün taksonomisi kimliği (satış ortaklığı beslemelerindeki google_product_category ile eşlemek için).
 export type KategoriDugumu = { ad: string; slug: string; g: number | null; alt?: KategoriDugumu[] };
 
-// 415 kategori, 3 seviye. Sıra = menüdeki sıra.
+// 468 kategori, 3 seviye. Sıra = menüdeki sıra.
 export const KATEGORI_AGACI: KategoriDugumu[] = [
   { ad: "Elektronik", slug: "elektronik", g: 222, alt: [
     { ad: "Cep Telefonu ve Aksesuarları", slug: "cep-telefonu-ve-aksesuarlari", g: 270, alt: [
@@ -44,7 +44,9 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
       { ad: "Harici Disk", slug: "harici-disk", g: 2414 },
       { ad: "USB Bellek", slug: "usb-bellek", g: 3712 },
       { ad: "Hafıza Kartı", slug: "hafiza-karti", g: 3387 },
-      { ad: "Laptop Çantası", slug: "laptop-cantasi", g: 1928 }
+      { ad: "Laptop Çantası", slug: "laptop-cantasi", g: 1928 },
+      { ad: "Kablo ve Dönüştürücü", slug: "kablo-donusturucu", g: 2082 },
+      { ad: "USB Çoklayıcı ve Dock", slug: "usb-coklayici", g: 2082 }
     ] },
     { ad: "Yazıcı ve Tarayıcı", slug: "yazici-ve-tarayici", g: 345, alt: [
       { ad: "Yazıcı", slug: "yazici", g: 500106 },
@@ -81,7 +83,8 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
       { ad: "Video Kamera", slug: "video-kamera", g: 155 },
       { ad: "Objektif", slug: "objektif", g: 4432 },
       { ad: "Drone", slug: "drone", g: 141 },
-      { ad: "Dürbün ve Teleskop", slug: "durbun-teleskop", g: 157 }
+      { ad: "Dürbün ve Teleskop", slug: "durbun-teleskop", g: 157 },
+      { ad: "Kamera Aksesuarı", slug: "kamera-aksesuari", g: 2096 }
     ] },
     { ad: "Oyun ve Konsol", slug: "oyun-ve-konsol", g: 1294, alt: [
       { ad: "Oyun Konsolu", slug: "oyun-konsolu", g: 1294 },
@@ -93,7 +96,8 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
     { ad: "Giyilebilir Teknoloji", slug: "giyilebilir-teknoloji", g: 2082, alt: [
       { ad: "Akıllı Saat", slug: "akilli-saat", g: 201 },
       { ad: "Akıllı Bileklik", slug: "akilli-bileklik", g: 500009 },
-      { ad: "Akıllı Yüzük", slug: "akilli-yuzuk", g: 500009 }
+      { ad: "Akıllı Yüzük", slug: "akilli-yuzuk", g: 500009 },
+      { ad: "Akıllı Saat Aksesuarı", slug: "akilli-saat-aksesuari", g: 2082 }
     ] },
     { ad: "Akıllı Ev", slug: "akilli-ev", g: 359, alt: [
       { ad: "Güvenlik Kamerası", slug: "guvenlik-kamerasi", g: 362 },
@@ -166,6 +170,12 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
       { ad: "Saklama Kabı", slug: "saklama-kabi", g: 667 },
       { ad: "Çaydanlık ve Demlik", slug: "caydanlik", g: 638 },
       { ad: "Bıçak ve Doğrama", slug: "bicak", g: 665 }
+    ] },
+    { ad: "Sofra ve Servis", slug: "sofra-servis", g: 672, alt: [
+      { ad: "Kase ve Tabak", slug: "kase-tabak", g: 673 },
+      { ad: "Sürahi ve Karaf", slug: "surahi", g: 672 },
+      { ad: "Servis ve Sunum", slug: "servis-sunum", g: 4009 },
+      { ad: "Masa Örtüsü ve Runner", slug: "masa-ortusu", g: 601 }
     ] },
     { ad: "Ev Tekstili", slug: "ev-tekstili", g: 4171, alt: [
       { ad: "Nevresim Takımı", slug: "nevresim", g: 2541 },
@@ -284,6 +294,29 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
     ] }
   ] },
   { ad: "Süpermarket", slug: "supermarket", g: 412, alt: [
+    { ad: "Süt ve Kahvaltılık Ürünler", slug: "sut-kahvaltilik", g: 428, alt: [
+      { ad: "Süt", slug: "sut", g: 418 },
+      { ad: "Yoğurt ve Ayran", slug: "yogurt-ayran", g: 1954 },
+      { ad: "Tereyağı ve Margarin", slug: "tereyagi-margarin", g: 5827 },
+      { ad: "Yumurta", slug: "yumurta", g: 4627 }
+    ] },
+    { ad: "Et, Tavuk ve Şarküteri", slug: "et-tavuk-sarkuteri", g: 432, alt: [
+      { ad: "Kırmızı Et", slug: "kirmizi-et", g: 4628 },
+      { ad: "Tavuk", slug: "tavuk", g: 4628 },
+      { ad: "Sucuk, Salam ve Sosis", slug: "sucuk-salam", g: 4628 },
+      { ad: "Balık ve Deniz Ürünleri", slug: "balik", g: 4629 }
+    ] },
+    { ad: "Meyve ve Sebze", slug: "meyve-sebze", g: 430, alt: [
+      { ad: "Meyve", slug: "meyve", g: 5795 },
+      { ad: "Sebze", slug: "sebze", g: 5793 }
+    ] },
+    { ad: "Fırın ve Pastane", slug: "firin-pastane", g: 1876, alt: [
+      { ad: "Ekmek", slug: "ekmek", g: 424 },
+      { ad: "Pasta ve Tatlı Malzemesi", slug: "tatli-malzemesi", g: 2660 }
+    ] },
+    { ad: "Dondurulmuş Gıda", slug: "dondurulmus-gida", g: 412, alt: [
+      { ad: "Dondurma", slug: "dondurma", g: 499991 }
+    ] },
     { ad: "Temel Gıda", slug: "temel-gida", g: 422, alt: [
       { ad: "Yağ", slug: "yag", g: 2126 },
       { ad: "Bakliyat ve Pirinç", slug: "bakliyat-pirinc", g: 4682 },
@@ -301,7 +334,9 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
     { ad: "Atıştırmalık", slug: "atistirmalik", g: 423, alt: [
       { ad: "Çikolata ve Şekerleme", slug: "cikolata", g: 4748 },
       { ad: "Bisküvi ve Kraker", slug: "biskuvi", g: 2229 },
-      { ad: "Cips ve Kuruyemiş", slug: "kuruyemis-cips", g: 433 }
+      { ad: "Cips ve Kuruyemiş", slug: "kuruyemis-cips", g: 433 },
+      { ad: "Bar ve Kaplamalılar", slug: "bar", g: 423 },
+      { ad: "Sakız ve Şekerleme", slug: "sakiz-sekerleme", g: 4748 }
     ] },
     { ad: "İçecek", slug: "icecek", g: 413, alt: [
       { ad: "Çay", slug: "cay", g: 2073 },
@@ -313,6 +348,8 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
       { ad: "Çamaşır Deterjanı", slug: "camasir-deterjani", g: 2754 },
       { ad: "Bulaşık Deterjanı", slug: "bulasik-deterjani", g: 4975 },
       { ad: "Yüzey Temizleyici", slug: "yuzey-temizleyici", g: 7330 },
+      { ad: "Tuvalet Temizlik ve Koku", slug: "tuvalet-temizlik", g: 623 },
+      { ad: "Haşere Öldürücü", slug: "hasere", g: 728 },
       { ad: "Kağıt Havlu ve Tuvalet Kağıdı", slug: "kagit-urunleri", g: 629 },
       { ad: "Çöp Torbası", slug: "cop-torbasi", g: 623 }
     ] }
@@ -336,7 +373,8 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
     { ad: "Bebek Bakım ve Güvenlik", slug: "bebek-bakim", g: 5252, alt: [
       { ad: "Bebek Telsizi ve Kamerası", slug: "bebek-telsizi", g: 541 },
       { ad: "Bebek Banyo", slug: "bebek-banyo", g: 4678 },
-      { ad: "Ateş Ölçer", slug: "ates-olcer", g: 501 }
+      { ad: "Ateş Ölçer", slug: "ates-olcer", g: 501 },
+      { ad: "Bebek Güvenliği", slug: "bebek-guvenligi", g: 540 }
     ] },
     { ad: "Oyuncak", slug: "oyuncak", g: 1253, alt: [
       { ad: "Lego ve Yapı Oyuncakları", slug: "yapi-oyuncaklari", g: 1254 },
@@ -358,20 +396,36 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
       { ad: "Fondöten ve Kapatıcı", slug: "fondoten", g: 2765 },
       { ad: "Ruj", slug: "ruj", g: 3021 },
       { ad: "Maskara", slug: "maskara", g: 2834 },
-      { ad: "Oje", slug: "oje", g: 2683 }
+      { ad: "Oje", slug: "oje", g: 2683 },
+      { ad: "Göz Makyajı", slug: "goz-makyaji", g: 2779 },
+      { ad: "Allık ve Aydınlatıcı", slug: "allik", g: 6305 },
+      { ad: "Makyaj Fırçası ve Aksesuarı", slug: "makyaj-fircasi", g: 2548 }
     ] },
     { ad: "Cilt Bakımı", slug: "cilt-bakimi", g: 567, alt: [
       { ad: "Yüz Kremi", slug: "yuz-kremi", g: 2592 },
       { ad: "Güneş Kremi", slug: "gunes-kremi", g: 2844 },
       { ad: "Yüz Temizleyici", slug: "yuz-temizleyici", g: 2526 },
-      { ad: "Serum", slug: "serum", g: 567 }
+      { ad: "Serum", slug: "serum", g: 567 },
+      { ad: "El ve Vücut Kremi", slug: "el-vucut-kremi", g: 2592 }
     ] },
     { ad: "Saç Bakımı", slug: "sac-bakimi", g: 486, alt: [
       { ad: "Şampuan", slug: "sampuan", g: 2441 },
       { ad: "Saç Boyası", slug: "sac-boyasi", g: 2814 },
-      { ad: "Saç Şekillendirici", slug: "sac-sekillendirici", g: 1901 }
+      { ad: "Saç Şekillendirici", slug: "sac-sekillendirici", g: 1901 },
+      { ad: "Tarak ve Saç Fırçası", slug: "tarak", g: 487 }
     ] },
-    { ad: "Ağız ve Diş Bakımı", slug: "agiz-dis-bakimi", g: 526, alt: [
+    { ad: "Ağız ve Diş Bakımı", slug: "agiz-dis-bakimi", g: 526 },
+    { ad: "Duş ve Banyo", slug: "dus-banyo", g: 474, alt: [
+      { ad: "Duş Jeli", slug: "dus-jeli", g: 2747 },
+      { ad: "Sabun", slug: "sabun", g: 2503 },
+      { ad: "Kolonya", slug: "kolonya", g: 479 }
+    ] },
+    { ad: "Kadın Hijyen", slug: "kadin-hijyen", g: 485, alt: [
+      { ad: "Hijyenik Ped", slug: "hijyenik-ped", g: 2387 }
+    ] },
+    { ad: "Tıraş ve Ağda", slug: "tiras-agda", g: 528, alt: [
+      { ad: "Tıraş Bıçağı ve Köpüğü", slug: "tiras-bicagi", g: 534 },
+      { ad: "Ağda ve Tüy Dökücü", slug: "agda", g: 4507 },
       { ad: "Diş Macunu", slug: "dis-macunu", g: 1360 },
       { ad: "Diş Fırçası", slug: "dis-fircasi", g: 527 }
     ] },
@@ -491,7 +545,16 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
     ] },
     { ad: "Kuş ve Akvaryum", slug: "kus-akvaryum", g: 6, alt: [
       { ad: "Akvaryum", slug: "akvaryum", g: 3238 },
-      { ad: "Kuş Yemi ve Kafes", slug: "kus", g: 3 }
+      { ad: "Kuş Yemi ve Kafes", slug: "kus", g: 3 },
+      { ad: "Sürüngen ve Teraryum", slug: "surungen", g: 7 }
+    ] },
+    { ad: "Pet Bakım ve Temizlik", slug: "pet-bakim", g: 6383, alt: [
+      { ad: "Pet Şampuanı ve Mendili", slug: "pet-sampuan", g: 6406 },
+      { ad: "Tarak ve Tüy Bakımı", slug: "pet-tarak", g: 6385 }
+    ] },
+    { ad: "Taşıma ve Yatak", slug: "pet-tasima", g: 6251, alt: [
+      { ad: "Taşıma Çantası ve Kafes", slug: "pet-tasima-cantasi", g: 6251 },
+      { ad: "Yatak ve Minder", slug: "pet-yatak", g: 6251 }
     ] }
   ] },
   { ad: "Ofis ve Kırtasiye", slug: "ofis-kirtasiye", g: 922, alt: [

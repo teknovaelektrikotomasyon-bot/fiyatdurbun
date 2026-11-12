@@ -37,6 +37,8 @@ Elektronik | Electronics
     USB Bellek | USB Flash Drives
     Hafıza Kartı | 3387 | hafiza-karti
     Laptop Çantası | Laptop Bags? | laptop-cantasi
+    Kablo ve Dönüştürücü | 2082 | kablo-donusturucu
+    USB Çoklayıcı ve Dock | 2082 | usb-coklayici
   Yazıcı ve Tarayıcı | Print, Copy, Scan & Fax
     Yazıcı | Printers, Copiers & Fax Machines | yazici
     3D Yazıcı | 3D Printers
@@ -69,6 +71,7 @@ Elektronik | Electronics
     Objektif | Camera Lenses
     Drone | Drones? | drone
     Dürbün ve Teleskop | Binoculars | durbun-teleskop
+    Kamera Aksesuarı | Camera & Optic Accessories? | kamera-aksesuari
   Oyun ve Konsol | Video Game Consoles
     Oyun Konsolu | Video Game Consoles | oyun-konsolu
     Konsol Oyunları | Video Game Software | konsol-oyunlari
@@ -79,6 +82,7 @@ Elektronik | Electronics
     Akıllı Saat | 201 | akilli-saat
     Akıllı Bileklik | Activity Monitors? | akilli-bileklik
     Akıllı Yüzük | Activity Monitors? | akilli-yuzuk
+    Akıllı Saat Aksesuarı | 2082 | akilli-saat-aksesuari
   Akıllı Ev | Business & Home Security
     Güvenlik Kamerası | Surveillance Cameras? | guvenlik-kamerasi
     Akıllı Priz ve Ampul | Light Bulbs? | akilli-priz-ampul
@@ -141,6 +145,11 @@ Ev, Dekorasyon ve Mutfak | Home & Garden | ev-dekorasyon-mutfak
     Saklama Kabı | Food Storage Containers? | saklama-kabi
     Çaydanlık ve Demlik | Teapots? | caydanlik
     Bıçak ve Doğrama | Kitchen Knives | bicak
+  Sofra ve Servis | Tableware | sofra-servis
+    Kase ve Tabak | Dinnerware | kase-tabak
+    Sürahi ve Karaf | Pitchers & Carafes | surahi
+    Servis ve Sunum | Serving Trays? | servis-sunum
+    Masa Örtüsü ve Runner | Table Linens? | masa-ortusu
   Ev Tekstili | Linens & Bedding
     Nevresim Takımı | Duvet Covers? | nevresim
     Yorgan ve Battaniye | Blankets? | yorgan-battaniye
@@ -238,6 +247,24 @@ Yapı Market, Bahçe ve El Aletleri | Hardware | yapi-market-bahce
     Barbekü ve Mangal | Grills? | mangal-barbeku
     Saksı ve Tohum | Pots & Planters? | saksi-tohum
 Süpermarket | Food, Beverages & Tobacco
+  Süt ve Kahvaltılık Ürünler | Dairy Products? | sut-kahvaltilik
+    Süt | Milk | sut
+    Yoğurt ve Ayran | Yogurt | yogurt-ayran
+    Tereyağı ve Margarin | Butter & Margarine | tereyagi-margarin
+    Yumurta | Eggs | yumurta
+  Et, Tavuk ve Şarküteri | Meat, Seafood & Eggs | et-tavuk-sarkuteri
+    Kırmızı Et | Meat | kirmizi-et
+    Tavuk | Meat | tavuk
+    Sucuk, Salam ve Sosis | Meat | sucuk-salam
+    Balık ve Deniz Ürünleri | Seafood | balik
+  Meyve ve Sebze | Fruits & Vegetables | meyve-sebze
+    Meyve | Fresh & Frozen Fruits | meyve
+    Sebze | Fresh & Frozen Vegetables | sebze
+  Fırın ve Pastane | Bakery | firin-pastane
+    Ekmek | Breads & Buns | ekmek
+    Pasta ve Tatlı Malzemesi | Cooking & Baking Ingredients | tatli-malzemesi
+  Dondurulmuş Gıda | Frozen Foods? | dondurulmus-gida
+    Dondurma | Ice Cream & Frozen Yogurt | dondurma
   Temel Gıda | Food Items | temel-gida
     Yağ | Cooking Oils? | yag
     Bakliyat ve Pirinç | Rice? | bakliyat-pirinc
@@ -254,6 +281,8 @@ Süpermarket | Food, Beverages & Tobacco
     Çikolata ve Şekerleme | Candy & Chocolate | cikolata
     Bisküvi ve Kraker | Cookies? | biskuvi
     Cips ve Kuruyemiş | Nuts & Seeds? | kuruyemis-cips
+    Bar ve Kaplamalılar | Snack Foods | bar
+    Sakız ve Şekerleme | Candy & Chocolate | sakiz-sekerleme
   İçecek | Beverages
     Çay | Tea & Infusions? | cay
     Kahve | Coffee | kahve
@@ -263,6 +292,8 @@ Süpermarket | Food, Beverages & Tobacco
     Çamaşır Deterjanı | Laundry Detergent | camasir-deterjani
     Bulaşık Deterjanı | Dish Detergent & Soap? | bulasik-deterjani
     Yüzey Temizleyici | All-Purpose Cleaners? | yuzey-temizleyici
+    Tuvalet Temizlik ve Koku | Toilet Cleaners? | tuvalet-temizlik
+    Haşere Öldürücü | Pest Control? | hasere
     Kağıt Havlu ve Tuvalet Kağıdı | Toilet Paper? | kagit-urunleri
     Çöp Torbası | Trash Bags? | cop-torbasi
 Anne, Bebek ve Oyuncak | Baby & Toddler | anne-bebek-oyuncak
@@ -282,6 +313,7 @@ Anne, Bebek ve Oyuncak | Baby & Toddler | anne-bebek-oyuncak
     Bebek Telsizi ve Kamerası | Baby Monitors | bebek-telsizi
     Bebek Banyo | Baby Bathing | bebek-banyo
     Ateş Ölçer | 501 | ates-olcer
+    Bebek Güvenliği | Baby Safety | bebek-guvenligi
   Oyuncak | Toys
     Lego ve Yapı Oyuncakları | Building Toys? | yapi-oyuncaklari
     Oyuncak Bebek | Dolls? | oyuncak-bebek
@@ -300,16 +332,30 @@ Kozmetik ve Kişisel Bakım | Health & Beauty | kozmetik-kisisel-bakim
     Ruj | Lipstick | ruj
     Maskara | Mascara | maskara
     Oje | Nail Polishes | oje
+    Göz Makyajı | Eye Makeup? | goz-makyaji
+    Allık ve Aydınlatıcı | Blushes & Bronzers | allik
+    Makyaj Fırçası ve Aksesuarı | Makeup Tools | makyaj-fircasi
   Cilt Bakımı | Skin Care | cilt-bakimi
     Yüz Kremi | 2592 | yuz-kremi
     Güneş Kremi | Sunscreen | gunes-kremi
     Yüz Temizleyici | Facial Cleansers | yuz-temizleyici
     Serum | Skin Care | serum
+    El ve Vücut Kremi | Lotion & Moisturizer | el-vucut-kremi
   Saç Bakımı | Hair Care | sac-bakimi
     Şampuan | Shampoo & Conditioner? | sampuan
     Saç Boyası | Hair Color | sac-boyasi
     Saç Şekillendirici | Hair Styling Products | sac-sekillendirici
+    Tarak ve Saç Fırçası | Combs & Brushes | tarak
   Ağız ve Diş Bakımı | Oral Care | agiz-dis-bakimi
+  Duş ve Banyo | Bath & Body | dus-banyo
+    Duş Jeli | Body Wash | dus-jeli
+    Sabun | Bar Soap | sabun
+    Kolonya | Perfume & Cologne | kolonya
+  Kadın Hijyen | Feminine Sanitary Supplies | kadin-hijyen
+    Hijyenik Ped | Feminine Pads & Protectors | hijyenik-ped
+  Tıraş ve Ağda | Shaving & Grooming | tiras-agda
+    Tıraş Bıçağı ve Köpüğü | Razors & Razor Blades | tiras-bicagi
+    Ağda ve Tüy Dökücü | Hair Removal | agda
     Diş Macunu | Toothpaste | dis-macunu
     Diş Fırçası | Toothbrushes | dis-fircasi
   Sağlık | Health Care | saglik
@@ -403,6 +449,13 @@ Pet Shop | Pet Supplies | pet-shop
   Kuş ve Akvaryum | Fish Supplies? | kus-akvaryum
     Akvaryum | Aquariums | akvaryum
     Kuş Yemi ve Kafes | Bird Supplies | kus
+    Sürüngen ve Teraryum | Reptile & Amphibian Supplies | surungen
+  Pet Bakım ve Temizlik | Pet Grooming Supplies | pet-bakim
+    Pet Şampuanı ve Mendili | Pet Shampoo & Conditioner | pet-sampuan
+    Tarak ve Tüy Bakımı | Pet Combs & Brushes | pet-tarak
+  Taşıma ve Yatak | Pet Carriers & Crates? | pet-tasima
+    Taşıma Çantası ve Kafes | Pet Carriers & Crates | pet-tasima-cantasi
+    Yatak ve Minder | Pet Beds | pet-yatak
 Ofis ve Kırtasiye | Office Supplies | ofis-kirtasiye
   Kırtasiye | General Office Supplies | kirtasiye
     Kalem | Writing & Drawing Instruments? | kalem

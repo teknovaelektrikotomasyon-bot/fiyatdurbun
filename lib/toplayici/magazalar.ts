@@ -63,11 +63,11 @@ export const MAGAZALAR: MagazaTanimi[] = [
   },
   // --- Genel mağazalar (13 Kasım erişim testi: robots izinli, 403 yok, ürün sayfasında schema.org fiyatı var) ---
   { slug: "karaca", ad: "Karaca", site: "https://www.karaca.com", durum: "acik", bekleme: 3000,
-    kesif: { genel: { tur: "genel", filtre: /karaca\.com\/[^/]+-\d{5,}$|karaca\.com\/urun\//, kokler: ["ev-dekorasyon-mutfak", "beyaz-esya-ev-aletleri", "ofis-kirtasiye"], butce: 400 } } },
+    kesif: { genel: { tur: "genel", filtre: /karaca\.com\/[^/]+-\d{5,}$|karaca\.com\/urun\//, kokler: ["ev-dekorasyon-mutfak", "beyaz-esya-ev-aletleri", "ofis-kirtasiye", "spor-ve-outdoor"], butce: 400 } } },
   { slug: "englishhome", ad: "English Home", site: "https://www.englishhome.com", durum: "acik", bekleme: 3000,
     kesif: { genel: { tur: "genel", filtre: /englishhome\.com\/[a-z0-9-]+-\d{4,}$/, kokler: ["ev-dekorasyon-mutfak"], butce: 400 } } },
   { slug: "teknostore", ad: "Teknostore", site: "https://www.teknostore.com", durum: "acik", bekleme: 3000,
-    kesif: { genel: { tur: "genel", filtre: /teknostore\.com\/[a-z0-9-]+$/, kokler: ["elektronik", "beyaz-esya-ev-aletleri", "otomotiv"], butce: 400 } } },
+    kesif: { genel: { tur: "genel", filtre: /teknostore\.com\/[a-z0-9-]+$/, kokler: ["elektronik", "beyaz-esya-ev-aletleri", "otomotiv", "spor-ve-outdoor"], butce: 400 } } },
   { slug: "migros", ad: "Migros", site: "https://www.migros.com.tr", durum: "acik", bekleme: 3000,
     kesif: { genel: { tur: "genel", filtre: /migros\.com\.tr\/[a-z0-9-]+-p-[0-9a-f]+$/, kokler: ["supermarket", "kozmetik-kisisel-bakim", "anne-bebek-oyuncak", "pet-shop", "ev-dekorasyon-mutfak"], butce: 500 } } },
   { slug: "macrocenter", ad: "Macrocenter", site: "https://www.macrocenter.com.tr", durum: "acik", bekleme: 3000,

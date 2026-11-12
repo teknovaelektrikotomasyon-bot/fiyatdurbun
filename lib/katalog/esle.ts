@@ -42,11 +42,9 @@ const ES_ANLAMLI: Record<string, string[]> = {
   "nevresim": ["nevresim takimi", "carsaf", "pike", "yatak ortusu"],
   "yorgan-battaniye": ["yorgan", "battaniye", "uyku seti"],
   "yastik": ["yastik"],
-  "havlu-bornoz": ["havlu", "bornoz"],
   "hali": ["kilim", "paspas", "yolluk"],
   "perde": ["tul", "stor"],
   "kirlent": ["kirlent", "minder", "kilif"],
-  "mum-oda-kokusu": ["mum", "oda kokusu", "difuzor"],
   "vazo-yapay-cicek": ["vazo", "yapay cicek"],
   "tablo-duvar-dekoru": ["tablo", "duvar dekoru", "cerceve"],
   "masa-lambasi": ["abajur"],
@@ -95,10 +93,61 @@ const ES_ANLAMLI: Record<string, string[]> = {
   "kedi-mamasi": ["kedi mamasi", "kedi konserve", "kedi odul"],
   "kedi-kumu": ["kedi kumu"],
   "kedi-oyuncak": ["kedi oyuncagi", "tirmalama"],
-  "kopek-mamasi": ["kopek mamasi", "kopek konserve", "kopek odul"],
+  "kopek-mamasi": ["kopek mamasi", "kopek konserve", "kopek odul", "kemik", "cigneme", "chew"],
   "kopek-tasmasi": ["tasma", "gezdirme", "kopek kiyafeti"],
-  "akvaryum": ["akvaryum", "balik yemi", "akvaryum filtre"],
   "kus": ["kus yemi", "kafes", "kus"],
+  // 13 Kasım: ilk turda kategorisiz kalan yolların karşılıkları
+  "sut": ["sut", "laktozsuz", "kefir"],
+  "yogurt-ayran": ["yogurt", "ayran", "kefir"],
+  "tereyagi-margarin": ["tereyagi", "margarin"],
+  "kirmizi-et": ["kirmizi et", "dana", "kuzu", "kiyma", "kofte"],
+  "tavuk": ["tavuk", "pilic", "hindi"],
+  "sucuk-salam": ["sucuk", "salam", "sosis", "jambon", "pastirma", "fume", "sarkuteri"],
+  "balik": ["balik", "ton baligi", "deniz urunleri", "karides"],
+  "meyve": ["meyve"],
+  "sebze": ["sebze", "yesillik"],
+  "ekmek": ["ekmek", "lavas", "tortilla", "simit"],
+  "tatli-malzemesi": ["tatli", "puding", "pasta malzemesi", "kek karisimi", "pasta susu"],
+  "dondurma": ["dondurma"],
+  "dondurulmus-gida": ["dondurulmus"],
+  "bar": ["bar", "protein bar", "kaplamali", "meyve topu"],
+  "sakiz-sekerleme": ["sakiz", "sekerleme", "lokum", "jelibon"],
+  "tuvalet-temizlik": ["tuvalet temizleyici", "wc", "klozet", "tuvalet kokusu"],
+  "hasere": ["hasere", "sinek", "bocek", "sivrisinek"],
+  "goz-makyaji": ["far", "far paleti", "goz kalemi", "eyeliner", "kas", "maskara"],
+  "allik": ["allik", "highlighter", "aydinlatici", "bronzer", "kontur"],
+  "makyaj-fircasi": ["makyaj fircasi", "allik fircasi", "makyaj sungeri", "firca"],
+  "el-vucut-kremi": ["el kremi", "vucut losyonu", "vucut kremi", "nemlendirici krem"],
+  "dus-jeli": ["dus jeli", "banyo kopugu"],
+  "sabun": ["sabun", "sivi sabun", "katı sabun"],
+  "kolonya": ["kolonya"],
+  "hijyenik-ped": ["ped", "hijyenik ped", "tampon", "gunluk ped", "kadin hijyen"],
+  "tiras-bicagi": ["tiras", "tiras bicagi", "tiras kopugu", "jilet"],
+  "agda": ["agda", "tuy dokucu", "epilasyon"],
+  "tarak": ["tarak", "sac fircasi"],
+  "kase-tabak": ["kase", "tabak", "pasta tabagi", "servis tabagi", "kahvalti tabagi"],
+  "surahi": ["surahi", "karaf"],
+  "servis-sunum": ["servis", "sunum", "sunumluk", "tepsi", "kek fanusu"],
+  "masa-ortusu": ["masa ortusu", "runner", "amerikan servis"],
+  "bebek-guvenligi": ["bebek guvenligi", "emniyet", "kilit", "koruyucu", "kapi bariyeri"],
+  "surungen": ["surungen", "teraryum", "kaplumbaga"],
+  "pet-sampuan": ["pet sampuan", "temizlik mendili", "sampuan", "kulak temizleme"],
+  "pet-tarak": ["tarak", "tuy", "firca"],
+  "pet-tasima-cantasi": ["tasima cantasi", "tasima kafesi", "tasima"],
+  "pet-yatak": ["yatak", "minder", "kulube"],
+  "kablo-donusturucu": ["kablo", "donusturucu", "cevirici", "adaptor", "hdmi", "displayport"],
+  "usb-coklayici": ["usb hub", "coklayici", "dock", "cogaltici"],
+  "kamera-aksesuari": ["aksiyon kamera aksesuari", "kamera aksesuari", "tripod", "kamera kilifi"],
+  "akilli-saat-aksesuari": ["akilli saat kordonu", "kordon", "bileklik kayisi", "saat aksesuari"],
+  "sarj-aleti-ve-kablo": ["sarj aleti", "sarj cihazi", "sarj kablosu", "sarj istasyonu", "arac ici sarj", "kablosuz sarj"],
+  "powerbank": ["powerbank", "tasinabilir sarj"],
+  "telefon-tutucu": ["telefon tutucu", "arac ici tutucu", "tutucu", "stand"],
+  "akilli-saat": ["akilli saat", "smartwatch"],
+  "avize": ["avize", "aplik", "sarkit", "tavan lambasi"],
+  "havlu-bornoz": ["havlu", "bornoz", "pestamal", "kurulama bezi", "mutfak havlusu"],
+  "termos": ["termos", "matara", "karaf termos"],
+  "mum-oda-kokusu": ["mum", "oda kokusu", "difuzor", "kokulu kese", "koku"],
+  "akvaryum": ["akvaryum", "balik yemi", "hava motoru", "akvaryum filtre", "su duzenleyici"],
 };
 
 // Otomatik kelimeleri tamamen değiştirenler (genel kelimeyi başka kategoriye bırakmak için).
@@ -109,13 +158,16 @@ const YALNIZ: Record<string, string[]> = {
   "ev-ofis-telefonu": ["telsiz telefon", "masaustu telefon"],
 };
 
-type Aday = { slug: string; yol: string[]; derinlik: number; kelimeler: string[] };
+type Aday = { slug: string; yol: string[]; derinlik: number; kelimeler: string[]; aksesuar: boolean };
+const YOL_AKSESUAR = /\b(aksesuar\w*|yedek\w*|sarf\w*|hortum\w*|torba\w*|filtre\w*|kilif\w*)/;
+const AD_AKSESUAR = /\b(aksesuar\w*|yedek parca\w*|hortum\w*|kilifi?\b|yedek\b)/;
 const ADAYLAR: Aday[] = [];
 (function gez(liste: KategoriDugumu[], yol: string[], derinlik: number) {
   for (const d of liste) {
     const parcalar = d.ad.split(/\s+ve\s+|,\s*/i).map(duzMetin).filter((x) => x.length >= 2);
     const kelimeler = YALNIZ[d.slug] ?? [...parcalar, ...(ES_ANLAMLI[d.slug] ?? [])];
-    ADAYLAR.push({ slug: d.slug, yol: [...yol, d.slug], derinlik, kelimeler: [...new Set(kelimeler.map(duzMetin))] });
+    const k = [...new Set(kelimeler.map(duzMetin))];
+    ADAYLAR.push({ slug: d.slug, yol: [...yol, d.slug], derinlik, kelimeler: k, aksesuar: k.some((x) => YOL_AKSESUAR.test(x) || AD_AKSESUAR.test(x)) || /aksesuar|kilif|kablo|tutucu|koruyucu|sarj|kordon/.test(duzMetin(d.ad)) });
     if (d.alt) gez(d.alt, [...yol, d.slug], derinlik + 1);
   }
 })(KATEGORI_AGACI, [], 0);
@@ -131,31 +183,36 @@ export type EslemeSonucu = { slug: string; puan: number };
 /** Mağaza kategori yolu + ürün adı → kategori. `kokler`: mağazanın eşlenebileceği ana bölümler (slug). */
 export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kokler: string[]): EslemeSonucu | null {
   const yol = (kategoriYolu ?? []).map(duzMetin).filter((x) => x && !/^(ana sayfa|anasayfa|home|tum urunler)$/.test(x));
+  const urunDuz = duzMetin(ad);
+  // Bazı mağazalar yolun sonuna ürünün kendi adını ya da kodunu koyar; o halka kategori değildir.
+  while (yol.length && (/^\d+$/.test(yol.at(-1)!) || yol.at(-1) === urunDuz || (yol.at(-1)!.length > 15 && urunDuz.startsWith(yol.at(-1)!.slice(0, 15))))) yol.pop();
   const son = yol.at(-1) ?? "";
-  const onceki = yol.slice(0, -1).join(" | ");
-  const urun = duzMetin(ad);
+  const ikinci = yol.at(-2) ?? "";            // bir üst halka ("Baharat > Pul Biber" → Baharat)
+  const onceki = yol.slice(0, -2).join(" | ");
+  const urun = urunDuz;
+  // Aksesuar / yedek parça ürünü yalnızca aksesuar türü kategorilere konabilir
+  // (ör. bulaşık makinesi hortumu ≠ bulaşık makinesi, iPhone kılıfı ≠ akıllı telefon).
+  // Yalnızca yolun son halkasına bakılır: "Telefon & Aksesuarları > Şarj Cihazları > Powerbank" aksesuar değildir.
+  const urunAksesuar = YOL_AKSESUAR.test(son) || AD_AKSESUAR.test(urun);
   let enIyi: EslemeSonucu | null = null;
   for (const a of ADAYLAR) {
     if (!kokler.includes(a.yol[0])) continue;
+    if (urunAksesuar && !a.aksesuar) continue;
     // Yolun son halkası en güçlü işaret; ürün adı ve üst halkalar onu destekler.
-    let pSon = 0, pAd = 0, pUst = 0;
+    let pSon = 0, pAd = 0, pUst = 0, pIkinci = 0;
     for (const k of a.kelimeler) {
       const uzunluk = Math.min(k.length, 12) / 12; // uzun, özgül kelimeler daha değerli
       if (gecer(son, k)) pSon = Math.max(pSon, 6 + 4 * uzunluk);
       if (gecer(urun, k)) pAd = Math.max(pAd, 4 + 4 * uzunluk);
+      if (gecer(ikinci, k)) pIkinci = Math.max(pIkinci, 5 + 3 * uzunluk);
       if (gecer(onceki, k)) pUst = Math.max(pUst, 2 + 2 * uzunluk);
     }
-    let puan = Math.max(pSon, pAd, pUst) + 0.5 * (pSon + pAd + pUst - Math.max(pSon, pAd, pUst));
+    const enBuyuk = Math.max(pSon, pAd, pIkinci, pUst);
+    let puan = enBuyuk + 0.5 * (pSon + pAd + pIkinci + pUst - enBuyuk);
     if (!puan) continue;
     puan += a.derinlik * 1; // aynı puanda daha özgül (yaprak) kategori
     if (!enIyi || puan > enIyi.puan) enIyi = { slug: a.slug, puan };
   }
   if (!enIyi || enIyi.puan < 6) return null;
-  // Aksesuar / yedek parça, cihazın kendi kategorisine konmaz (ör. bulaşık makinesi hortumu ≠ bulaşık makinesi).
-  const yolAksesuar = /\b(aksesuar\w*|yedek\w*|sarf\w*|hortum\w*|torba\w*|filtre\w*|kilif\w*)/;
-  const adAksesuar = /\b(aksesuar\w*|yedek parca\w*|hortum\w*|kilifi?\b)/;
-  const hedef = ADAYLAR.find((a) => a.slug === enIyi!.slug)!;
-  const hedefAksesuar = hedef.kelimeler.some((k) => yolAksesuar.test(k) || adAksesuar.test(k));
-  if ((yolAksesuar.test(yol.join(" ")) || adAksesuar.test(urun)) && !hedefAksesuar) return null;
   return enIyi;
 }
