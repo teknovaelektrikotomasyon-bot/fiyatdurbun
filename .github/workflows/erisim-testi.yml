@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "lib/toplayici/**"
-      - "scripts/erisim-testi.ts"
+      - "scripts/*.ts"
       - ".github/workflows/erisim-testi.yml"
 jobs:
   test:
@@ -16,3 +16,4 @@ jobs:
         with:
           node-version: 22
       - run: node --experimental-strip-types scripts/erisim-testi.ts
+      - run: node --experimental-strip-types scripts/genis-test.ts
