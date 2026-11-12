@@ -35,6 +35,14 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
   ]);
   const takip = ben ? await q1<{ hedef: number | null }>("select hedef::float8 as hedef from takip where uye_id=$1 and urun_id=$2", [ben.id, u.id]) : undefined;
   const ad = `${u.marka} ${u.model}`;
+  // Aynı mağazanın renk seçenekleri tek satır: en ucuz renk gösterilir, diğer renkler altta listelenir.
+  const magazaBasina = new Map<string, (typeof tk)[number] & { renkler: string[]; secenek: number }>();
+  for (const t of tk) {
+    const v = magazaBasina.get(t.magaza_slug);
+    if (!v) magazaBasina.set(t.magaza_slug, { ...t, renkler: t.renk ? [t.renk] : [], secenek: 1 });
+    else { v.secenek++; if (t.renk && !v.renkler.includes(t.renk)) v.renkler.push(t.renk); }
+  }
+  const satirlar = [...magazaBasina.values()];
   const stokta = tk.filter((t) => t.stokta);
   const enUcuz = stokta[0];
   const gunlukMin = Object.values(gecmis.reduce<Record<string, { gun: string; fiyat: number }>>((a, g) => {
@@ -88,7 +96,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
         <table className="teklif-tablo">
           <thead><tr><th>Mağaza</th><th>Ürün / satıcı</th><th className="sag">Fiyat</th><th className="sag">Kargo</th><th></th></tr></thead>
           <tbody>
-            {tk.map((t, i) => {
+            {satirlar.map((t, i) => {
               const sahte = t.en_dusuk30 != null && t.fiyat > t.en_dusuk30 * 1.02;
               return (
                 <tr key={t.id} className={i === 0 && t.stokta ? "en-ucuz" : undefined}>
@@ -99,12 +107,12 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
                       {t.yetkili_satici && <span className="rozet">{t.yetkili_satici}</span>}
                     </div>
                   </td>
-                  <td className="kucuk"><div>{t.baslik}</div><div className="soluk">{[t.satici && `Satıcı: ${t.satici}`, t.garanti && `Garanti: ${t.garanti}`].filter(Boolean).join(". ")}</div></td>
+                  <td className="kucuk"><div>{t.secenek > 1 ? `${t.secenek} seçenek` : t.baslik}{t.renkler.length > 1 && <span className="soluk">: {t.renkler.join(", ")}</span>}</div><div className="soluk">{[t.satici && `Satıcı: ${t.satici.replace(/\.$/, "")}`, t.garanti && `Garanti: ${t.garanti.toLowerCase()}`].filter(Boolean).join(". ")}</div></td>
                   <td className="sag">
                     <div className="teklif-fiyat fiyat">{tl(t.fiyat)}</div>
                     {!t.stokta ? <span className="rozet">Stokta yok</span> : sahte ? <span className="rozet sari" title="Son 30 gündeki en düşük fiyatı">30 günde {tl(t.en_dusuk30)} idi</span> : null}
                   </td>
-                  <td className="sag kucuk">{t.kargo == null ? <span className="soluk">mağazada</span> : t.kargo === 0 ? "Ücretsiz" : tl(t.kargo)}</td>
+                  <td className="sag kucuk">{t.kargo == null ? <span className="soluk">Sepette görünür</span> : t.kargo === 0 ? "Ücretsiz" : tl(t.kargo)}</td>
                   <td className="sag">{t.stokta && <a className="dugme" href={`/git/${t.id}?k=tablo`} rel="nofollow sponsored">Mağazaya git</a>}</td>
                 </tr>
               );

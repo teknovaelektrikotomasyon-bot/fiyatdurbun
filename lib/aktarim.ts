@@ -67,6 +67,8 @@ export async function kaydet(magazaSlug: string, kategoriSlug: string, t: Kayit,
   }
 
   const kod = t.sku ?? t.url;
+  // Renk: yapılandırılmış veride yoksa başlıkta bellek ifadesinden sonra gelen kısım ("iPhone 17 256GB Ada Çayı").
+  const renk = t.renk ?? (t.ad.split(/\d+(?:[.,]\d+)?\s*(?:GB|TB)\b/i).pop()?.replace(/^[\s,-]+/, "").trim() || null);
   const garanti = hamBul(/garanti/);
   const tk = await q1<{ id: number }>(
     `insert into teklif (urun_id, magaza_id, magaza_kodu, baslik, url, fiyat, kargo, stokta, gtin, renk, satici, garanti, ozellik_ham, guncelleme)
@@ -75,7 +77,7 @@ export async function kaydet(magazaSlug: string, kategoriSlug: string, t: Kayit,
        fiyat=excluded.fiyat, kargo=excluded.kargo, stokta=excluded.stokta, gtin=excluded.gtin, renk=excluded.renk, satici=excluded.satici,
        garanti=excluded.garanti, ozellik_ham=excluded.ozellik_ham, guncelleme=now()
      returning id, urun_id`,
-    [urunId ?? null, mg.id, kod, t.ad, t.url, t.fiyat, t.kargo ?? null, t.stokta, t.gtin ?? null, t.renk ?? null, t.satici ?? null, garanti ?? null, Object.keys(ham).length ? JSON.stringify(ham) : null]);
+    [urunId ?? null, mg.id, kod, t.ad, t.url, t.fiyat, t.kargo ?? null, t.stokta, t.gtin ?? null, renk, t.satici ?? null, garanti ?? null, Object.keys(ham).length ? JSON.stringify(ham) : null]);
 
   const sonUrun = (tk as unknown as { urun_id: number | null }).urun_id;
   if (sonUrun && t.stokta) {

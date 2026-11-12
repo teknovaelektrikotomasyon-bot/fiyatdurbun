@@ -76,9 +76,9 @@ export function modelBul(ad: string, marka?: string) {
   s = s.replace(/\s+/g, " ").trim();
   return s.split(" ").map((w) => {
     if (/^iphone$/i.test(w)) return "iPhone";
-    if (/\d/.test(w) || w.length <= 2) return w.toUpperCase();
+    if (/^[a-z]{0,2}\d+[a-z]*$/i.test(w) || w.length <= 2) return w.toUpperCase();  // S25, A56, 5G, FE
     return w === w.toUpperCase() ? w[0] + w.slice(1).toLowerCase() : w[0].toUpperCase() + w.slice(1);
-  }).join(" ");
+  }).join(" ").replace(/\biPhone (\d+)E\b/, "iPhone $1e");
 }
 
 export function eslesmeAnahtari(marka: string, model: string, depolama?: number) {

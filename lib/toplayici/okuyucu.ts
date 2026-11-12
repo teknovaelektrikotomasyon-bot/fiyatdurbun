@@ -84,7 +84,9 @@ export function urunOku(html: string, url: string): OkunanTeklif | null {
   }
   if (fiyat == null || !secili) return null;
   const stok = String(secili.availability ?? "InStock");
-  const kargoDeger = (secili.shippingDetails as Record<string, unknown> | undefined)?.shippingRate as Record<string, unknown> | undefined;
+  // Kargo bilgisi bazen iç teklifte, bazen dıştaki AggregateOffer'da durur.
+  const kargoKaynak = (secili.shippingDetails ?? teklifler.find((t) => t?.shippingDetails)?.shippingDetails) as Record<string, unknown> | Record<string, unknown>[] | undefined;
+  const kargoDeger = (Array.isArray(kargoKaynak) ? kargoKaynak[0] : kargoKaynak)?.shippingRate as Record<string, unknown> | undefined;
   const breadcrumb = nesneler.find((o) => turMu(o, "BreadcrumbList"));
   const kategoriYolu = breadcrumb
     ? (([] as unknown[]).concat(breadcrumb.itemListElement ?? []) as Record<string, unknown>[])

@@ -18,6 +18,7 @@ async function motorKur(): Promise<Motor> {
   } else {
     const { PGlite } = await import("@electric-sql/pglite");
     const dizin = process.env.PGLITE_DIR ?? join(process.cwd(), ".veri", "pglite");
+    (await import("node:fs")).mkdirSync(dizin, { recursive: true });
     const db = new PGlite(dizin);
     m = { sorgu: async (t, p) => (await db.query<Satir>(t, p)).rows, kapat: () => db.close() };
   }

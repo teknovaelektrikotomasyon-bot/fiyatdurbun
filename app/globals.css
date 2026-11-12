@@ -185,3 +185,6 @@ main { padding: 24px 0 64px; }
 .alt { border-top: 1px solid var(--cizgi); padding: 26px 0 40px; font-size: 13px; color: var(--soluk); }
 .alt .kap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
 .alt a { color: var(--soluk); }
+.filtreler legend { float: left; width: 100%; }
+.filtreler legend + * { clear: both; }
+@media (max-width: 860px) { .urun-gorsel { max-width: 280px; width: 100%; margin: 0 auto; } }
