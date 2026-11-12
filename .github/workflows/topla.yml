@@ -5,6 +5,9 @@ on:
       limit:
         description: "Mağaza başına en çok ürün (boş = hepsi)"
         required: false
+      magaza:
+        description: "Yalnızca bu mağaza (slug; boş = hepsi)"
+        required: false
   schedule:
     - cron: "17 */6 * * *"   # 6 saatte bir
 permissions:
@@ -25,6 +28,7 @@ jobs:
       - name: Topla
         run: |
           EK=""; [ -n "$DATABASE_URL" ] && EK="--db"
+          [ -n "${{ inputs.magaza }}" ] && EK="$EK --magaza ${{ inputs.magaza }}"
           node --experimental-strip-types scripts/topla.ts --limit "${{ inputs.limit || 0 }}" --cikti veri/okunan.jsonl $EK
       - name: Takip bildirimleri
         if: env.DATABASE_URL != ''
