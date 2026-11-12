@@ -362,6 +362,14 @@ main > .kap > .kapsam { margin-top: 0; }
 .not { font-size: 14px; padding: 12px 14px; border-radius: var(--r-kucuk); background: var(--uyari-zemin); color: #5e3f00; }
 
 .bolum { margin-top: 20px; }
+.avrupa-ozet { margin: 0; padding: 4px 22px 14px; max-width: 80ch; }
+.avrupa-not { margin: 0; padding: 14px 22px 18px; font-size: 12.5px; color: var(--soluk); border-top: 1px solid var(--cizgi); max-width: 100ch; }
+.artis-yazi { color: var(--artis); }
+.dusus-yazi { color: var(--dusus); }
+.gorunmez { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.avrupa-ipucu { margin: 12px 0 0; font-size: 14px; }
+.avrupa-ipucu a { font-weight: 600; }
+@media (max-width: 720px) { .teklif-tablo.avrupa-tablo td:nth-child(2) { grid-column: auto; grid-row: auto; } .teklif-tablo.avrupa-tablo td:last-child { grid-column: 1 / -1; } }
 .bolum-baslik { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 18px 22px 8px; flex-wrap: wrap; }
 .teklif-tablo { width: 100%; border-collapse: collapse; }
 .teklif-tablo th { text-align: left; font-size: 12.5px; font-weight: 500; color: var(--soluk); padding: 10px 22px; border-bottom: 1px solid var(--cizgi); }

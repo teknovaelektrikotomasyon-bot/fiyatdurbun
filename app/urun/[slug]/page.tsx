@@ -4,11 +4,12 @@ import { notFound } from "next/navigation";
 import { FiyatGrafigi } from "@/components/FiyatGrafigi";
 import { Olcek } from "@/components/Olcek";
 import { UrunKarti } from "@/components/UrunKarti";
-import { benzerler, fiyatGecmisi, ozellikler, teklifler, tl, urun as urunAl } from "@/lib/sorgular.ts";
+import { benzerler, disFiyatlar, fiyatGecmisi, ozellikler, teklifler, tl, urun as urunAl } from "@/lib/sorgular.ts";
 import { q1 } from "@/lib/db.ts";
 import { uye } from "@/lib/oturum.ts";
 import { kategoriYolu } from "@/lib/katalog/agac.ts";
 import { JsonLd } from "@/components/JsonLd";
+import { AvrupaFiyatlari, avrupaOzeti } from "@/components/AvrupaFiyatlari";
 import { kirintiJsonLd, kirp, mutlak } from "@/lib/seo.ts";
 import { takipEt, takiptenCik } from "@/app/hesabim/islemler";
 
@@ -44,8 +45,8 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
   const u = await urunAl((await params).slug);
   if (!u) notFound();
   const sp = await searchParams;
-  const [tk, gecmis, ozl, benzer, ben, kat] = await Promise.all([
-    teklifler(u.id), fiyatGecmisi(u.id), ozellikler(u.kategori_id), benzerler(u), uye(), q1<{ slug: string; ad: string }>("select slug, ad from kategori where id=$1", [u.kategori_id]),
+  const [tk, gecmis, ozl, benzer, ben, kat, avrupa] = await Promise.all([
+    teklifler(u.id), fiyatGecmisi(u.id), ozellikler(u.kategori_id), benzerler(u), uye(), q1<{ slug: string; ad: string }>("select slug, ad from kategori where id=$1", [u.kategori_id]), disFiyatlar(u.id),
   ]);
   const takip = ben ? await q1<{ hedef: number | null }>("select hedef::float8 as hedef from takip where uye_id=$1 and urun_id=$2", [ben.id, u.id]) : undefined;
   const ad = `${u.marka} ${u.model}`;
@@ -128,6 +129,12 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
               )
             ) : <Link className="dugme ikincil" href={`/giris?donus=/urun/${u.slug}`}>Takip et, düşünce haber ver</Link>}
           </div>
+          {(() => {
+            const oz = avrupaOzeti(avrupa, enUcuz?.fiyat ?? null);
+            if (!oz) return null;
+            const ulke = ({ DE: "Almanya", FR: "Fransa", IT: "İtalya", ES: "İspanya", NL: "Hollanda" } as Record<string, string>)[oz.enUcuz.ulke] ?? oz.enUcuz.ulke;
+            return <p className="avrupa-ipucu">Avrupa&apos;da en ucuz {ulke}&apos;da: {oz.enUcuz.fiyat.toLocaleString("tr-TR")} € ≈ {tl(Math.round(oz.tlKarsilik))}. <a href="#avrupa">Avrupa fiyatlarını karşılaştır</a></p>;
+          })()}
           {sp.takip === "eklendi" && <p className="kucuk" style={{ color: "var(--dusus)" }}>Takibe aldınız. Fiyat düşünce e-posta göndereceğiz.</p>}
         </div>
       </section>
@@ -161,6 +168,8 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
           </tbody>
         </table>
       </section>
+
+      <AvrupaFiyatlari satirlar={avrupa} trFiyat={enUcuz?.fiyat ?? null} urunAdi={`${ad} ${u.varyant ?? ""}`.trim()} />
 
       <section className="kutu bolum">
         <div className="bolum-baslik"><h2>Fiyat geçmişi</h2><span className="kucuk soluk">Mağaza başına günün en düşük fiyatı</span></div>

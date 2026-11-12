@@ -141,6 +141,20 @@ export async function teklifler(urunId: number) {
     order by t.stokta desc, t.fiyat + coalesce(t.kargo,0)`, [urunId]);
 }
 
+export type DisFiyat = { ulke: string; kaynak: string; url: string; fiyat: number; para: string; kur: number; kur_tarihi: string; guncelleme: string };
+
+// Yurt dışı resmî mağaza fiyatları; 3 günden eski okumalar gösterilmez (bayat fiyat yanıltır).
+export async function disFiyatlar(urunId: number) {
+  try {
+    return await q<DisFiyat>(
+      `select ulke, kaynak, url, fiyat::float8 as fiyat, para, kur::float8 as kur, kur_tarihi::text, guncelleme::text
+       from dis_fiyat where urun_id = $1 and guncelleme > now() - interval '3 days' order by fiyat`, [urunId]);
+  } catch (e) {
+    if ((e as { code?: string }).code === "42P01") return []; // tablo henüz yok (toplayıcı ilk kez çalışmadı)
+    throw e;
+  }
+}
+
 export async function fiyatGecmisi(urunId: number, gun = 180) {
   return q<{ gun: string; magaza: string; fiyat: number }>(
     `select f.gun::text as gun, m.ad as magaza, f.fiyat::float8 as fiyat from fiyat_gecmisi f join magaza m on m.id=f.magaza_id
