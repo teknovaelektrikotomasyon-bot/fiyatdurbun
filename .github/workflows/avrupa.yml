@@ -1,0 +1,27 @@
+name: Avrupa fiyatları
+# Apple'ın resmi ülke mağazalarındaki iPhone fiyatları + TCMB kuru. Günde bir kez (TCMB kurları 15:30'da açıklanır).
+on:
+  workflow_dispatch:
+    inputs:
+      kuru:
+        description: "Yalnızca listele, veritabanına yazma"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "41 13 * * *"
+permissions:
+  contents: read
+jobs:
+  avrupa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --experimental-strip-types scripts/avrupa.ts ${{ inputs.kuru && '--kuru' || '' }}

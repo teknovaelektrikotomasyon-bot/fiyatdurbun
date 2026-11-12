@@ -165,3 +165,18 @@ create table if not exists bildirim (
   durum     text not null default 'bekliyor',  -- bekliyor / gonderildi / hata
   zaman     timestamptz not null default now()
 );
+
+-- Yurt dışı resmî mağaza fiyatları (ör. Apple Almanya). Her satır o gün okunan gerçek fiyat ve bağlantısıdır.
+create table if not exists dis_fiyat (
+  id          serial primary key,
+  urun_id     int not null references urun(id) on delete cascade,
+  ulke        text not null,                  -- DE, FR, IT, ES, NL
+  kaynak      text not null,                  -- apple
+  url         text not null,
+  fiyat       numeric(12,2) not null,
+  para        text not null,                  -- EUR
+  kur         numeric(12,4) not null,         -- TCMB döviz satış
+  kur_tarihi  date not null,
+  guncelleme  timestamptz not null default now(),
+  unique (urun_id, ulke, kaynak)
+);
