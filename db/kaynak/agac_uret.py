@@ -1,6 +1,9 @@
-import re, json, sys
+# Kullanım: python3 db/kaynak/agac_uret.py <taxonomy-with-ids.en-US.txt yolu> [-v]
+# Google taksonomi dosyası: https://www.google.com/basepages/producttype/taxonomy-with-ids.en-US.txt
+import re, json, sys, os
+BURA = os.path.dirname(os.path.abspath(__file__))
 tx = {}
-for line in open("/tmp/gtx/google-taxonomy-matcher-1.0.1/package/taxonomies/taxonomy-with-ids.en-US.txt"):
+for line in open(sys.argv[1]):
     if line.startswith("#"): continue
     i, p = line.rstrip("\n").split(" - ", 1); tx[int(i)] = p
 by_last = {}
@@ -8,7 +11,7 @@ for i, p in tx.items(): by_last.setdefault(p.split(" > ")[-1].lower(), []).appen
 TR = str.maketrans("çğıöşüÇĞİÖŞÜâî", "cgiosucgiosuai")
 def slugla(s): return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", s.translate(TR).lower())).strip("-")
 dugumler=[]; yigin=[]; rapor=[]; sluglar={}
-for line in open("/tmp/agac.txt"):
+for line in open(os.path.join(BURA, "kategori-agaci.txt")):
     if not line.strip() or line.startswith("#"): continue
     sev = (len(line) - len(line.lstrip(" "))) // 2
     parca = [x.strip() for x in line.strip().split("|")]
@@ -49,10 +52,10 @@ def ts(d, g=0):
     else: s += " }"
     return s
 toplam = len(sluglar)
-out = "// Bu dosya scripts dışında elle düzenlenebilir; g = Google ürün taksonomisi kimliği (satış ortaklığı beslemelerini eşlemek için).\n"
+out = "// db/kaynak/kategori-agaci.txt dosyasından db/kaynak/agac_uret.py ile üretilir; elle değil, kaynak dosyadan düzenleyin.\n// g = Google ürün taksonomisi kimliği (satış ortaklığı beslemelerindeki google_product_category ile eşlemek için).\n"
 out += "export type KategoriDugumu = { ad: string; slug: string; g: number | null; alt?: KategoriDugumu[] };\n\n"
 out += f"// {toplam} kategori, 3 seviye. Sıra = menüdeki sıra.\nexport const KATEGORI_AGACI: KategoriDugumu[] = [\n" + ",\n".join(ts(d, 1) for d in dugumler) + "\n];\n"
-open("/tmp/aracim/agac-veri.ts", "w").write(out)
+open(os.path.join(BURA, "..", "..", "lib", "katalog", "agac-veri.ts"), "w").write(out)
 print(toplam, "kategori,", len(dugumler), "kök")
 for r in rapor: print(r)
 # eşleşme özeti (göz kontrolü)
