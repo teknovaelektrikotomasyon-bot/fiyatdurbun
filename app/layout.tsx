@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 import { Logo } from "@/components/Logo";
+import { KategoriMenusu } from "@/components/KategoriMenusu";
+import { KATEGORI_AGACI } from "@/lib/katalog/agac.ts";
 import { uye } from "@/lib/oturum.ts";
 
 export const metadata: Metadata = {
@@ -25,17 +27,14 @@ export default async function Kok({ children }: { children: React.ReactNode }) {
             <Link className="ust-link gizle" href="/magazalar">Mağazalar</Link>
             <Link className="ust-link" href={u ? "/hesabim" : "/giris"}>{u ? "Takip listem" : "Giriş yap"}</Link>
           </div>
-          <nav className="kat-serit" aria-label="Kategoriler">
-            <div className="kap">
-              <Link href="/kategori/akilli-telefon">Akıllı Telefon</Link>
-              <span className="yakinda">Bilgisayar (yakında)</span>
-              <span className="yakinda">Televizyon (yakında)</span>
-              <span className="yakinda">Beyaz eşya (yakında)</span>
-            </div>
-          </nav>
+          <KategoriMenusu />
         </header>
         <main><div className="kap">{children}</div></main>
         <footer className="alt">
+          <nav className="kap alt-kategoriler-serit" aria-label="Kategoriler">
+            {KATEGORI_AGACI.map((k) => <Link key={k.slug} href={`/kategori/${k.slug}`}>{k.ad}</Link>)}
+            <Link href="/kategoriler">Tüm kategoriler</Link>
+          </nav>
           <div className="kap">
             <span>Fiyat Dürbün fiyatları mağazaların herkese açık sayfalarından okur; satın almadan önce mağazadaki fiyatı kontrol edin.</span>
             <nav className="alt-linkler" aria-label="Alt bağlantılar"><Link href="/magazalar">Mağazalar ve güven kontrolü</Link><Link href="/bot">Botumuz hakkında</Link></nav>

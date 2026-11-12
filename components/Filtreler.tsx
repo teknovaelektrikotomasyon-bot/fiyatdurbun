@@ -23,6 +23,7 @@ export function Filtreler({ ozellikler, markalar, secenek, aralik, fiyat }: Prop
   const sp = useSearchParams();
   const router = useRouter();
   const [bekliyor, gecis] = useTransition();
+  const [acik, setAcik] = useState(false); // yalnızca dar ekranda: filtreler bir düğmenin arkasında durur
   const git = (p: URLSearchParams) => gecis(() => router.replace(`${yol}?${p}`, { scroll: false }));
 
   const coklu = (anahtar: string, deger: string) => {
@@ -41,7 +42,10 @@ export function Filtreler({ ozellikler, markalar, secenek, aralik, fiyat }: Prop
   const herhangi = [...sp.keys()].some((k) => k !== "sirala");
 
   return (
-    <aside className="kutu filtreler" aria-busy={bekliyor} style={{ opacity: bekliyor ? 0.7 : 1 }}>
+    <aside className="kutu filtreler" aria-busy={bekliyor} data-acik={acik || undefined} style={{ opacity: bekliyor ? 0.7 : 1 }}>
+      <button type="button" className="filtre-dugme" aria-expanded={acik} onClick={() => setAcik(!acik)}>
+        {acik ? "Filtreleri gizle" : `Filtrele${herhangi ? ` (${[...sp.keys()].filter((k) => k !== "sirala").length} seçili)` : ""}`}
+      </button>
       <fieldset>
         <legend>Fiyat</legend>
         <Aralik anahtar="fiyat" deger={sp.get("fiyat")} ipucu={fiyat ? [Math.floor(fiyat.min), Math.ceil(fiyat.max)] : undefined} birim="TL" uygula={tek} />

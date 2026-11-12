@@ -7,7 +7,9 @@ create table if not exists kategori (
   slug        text unique not null,           -- akilli-telefon
   ad          text not null,                  -- Akıllı Telefon
   ust_id      int references kategori(id),    -- ağaç: Elektronik > Telefon > Akıllı Telefon
-  aciklama    text
+  aciklama    text,
+  sira        int not null default 0,         -- menü sırası (lib/katalog/agac-veri.ts)
+  google_id   int                             -- Google ürün taksonomisi kimliği
 );
 
 -- Kategoriye özel özellikler = filtreler. Yeni kategori eklemek kod değil veri işidir.

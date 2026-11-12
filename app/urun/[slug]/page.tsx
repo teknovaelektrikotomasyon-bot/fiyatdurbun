@@ -7,6 +7,7 @@ import { UrunKarti } from "@/components/UrunKarti";
 import { benzerler, fiyatGecmisi, ozellikler, teklifler, tl, urun as urunAl } from "@/lib/sorgular.ts";
 import { q1 } from "@/lib/db.ts";
 import { uye } from "@/lib/oturum.ts";
+import { kategoriYolu } from "@/lib/katalog/agac.ts";
 import { takipEt, takiptenCik } from "@/app/hesabim/islemler";
 
 export const dynamic = "force-dynamic";
@@ -59,7 +60,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonld) }} />
-      <div className="yol"><Link href="/">Ana sayfa</Link> / <Link href={`/kategori/${kat?.slug}`}>{kat?.ad}</Link> / <Link href={`/kategori/${kat?.slug}?marka=${u.marka.toLowerCase()}`}>{u.marka}</Link> / {u.model} {u.varyant}</div>
+      <nav className="yol" aria-label="Konum"><Link href="/">Ana sayfa</Link>{kategoriYolu(kat?.slug ?? "").map((y) => <span key={y.slug}> / <Link href={`/kategori/${y.slug}`}>{y.ad}</Link></span>)} / <Link href={`/kategori/${kat?.slug}?marka=${u.marka.toLowerCase()}`}>{u.marka}</Link> / <span aria-current="page">{u.model} {u.varyant}</span></nav>
       <section className="kutu urun-ust">
         <div className="urun-gorsel">{u.gorsel ? <img src={u.gorsel} alt={ad} /> : <span className="soluk">görsel yok</span>}</div>
         <div className="urun-bilgi">

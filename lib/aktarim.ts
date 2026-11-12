@@ -4,12 +4,29 @@ import { q, q1 } from "./db.ts";
 import type { OkunanTeklif } from "./toplayici/okuyucu.ts";
 import { TELEFON_OZELLIKLERI, bellekBul, eslesmeAnahtari, markaBul, modelBul, ozellikleriCevir, duzle } from "./katalog/telefon.ts";
 import { MAGAZALAR } from "./toplayici/magazalar.ts";
+import { tumKategoriler } from "./katalog/agac.ts";
 
 const KATEGORILER = [{ slug: "akilli-telefon", ad: "Akıllı Telefon", aciklama: "Akıllı telefon fiyatlarını mağaza mağaza karşılaştır." }];
 
 const slugla = (s: string) => duzle(s).replace(/\s+/g, "-").replace(/\+/g, "-plus");
 
+// Kod içindeki kategori ağacını tabloya eşitler (toplu, tek sorguda). Eski veritabanları için sütunları da ekler.
+async function kategoriAgaciniEsitle() {
+  await q("alter table kategori add column if not exists sira int not null default 0");
+  await q("alter table kategori add column if not exists google_id int");
+  const k = tumKategoriler();
+  await q(`insert into kategori (slug, ad, sira, google_id)
+           select * from unnest($1::text[], $2::text[], $3::int[], $4::int[])
+           on conflict (slug) do update set ad=excluded.ad, sira=excluded.sira, google_id=excluded.google_id`,
+    [k.map((x) => x.slug), k.map((x) => x.ad), k.map((x) => x.sira), k.map((x) => x.g)]);
+  await q(`update kategori c set ust_id = u.id
+           from unnest($1::text[], $2::text[]) as x(slug, ust) left join kategori u on u.slug = x.ust
+           where c.slug = x.slug and c.ust_id is distinct from u.id`,
+    [k.map((x) => x.slug), k.map((x) => x.ust)]);
+}
+
 export async function katalogHazirla() {
+  await kategoriAgaciniEsitle();
   for (const k of KATEGORILER) {
     await q("insert into kategori (slug, ad, aciklama) values ($1,$2,$3) on conflict (slug) do update set ad=excluded.ad, aciklama=excluded.aciklama", [k.slug, k.ad, k.aciklama]);
   }

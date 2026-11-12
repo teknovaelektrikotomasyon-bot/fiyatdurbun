@@ -3,6 +3,7 @@ import { UrunKarti } from "@/components/UrunKarti";
 import { Olcek } from "@/components/Olcek";
 import { enCokDusenler, fiyatGecmisi, populer } from "@/lib/sorgular.ts";
 import { q1 } from "@/lib/db.ts";
+import { KATEGORI_AGACI } from "@/lib/katalog/agac.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +56,17 @@ export default async function AnaSayfa() {
         Şu an <b>{say?.magaza ?? 0} mağazada</b> satılan <b>{say?.urun ?? 0} telefonu</b> izliyoruz. Fiyatlar günde dört kez okunuyor. <Link href="/magazalar">Hangi mağazalar, nasıl kontrol ediliyor?</Link>
       </p>
 
+      <section className="serit">
+        <div className="serit-baslik"><h2>Kategoriler</h2><Link href="/kategoriler">Tüm kategoriler</Link></div>
+        <div className="kok-kartlar">
+          {KATEGORI_AGACI.map((k) => (
+            <Link key={k.slug} href={`/kategori/${k.slug}`} className="kok-kart">
+              <span className="kok-kart-ad">{k.ad}</span>
+              <span className="kok-kart-alt">{k.alt?.slice(0, 3).map((a) => a.ad).join(", ")}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
       {dusen.length > 0 && (
         <section className="serit">
           <div className="serit-baslik"><h2>Son 30 günde en çok düşenler</h2><Link href="/kategori/akilli-telefon?sirala=dusen">Tümünü gör</Link></div>

@@ -39,9 +39,9 @@ const URUN_TABAN = `
   from urun u join marka mk on mk.id = u.marka_id
   left join t on t.urun_id = u.id left join g on g.urun_id = u.id`;
 
-export async function urunler(kategoriId: number, f: Filtre, ozl: Ozellik[], sirala = "fiyat", limit = 60) {
-  const w: string[] = ["kategori_id = $1", "fiyat is not null"];
-  const p: unknown[] = [kategoriId];
+export async function urunler(kategoriIdler: number[], f: Filtre, ozl: Ozellik[], sirala = "fiyat", limit = 60, atla = 0) {
+  const w: string[] = ["kategori_id = any($1::int[])", "fiyat is not null"];
+  const p: unknown[] = [kategoriIdler];
   const ekle = (v: unknown) => { p.push(v); return "$" + p.length; };
   if (f.marka) w.push(`lower(marka) = any(${ekle(f.marka.toLowerCase().split(","))})`);
   if (f.fiyat) {
@@ -63,28 +63,42 @@ export async function urunler(kategoriId: number, f: Filtre, ozl: Ozellik[], sir
     }
   }
   const sira = sirala === "pahali" ? "fiyat desc" : sirala === "dusen" ? "(fiyat - coalesce(once30, fiyat)) / nullif(once30,0) asc nulls last" : sirala === "magaza" ? "magaza_sayisi desc, fiyat" : "fiyat asc";
-  return q<UrunKart>(`select * from (${URUN_TABAN}) x where ${w.join(" and ")} order by ${sira} limit ${Number(limit)}`, p);
+  return q<UrunKart>(`select * from (${URUN_TABAN}) x where ${w.join(" and ")} order by ${sira}, id limit ${Number(limit)} offset ${Math.max(0, Number(atla) || 0)}`, p);
 }
 
 // Filtre kenar çubuğu için: seçenekler ve sayılar (seçili filtrelerden bağımsız; sade tutuyoruz).
-export async function filtreSecenekleri(kategoriId: number, ozl: Ozellik[]) {
+export async function filtreSecenekleri(kategoriIdler: number[], ozl: Ozellik[]) {
+  const kategoriId = kategoriIdler;
   const markalar = await q<{ ad: string; n: number }>(
     `select mk.ad, count(*)::int as n from urun u join marka mk on mk.id=u.marka_id
-     where u.kategori_id=$1 and exists (select 1 from teklif t where t.urun_id=u.id and t.stokta) group by mk.ad order by n desc, mk.ad`, [kategoriId]);
+     where u.kategori_id = any($1::int[]) and exists (select 1 from teklif t where t.urun_id=u.id and t.stokta) group by mk.ad order by n desc, mk.ad`, [kategoriId]);
   const fiyat = await q1<{ min: number; max: number }>(
-    `select min(fiyat)::float8 as min, max(fiyat)::float8 as max from teklif t join urun u on u.id=t.urun_id where u.kategori_id=$1 and t.stokta`, [kategoriId]);
+    `select min(fiyat)::float8 as min, max(fiyat)::float8 as max from teklif t join urun u on u.id=t.urun_id where u.kategori_id = any($1::int[]) and t.stokta`, [kategoriId]);
   const secenek: Record<string, { deger: string; n: number }[]> = {};
   const aralik: Record<string, { min: number; max: number }> = {};
   for (const o of ozl) {
     const alan = `ozellikler->>'${o.anahtar}'`;
     if (o.filtre === "coklu" || o.filtre === "evet_hayir") {
-      secenek[o.anahtar] = await q(`select ${alan} as deger, count(*)::int as n from urun where kategori_id=$1 and ${alan} is not null group by 1 order by ${o.tur === "sayi" ? `(${alan})::numeric` : "n desc"}`, [kategoriId]);
+      secenek[o.anahtar] = await q(`select ${alan} as deger, count(*)::int as n from urun where kategori_id = any($1::int[]) and ${alan} is not null group by 1 order by ${o.tur === "sayi" ? `(${alan})::numeric` : "n desc"}`, [kategoriId]);
     } else if (o.filtre === "aralik") {
-      const r = await q1<{ min: number; max: number }>(`select min((${alan})::numeric)::float8 as min, max((${alan})::numeric)::float8 as max from urun where kategori_id=$1`, [kategoriId]);
+      const r = await q1<{ min: number; max: number }>(`select min((${alan})::numeric)::float8 as min, max((${alan})::numeric)::float8 as max from urun where kategori_id = any($1::int[])`, [kategoriId]);
       if (r?.min != null) aralik[o.anahtar] = r;
     }
   }
   return { markalar, fiyat, secenek, aralik };
+}
+
+// Kategori slug'ı → id eşlemesi ve her kategoride stokta fiyatı olan ürün sayısı (alt kategoriler toplanmadan).
+export async function kategoriIdleri(sluglar: string[]) {
+  if (!sluglar.length) return [];
+  return q<{ id: number; slug: string }>("select id, slug from kategori where slug = any($1::text[])", [sluglar]);
+}
+
+export async function kategoriUrunSayilari() {
+  const r = await q<{ slug: string; n: number }>(
+    `select k.slug, count(distinct u.id)::int as n from kategori k join urun u on u.kategori_id = k.id
+     where exists (select 1 from teklif t where t.urun_id = u.id and t.stokta) group by k.slug`);
+  return new Map(r.map((x) => [x.slug, x.n]));
 }
 
 export async function urun(slug: string) {
