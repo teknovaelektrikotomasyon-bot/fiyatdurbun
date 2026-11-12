@@ -16,6 +16,7 @@ jobs:
     timeout-minutes: 60
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SORGU_ZAMAN_ASIMI_MS: "60000"
     steps:
       - name: Secret kontrolü
         # Şifreyi yazdırmadan adresin biçimini denetler.

@@ -13,7 +13,7 @@ async function motorKur(): Promise<Motor> {
   let m: Motor;
   if (url) {
     const postgres = (await import("postgres")).default;
-    const sql = postgres(url, { max: 5, prepare: false, idle_timeout: 20 });
+    const sql = postgres(url, { max: 5, prepare: false, idle_timeout: 20, connect_timeout: 10, max_lifetime: 60 * 5 });
     m = { sorgu: (t, p) => sql.unsafe(t, p as never[]) as unknown as Promise<Satir[]>, kapat: () => sql.end() };
   } else {
     const { PGlite } = await import("@electric-sql/pglite");
@@ -32,8 +32,29 @@ async function motorKur(): Promise<Motor> {
 
 const motor = () => (g.__fdMotor ??= motorKur());
 
+// Sunucusuz ortamda işlev dondurulup uyandığında havuzdaki bağlantı ölü olabilir (veritabanı tarafı kapatmıştır);
+// o zaman sorgu cevapsız kalır. Belirli sürede cevap gelmezse havuz kapatılıp yeniden kurulur ve sorgu bir kez
+// daha denenir. Toplayıcı gibi uzun işler için süre ortam değişkeniyle büyütülebilir.
+const SORGU_SURESI = Number(process.env.SORGU_ZAMAN_ASIMI_MS ?? 8000);
+
+async function sureli<T>(is: Promise<T>, ms: number): Promise<T> {
+  let zamanlayici: ReturnType<typeof setTimeout> | undefined;
+  const asim = new Promise<never>((_, red) => { zamanlayici = setTimeout(() => red(Object.assign(new Error("sorgu zaman aşımı"), { zamanAsimi: true })), ms); });
+  try { return await Promise.race([is, asim]); } finally { clearTimeout(zamanlayici); }
+}
+
 export async function q<T = Satir>(metin: string, p: unknown[] = []): Promise<T[]> {
-  return (await (await motor()).sorgu(metin, p)) as T[];
+  try {
+    return (await sureli((await motor()).sorgu(metin, p), SORGU_SURESI)) as T[];
+  } catch (e) {
+    const err = e as { zamanAsimi?: boolean; code?: string };
+    const baglantiHatasi = err.zamanAsimi || ["ECONNRESET", "EPIPE", "CONNECTION_CLOSED", "CONNECTION_ENDED", "CONNECTION_DESTROYED"].includes(err.code ?? "");
+    if (!baglantiHatasi || !process.env.DATABASE_URL) throw e;
+    const eski = g.__fdMotor;
+    g.__fdMotor = undefined;
+    eski?.then((m) => m.kapat()).catch(() => {});
+    return (await sureli((await motor()).sorgu(metin, p), SORGU_SURESI)) as T[];
+  }
 }
 export async function q1<T = Satir>(metin: string, p: unknown[] = []): Promise<T | undefined> {
   return (await q<T>(metin, p))[0];

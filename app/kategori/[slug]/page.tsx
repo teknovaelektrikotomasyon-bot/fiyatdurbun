@@ -46,7 +46,9 @@ export async function generateMetadata({ params, searchParams }: P): Promise<Met
   const markaAdi = durum.marka ? markalar.find((m) => m.ad.toLowerCase() === durum.marka)?.ad : undefined;
   const dolu = Boolean(oz?.urun) && (!durum.marka || Boolean(markaAdi));
   const ad = `${markaAdi ? `${markaAdi} ` : ""}${d.ad}`;
-  const baslik = dolu ? `${ad} Fiyatları${durum.marka ? "" : " ve Modelleri"} (${ayYil()})${durum.sayfa > 1 ? ` - Sayfa ${durum.sayfa}` : ""}` : `${ad} Fiyatları`;
+  // "ve Modelleri" yalnızca model kavramı olan bölümlerde (telefon, beyaz eşya...), market ürünlerinde değil.
+  const modelli = ["elektronik", "beyaz-esya-ev-aletleri", "otomotiv", "mobilya"].includes(kategoriYolu(slug)[0]?.slug ?? "");
+  const baslik = dolu ? `${ad} Fiyatları${durum.marka || !modelli ? "" : " ve Modelleri"} (${ayYil()})${durum.sayfa > 1 ? ` - Sayfa ${durum.sayfa}` : ""}` : `${ad} Fiyatları`;
   const aciklama = dolu && oz
     ? kirp(`${ad} fiyatları: ${oz.urun} modelin ${oz.magaza} mağazadaki fiyatı karşılaştırıldı. En ucuz ${tl(oz.min)}'den başlayan fiyatlar, 30 günlük fiyat geçmişi ve sahte indirim kontrolü.`)
     : `${d.ad} fiyatlarını mağaza mağaza karşılaştırın, fiyat geçmişini görün, ucuzlayınca haber alın.`;

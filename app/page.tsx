@@ -32,7 +32,7 @@ export default async function AnaSayfa() {
         <div className="kap bant-ic">
           <div className="bant-metin">
             <h1>Fiyatı yakından görün.</h1>
-            <p>Fiyat Dürbün telefon fiyatlarını mağaza mağaza okur ve her gün kaydeder. Bugünkü fiyatın son 30 günün neresinde durduğunu tek bakışta gösterir.</p>
+            <p>Fiyat Dürbün ürün fiyatlarını mağaza mağaza okur ve her gün kaydeder. Bugünkü fiyatın son 30 günün neresinde durduğunu tek bakışta gösterir.</p>
             <form className="buyuk-arama" action="/ara" role="search">
               <input name="q" placeholder="ör. iPhone 17 256 GB" aria-label="Ürün ara" />
               <button>Fiyatları bul</button>
@@ -59,7 +59,7 @@ export default async function AnaSayfa() {
       </section>
 
       <p className="kapsam">
-        Şu an <b>{say?.magaza ?? 0} mağazada</b> satılan <b>{say?.urun ?? 0} telefonu</b> izliyoruz. Fiyatlar günde dört kez okunuyor. <Link href="/magazalar">Hangi mağazalar, nasıl kontrol ediliyor?</Link>
+        Şu an <b>{say?.magaza ?? 0} mağazada</b> satılan <b>{(say?.urun ?? 0).toLocaleString("tr-TR")} ürünü</b> izliyoruz. Fiyatlar günde dört kez okunuyor. <Link href="/magazalar">Hangi mağazalar, nasıl kontrol ediliyor?</Link>
       </p>
 
       <section className="serit">

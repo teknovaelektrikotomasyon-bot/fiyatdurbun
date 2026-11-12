@@ -4,7 +4,10 @@
 export type Kesif =
   | { tur: "sitemap"; url: string; filtre: RegExp }                 // site haritasından ürün linkleri
   | { tur: "liste"; url: string; urunLinki: RegExp; sayfa?: (u: string, n: number) => string }
-  | { tur: "ozel"; oku: (bekleme: number) => Promise<OkunanTeklif[]> };  // sayfa başına çok seçenek (resmî mağazalar)
+  | { tur: "ozel"; oku: (bekleme: number) => Promise<OkunanTeklif[]> }  // sayfa başına çok seçenek (resmî mağazalar)
+  // Genel mağaza: site haritasındaki ürünler, kategori kategori yolundan/addan bulunur. Her turda en çok `butce` sayfa
+  // okunur: önce hiç okunmamışlar, sonra en eski fiyatlar (siteyi yormadan kataloğu birkaç günde tamamlar).
+  | { tur: "genel"; filtre: RegExp; kokler: string[]; butce: number };
 
 export type MagazaTanimi = {
   slug: string;
@@ -58,6 +61,25 @@ export const MAGAZALAR: MagazaTanimi[] = [
     kesif: { "akilli-telefon": { tur: "ozel", oku: samsungTurkiye } },
     bekleme: 3000,
   },
+  // --- Genel mağazalar (13 Kasım erişim testi: robots izinli, 403 yok, ürün sayfasında schema.org fiyatı var) ---
+  { slug: "karaca", ad: "Karaca", site: "https://www.karaca.com", durum: "acik", bekleme: 3000,
+    kesif: { genel: { tur: "genel", filtre: /karaca\.com\/[^/]+-\d{5,}$|karaca\.com\/urun\//, kokler: ["ev-dekorasyon-mutfak", "beyaz-esya-ev-aletleri", "ofis-kirtasiye"], butce: 400 } } },
+  { slug: "englishhome", ad: "English Home", site: "https://www.englishhome.com", durum: "acik", bekleme: 3000,
+    kesif: { genel: { tur: "genel", filtre: /englishhome\.com\/[a-z0-9-]+-\d{4,}$/, kokler: ["ev-dekorasyon-mutfak"], butce: 400 } } },
+  { slug: "teknostore", ad: "Teknostore", site: "https://www.teknostore.com", durum: "acik", bekleme: 3000,
+    kesif: { genel: { tur: "genel", filtre: /teknostore\.com\/[a-z0-9-]+$/, kokler: ["elektronik", "beyaz-esya-ev-aletleri", "otomotiv"], butce: 400 } } },
+  { slug: "migros", ad: "Migros", site: "https://www.migros.com.tr", durum: "acik", bekleme: 3000,
+    kesif: { genel: { tur: "genel", filtre: /migros\.com\.tr\/[a-z0-9-]+-p-[0-9a-f]+$/, kokler: ["supermarket", "kozmetik-kisisel-bakim", "anne-bebek-oyuncak", "pet-shop", "ev-dekorasyon-mutfak"], butce: 500 } } },
+  { slug: "macrocenter", ad: "Macrocenter", site: "https://www.macrocenter.com.tr", durum: "acik", bekleme: 3000,
+    kesif: { genel: { tur: "genel", filtre: /macrocenter\.com\.tr\/[a-z0-9-]+-p-[0-9a-f]+$/, kokler: ["supermarket", "kozmetik-kisisel-bakim", "anne-bebek-oyuncak", "pet-shop", "ev-dekorasyon-mutfak"], butce: 500 } } },
+  { slug: "rossmann", ad: "Rossmann", site: "https://www.rossmann.com.tr", durum: "acik", bekleme: 3000,
+    kesif: { genel: { tur: "genel", filtre: /rossmann\.com\.tr\/[a-z0-9-]+-p-[a-z0-9]+$/, kokler: ["kozmetik-kisisel-bakim", "anne-bebek-oyuncak", "ev-dekorasyon-mutfak", "supermarket"], butce: 500 } } },
+  { slug: "joker", ad: "Joker", site: "https://www.joker.com.tr", durum: "acik", bekleme: 3000,
+    kesif: { genel: { tur: "genel", filtre: /joker\.com\.tr\/products\//, kokler: ["anne-bebek-oyuncak"], butce: 400 } } },
+  { slug: "petburada", ad: "Pet Burada", site: "https://www.petburada.com", durum: "acik", bekleme: 3000,
+    kesif: { genel: { tur: "genel", filtre: /petburada\.com\/[a-z0-9-]+$/, kokler: ["pet-shop"], butce: 500 } } },
+  { slug: "petlebi", ad: "Petlebi", site: "https://www.petlebi.com", durum: "acik", bekleme: 3000,
+    kesif: { genel: { tur: "genel", filtre: /petlebi\.com\/[a-z0-9-]+\/[a-z0-9-]+\.html$|petlebi\.com\/urun\//, kokler: ["pet-shop"], butce: 500 } } },
   // Aşağıdakiler sunucudan 403 veriyor; korumayı aşmıyoruz. Satış ortaklığı beslemesi ya da izinle eklenecek.
   { slug: "hepsiburada", ad: "Hepsiburada", site: "https://www.hepsiburada.com", durum: "engelli", kesif: {}, bekleme: 4000 },
   { slug: "trendyol", ad: "Trendyol", site: "https://www.trendyol.com", durum: "engelli", kesif: {}, bekleme: 4000 },
@@ -68,7 +90,7 @@ export const MAGAZALAR: MagazaTanimi[] = [
 
 export const magaza = (slug: string) => MAGAZALAR.find((m) => m.slug === slug);
 
-export function linkleriCikar(k: Exclude<Kesif, { tur: "ozel" }>, metin: string, site: string): string[] {
+export function linkleriCikar(k: Extract<Kesif, { tur: "sitemap" | "liste" }>, metin: string, site: string): string[] {
   const s = new Set<string>();
   if (k.tur === "sitemap") {
     for (const m of metin.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)) if (k.filtre.test(m[1])) s.add(m[1].replace(/^http:/, "https:"));

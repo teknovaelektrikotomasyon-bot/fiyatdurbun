@@ -5,6 +5,8 @@ import type { OkunanTeklif } from "./toplayici/okuyucu.ts";
 import { TELEFON_OZELLIKLERI, bellekBul, eslesmeAnahtari, markaBul, modelBul, ozellikleriCevir, duzle } from "./katalog/telefon.ts";
 import { MAGAZALAR } from "./toplayici/magazalar.ts";
 import { tumKategoriler } from "./katalog/agac.ts";
+import { duzMetin, kategoriEsle } from "./katalog/esle.ts";
+import { createHash } from "node:crypto";
 
 const KATEGORILER = [{ slug: "akilli-telefon", ad: "Akıllı Telefon", aciklama: "Akıllı telefon fiyatlarını mağaza mağaza karşılaştır." }];
 
@@ -110,4 +112,80 @@ export async function kaydet(magazaSlug: string, kategoriSlug: string, t: Kayit,
   }
   await q("update magaza set son_okuma=now() where id=$1", [mg.id]);
   return { urunId: sonUrun, anahtar };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Genel ürünler (telefon dışı): kategori mağazanın kategori yolundan ve ürün adından bulunur (lib/katalog/esle.ts).
+// Ürün kimliği: barkod (GTIN) varsa barkod, yoksa marka + normalize ad. Aynı barkod ya da birebir aynı ad farklı
+// mağazalarda tek ürün sayfasında birleşir. Kategorisi bulunamayan ürün kaydedilmez (yanlış yere konmasın).
+
+const kategoriIdOnbellek = new Map<string, number>();
+async function kategoriId(slug: string) {
+  if (!kategoriIdOnbellek.has(slug)) {
+    const r = await q1<{ id: number }>("select id from kategori where slug=$1", [slug]);
+    if (r) kategoriIdOnbellek.set(slug, r.id);
+  }
+  return kategoriIdOnbellek.get(slug);
+}
+
+const markaTemizle = (m: string) => m.replace(/\s+(ev aletleri|türkiye|turkiye|official)$/i, "").replace(/\s+/g, " ").trim();
+
+export async function kaydetGenel(magazaSlug: string, t: Kayit, kokler: string[], gun = new Date().toISOString().slice(0, 10)) {
+  if (!(t.fiyat > 0) || !t.ad) return { durum: "fiyatsiz" as const };
+  const es = kategoriEsle(t.kategoriYolu, t.ad, kokler);
+  if (!es) return { durum: "kategorisiz" as const };
+  if (es.slug === "akilli-telefon") { await kaydet(magazaSlug, "akilli-telefon", t, gun); return { durum: "telefon" as const }; }
+
+  const mg = await q1<{ id: number }>("select id from magaza where slug=$1", [magazaSlug]);
+  const katId = await kategoriId(es.slug);
+  if (!mg || !katId) throw new Error("mağaza/kategori yok: " + magazaSlug + "/" + es.slug);
+
+  const marka = markaTemizle(t.marka || t.ad.split(/\s+/)[0]);
+  const adSade = t.ad.replace(/\s+/g, " ").trim();
+  // Ad marka ile başlıyorsa model kısmı markasız tutulur ("Eti Crax ..." → marka Eti, model "Crax ...").
+  const model = duzMetin(adSade).startsWith(duzMetin(marka) + " ") ? adSade.slice(marka.length).trim() : adSade;
+  const anahtar = t.gtin ? `gtin:${t.gtin}` : `ad:${duzMetin(`${marka} ${model}`)}`;
+
+  let urunId = t.gtin ? (await q1<{ id: number }>("select id from urun where $1 = any(gtin)", [t.gtin]))?.id : undefined;
+  if (!urunId) urunId = (await q1<{ id: number }>("select id from urun where eslesme_anahtari=$1", [anahtar]))?.id;
+  if (!urunId) {
+    const mSlug = slugla(marka);
+    await q("insert into marka (slug, ad) values ($1,$2) on conflict (slug) do nothing", [mSlug, marka]);
+    const mk = await q1<{ id: number }>("select id from marka where slug=$1", [mSlug]);
+    const taban = slugla(`${marka} ${model}`).slice(0, 90).replace(/-+$/, "");
+    const ek = createHash("sha1").update(anahtar).digest("hex").slice(0, 6);
+    for (const slug of [taban, `${taban}-${ek}`]) {
+      const y = await q1<{ id: number }>(
+        `insert into urun (kategori_id, marka_id, model, varyant, slug, gtin, ozellikler, gorsel, eslesme_anahtari)
+         values ($1,$2,$3,null,$4,$5,'{}'::jsonb,$6,$7) on conflict (slug) do nothing returning id`,
+        [katId, mk!.id, model, slug, t.gtin ? [t.gtin] : [], t.gorsel ?? null, anahtar]);
+      if (y) { urunId = y.id; break; }
+    }
+    if (!urunId) return { durum: "slug-cakismasi" as const };
+  } else {
+    await q(`update urun set gorsel = coalesce(gorsel, $2),
+               gtin = case when $3::text is null or $3 = any(gtin) then gtin else array_append(gtin, $3) end
+             where id=$1`, [urunId, t.gorsel ?? null, t.gtin ?? null]);
+  }
+
+  const kod = t.sku ?? t.url;
+  const tk = await q1<{ id: number; urun_id: number | null }>(
+    `insert into teklif (urun_id, magaza_id, magaza_kodu, baslik, url, fiyat, kargo, stokta, gtin, renk, satici, guncelleme)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11, now())
+     on conflict (magaza_id, magaza_kodu) do update set urun_id=coalesce(teklif.urun_id, excluded.urun_id), baslik=excluded.baslik, url=excluded.url,
+       fiyat=excluded.fiyat, kargo=excluded.kargo, stokta=excluded.stokta, gtin=excluded.gtin, renk=excluded.renk, satici=excluded.satici, guncelleme=now()
+     returning id, urun_id`,
+    [urunId, mg.id, kod, adSade, t.url, t.fiyat, t.kargo ?? null, t.stokta, t.gtin ?? null, t.renk ?? null, t.satici ?? null]);
+  if (tk?.urun_id && t.stokta) {
+    await q(`insert into fiyat_gecmisi (urun_id, magaza_id, gun, fiyat) values ($1,$2,$3,$4)
+             on conflict (urun_id, magaza_id, gun) do update set fiyat = least(fiyat_gecmisi.fiyat, excluded.fiyat)`, [tk.urun_id, mg.id, gun, t.fiyat]);
+  }
+  return { durum: "kaydedildi" as const, kategori: es.slug };
+}
+
+/** Mağazanın okunmuş ürün adresleri ve son okuma zamanları (kademeli tarama için). */
+export async function okunmusAdresler(magazaSlug: string) {
+  const r = await q<{ url: string; guncelleme: string }>(
+    "select t.url, t.guncelleme::text from teklif t join magaza m on m.id=t.magaza_id where m.slug=$1", [magazaSlug]);
+  return new Map(r.map((x) => [x.url, Date.parse(x.guncelleme)]));
 }
