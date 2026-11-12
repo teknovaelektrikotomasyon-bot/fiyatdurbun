@@ -13,6 +13,7 @@ export type OkunanTeklif = {
   stokta: boolean;
   kargo?: number;
   satici?: string;        // pazaryerinde satıcı adı
+  renk?: string;
   gorsel?: string;
   kategoriYolu?: string[];
   puan?: number;
@@ -109,8 +110,9 @@ export function urunOku(html: string, url: string): OkunanTeklif | null {
     para: String(secili.priceCurrency ?? "TRY"),
     stokta: !/OutOfStock|SoldOut|Discontinued/i.test(stok),
     kargo: sayi(kargoDeger?.value),
-    satici: metin(secili.seller),
+    satici: metin(secili.seller) ?? metin(secili.offeredBy),
     gorsel,
+    renk: metin(p.color),
     kategoriYolu,
     puan: sayi(rating?.ratingValue),
     yorumSayisi: sayi(rating?.reviewCount ?? rating?.ratingCount),

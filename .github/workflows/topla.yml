@@ -1,0 +1,31 @@
+name: Fiyat toplama
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Mağaza başına en çok ürün (boş = hepsi)"
+        required: false
+  schedule:
+    - cron: "17 */6 * * *"   # 6 saatte bir
+jobs:
+  topla:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Topla
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          EK=""; [ -n "$DATABASE_URL" ] && EK="--db"
+          node --experimental-strip-types scripts/topla.ts --limit "${{ inputs.limit || 0 }}" --cikti veri/okunan.jsonl $EK
+      - uses: actions/upload-artifact@v4
+        with:
+          name: okunan
+          path: veri/okunan.jsonl
+          retention-days: 14

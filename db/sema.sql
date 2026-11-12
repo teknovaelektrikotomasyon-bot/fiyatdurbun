@@ -59,7 +59,20 @@ create table if not exists magaza (
   kargo_bedava_esik numeric(12,2),            -- bu tutarın üstü ücretsiz kargo
   kargo_ucret numeric(12,2) not null default 0,
   aktif       boolean not null default true,
-  son_okuma   timestamptz
+  son_okuma   timestamptz,
+  -- Güvenilirlik: küçük mağaza da olur ama yayına almadan önce kontrol edilir.
+  unvan        text,                           -- ticari unvan
+  vergi_no     text,
+  mersis_no    text,
+  etbis        boolean,                        -- Ticaret Bakanlığı ETBİS kaydı doğrulandı mı
+  adres        text,
+  telefon      text,
+  iade_gun     int,                            -- cayma/iade süresi
+  yetkili_satici text,                         -- ör. "Apple Premium Partner", "Samsung yetkili"
+  sikayet_puani numeric(3,1),                  -- Şikayetvar memnuniyet / çözüm puanı (elle girilir)
+  guven_notu   text,                           -- kontrol eden kişinin notu
+  guven_kontrol timestamptz,                   -- son kontrol tarihi
+  durum        text not null default 'inceleniyor' check (durum in ('inceleniyor','onayli','uyari','kapali'))
 );
 
 -- Teklif: bir mağazanın bir ürün için güncel fiyatı.
@@ -77,6 +90,9 @@ create table if not exists teklif (
   stokta       boolean not null default true,
   gtin         text,
   renk         text,
+  satici       text,                          -- pazaryerinde asıl satıcı
+  garanti      text,                          -- distribütör / ithalatçı / yurt dışı…
+  ozellik_ham  jsonb,                         -- mağazanın teknik özellik tablosu (ham)
   guncelleme   timestamptz not null default now(),
   unique (magaza_id, magaza_kodu)
 );
@@ -108,11 +124,42 @@ create table if not exists tiklama (
   kaynak    text                              -- urun-sayfasi, kategori, alarm-epostasi
 );
 
-create table if not exists fiyat_alarmi (
+-- Üyelik: e-postayla şifresiz giriş (bağlantı gönderilir)
+create table if not exists uye (
   id         serial primary key,
-  urun_id    int not null references urun(id),
-  eposta     text not null,
-  hedef      numeric(12,2) not null,
+  eposta     text unique not null,
+  ad         text,
   olusturma  timestamptz not null default now(),
-  tetiklendi timestamptz
+  son_giris  timestamptz
+);
+
+create table if not exists giris_jetonu (
+  jeton_ozet text primary key,                -- jetonun SHA-256 özeti (jetonun kendisi saklanmaz)
+  eposta     text not null,
+  son        timestamptz not null,
+  kullanildi timestamptz
+);
+
+-- Takip: üye bir ürünü takip eder; fiyat düşünce ya da hedefin altına inince bildirilir.
+create table if not exists takip (
+  uye_id     int not null references uye(id) on delete cascade,
+  urun_id    int not null references urun(id),
+  hedef      numeric(12,2),                   -- null = her düşüşte haber ver
+  eklenme_fiyati numeric(12,2),
+  son_bildirilen numeric(12,2),
+  son_bildirim timestamptz,
+  olusturma  timestamptz not null default now(),
+  primary key (uye_id, urun_id)
+);
+
+create table if not exists bildirim (
+  id        bigserial primary key,
+  uye_id    int not null references uye(id) on delete cascade,
+  urun_id   int not null references urun(id),
+  eski      numeric(12,2),
+  yeni      numeric(12,2) not null,
+  magaza_id int references magaza(id),
+  kanal     text not null default 'eposta',
+  durum     text not null default 'bekliyor',  -- bekliyor / gonderildi / hata
+  zaman     timestamptz not null default now()
 );

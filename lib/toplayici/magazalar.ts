@@ -1,54 +1,65 @@
-// Mağaza tanımları: nereden ürün linki bulunur, link nasıl tanınır.
-// Fiyat okuma tüm mağazalarda ortak (okuyucu.ts); burada yalnız keşif bilgisi var.
+// Mağaza tanımları: ürün linkleri nereden bulunur, teknik özellikler nasıl okunur.
+// Fiyat okuma tüm mağazalarda ortak (okuyucu.ts, schema.org Product); burada yalnız mağazaya özgü bilgi var.
+
+export type Kesif =
+  | { tur: "sitemap"; url: string; filtre: RegExp }                 // site haritasından ürün linkleri
+  | { tur: "liste"; url: string; urunLinki: RegExp; sayfa?: (u: string, n: number) => string };
 
 export type MagazaTanimi = {
   slug: string;
   ad: string;
   site: string;
-  kategoriler: Record<string, string[]>;   // bizim kategori slug'ı → mağazanın liste sayfaları
-  urunLinki: RegExp;                         // liste sayfasındaki ürün linklerini yakalar (1. grup = yol)
-  sayfa?: (url: string, n: number) => string; // sayfalama
-  bekleme: number;                           // istekler arası en az bekleme (ms)
+  durum: "acik" | "engelli";             // engelli: sunucudan gelen botumuza 403 veriyor (2026-11-12 testi)
+  kesif: Record<string, Kesif>;          // bizim kategori slug'ı → keşif yöntemi
+  ozellikOku?: (html: string) => Record<string, string>; // sayfadaki teknik özellik tablosu
+  bekleme: number;                       // aynı siteye istekler arası en az bekleme (ms)
 };
+
+const temiz = (s: string) => s.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
 
 export const MAGAZALAR: MagazaTanimi[] = [
   {
-    slug: "hepsiburada", ad: "Hepsiburada", site: "https://www.hepsiburada.com",
-    kategoriler: { "akilli-telefon": ["https://www.hepsiburada.com/cep-telefonlari-c-371965"] },
-    urunLinki: /href="(\/[a-z0-9-]+-p-[A-Z0-9]{8,})(?:[?"#])/g,
-    sayfa: (u, n) => (n > 1 ? `${u}?sayfa=${n}` : u),
-    bekleme: 4000,
-  },
-  {
-    slug: "trendyol", ad: "Trendyol", site: "https://www.trendyol.com",
-    kategoriler: { "akilli-telefon": ["https://www.trendyol.com/cep-telefonu-x-c103498"] },
-    urunLinki: /href="(\/[a-z0-9-]+\/[a-z0-9-]+-p-\d+)(?:[?"#])/g,
-    sayfa: (u, n) => (n > 1 ? `${u}?pi=${n}` : u),
-    bekleme: 4000,
-  },
-  {
-    slug: "teknosa", ad: "Teknosa", site: "https://www.teknosa.com",
-    kategoriler: { "akilli-telefon": ["https://www.teknosa.com/cep-telefonu-c-100001"] },
-    urunLinki: /href="(\/[a-z0-9-]+-p-\d+)(?:[?"#])/g,
-    sayfa: (u, n) => (n > 1 ? `${u}?page=${n - 1}` : u),
+    slug: "pasaj", ad: "Turkcell Pasaj", site: "https://www.turkcell.com.tr", durum: "acik",
+    kesif: {
+      "akilli-telefon": {
+        tur: "sitemap", url: "https://www.turkcell.com.tr/sitemap-pasaj-devices.xml",
+        filtre: /\/pasaj\/cep-telefonu\/(ios|android)-telefonlar\//,
+      },
+    },
+    ozellikOku: (html) => {
+      const o: Record<string, string> = {};
+      const re = /features__title[^>]*>([\s\S]*?)<\/div>\s*<div[^>]*features__text[^>]*>([\s\S]*?)<\/div>/g;
+      for (const m of html.matchAll(re)) { const k = temiz(m[1]); if (k && !(k in o)) o[k] = temiz(m[2]); }
+      return o;
+    },
     bekleme: 3000,
   },
   {
-    slug: "vatan", ad: "Vatan Bilgisayar", site: "https://www.vatanbilgisayar.com",
-    kategoriler: { "akilli-telefon": ["https://www.vatanbilgisayar.com/cep-telefonu-modelleri/"] },
-    urunLinki: /href="(\/[a-z0-9-]+(?:telefon|iphone|galaxy|redmi|xiaomi)[a-z0-9-]*\.html)"/g,
+    slug: "troyestore", ad: "Troy Estore", site: "https://www.troyestore.com", durum: "acik",
+    kesif: {
+      "akilli-telefon": {
+        tur: "sitemap", url: "https://www.troyestore.com/sitemap-product.xml",
+        filtre: /troyestore\.com\/iphone-\d+[a-z0-9-]*-\d+(gb|tb)[a-z0-9-]*_\d+$/,
+      },
+    },
     bekleme: 3000,
   },
-  {
-    slug: "mediamarkt", ad: "MediaMarkt", site: "https://www.mediamarkt.com.tr",
-    kategoriler: { "akilli-telefon": ["https://www.mediamarkt.com.tr/tr/category/cep-telefonlari-504171.html"] },
-    urunLinki: /href="(\/tr\/product\/[^"?#]+\.html)"/g,
-    bekleme: 3000,
-  },
+  // Aşağıdakiler sunucudan 403 veriyor; korumayı aşmıyoruz. Satış ortaklığı beslemesi ya da izinle eklenecek.
+  { slug: "hepsiburada", ad: "Hepsiburada", site: "https://www.hepsiburada.com", durum: "engelli", kesif: {}, bekleme: 4000 },
+  { slug: "trendyol", ad: "Trendyol", site: "https://www.trendyol.com", durum: "engelli", kesif: {}, bekleme: 4000 },
+  { slug: "teknosa", ad: "Teknosa", site: "https://www.teknosa.com", durum: "engelli", kesif: {}, bekleme: 3000 },
+  { slug: "vatan", ad: "Vatan Bilgisayar", site: "https://www.vatanbilgisayar.com", durum: "engelli", kesif: {}, bekleme: 3000 },
+  { slug: "mediamarkt", ad: "MediaMarkt", site: "https://www.mediamarkt.com.tr", durum: "engelli", kesif: {}, bekleme: 3000 },
 ];
 
-export function urunLinkleri(m: MagazaTanimi, html: string) {
+export const magaza = (slug: string) => MAGAZALAR.find((m) => m.slug === slug);
+
+export function linkleriCikar(k: Kesif, metin: string, site: string): string[] {
   const s = new Set<string>();
-  for (const x of html.matchAll(m.urunLinki)) s.add(new URL(x[1], m.site).toString());
+  if (k.tur === "sitemap") {
+    for (const m of metin.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)) if (k.filtre.test(m[1])) s.add(m[1].replace(/^http:/, "https:"));
+  } else {
+    for (const m of metin.matchAll(k.urunLinki)) s.add(new URL(m[1], site).toString());
+  }
   return [...s];
 }

@@ -15,7 +15,10 @@ export async function robotsAl(site: string): Promise<Robots> {
   if (var_) return var_;
   try {
     const r = await fetch(kok + "/robots.txt", { headers: { "user-agent": KULLANICI_AJANI }, signal: AbortSignal.timeout(15000) });
-    const robots = r.ok ? robotsCoz(await r.text()) : { kurallar: [], siteHaritalari: [] };
+    // Google'ın kuralı: robots.txt 4xx ise kısıtlama yok sayılır; 5xx ise site geçici olarak hiç taranmaz.
+    const robots = r.ok ? robotsCoz(await r.text())
+      : r.status < 500 ? { kurallar: [], siteHaritalari: [] }
+      : { kurallar: [{ izin: false, yol: "/" }], siteHaritalari: [] };
     robotsOnbellek.set(kok, robots);
     return robots;
   } catch {
@@ -44,7 +47,7 @@ export async function getir(url: string, enAzBekleme = 3000): Promise<Yanit> {
   const t0 = Date.now();
   try {
     const r = await fetch(url, {
-      headers: { "user-agent": KULLANICI_AJANI, accept: "text/html,application/xhtml+xml", "accept-language": "tr-TR,tr;q=0.9" },
+      headers: { "user-agent": KULLANICI_AJANI, accept: "text/html,application/xhtml+xml,application/xml", "accept-language": "tr-TR,tr;q=0.9" },
       redirect: "follow",
       signal: AbortSignal.timeout(25000),
     });
