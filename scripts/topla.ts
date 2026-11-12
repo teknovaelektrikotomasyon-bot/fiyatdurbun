@@ -21,6 +21,8 @@ if (aktarim) await aktarim.katalogHazirla();
 
 const ozet: string[] = ["| Mağaza | Link | Okundu | Fiyatsız | Engel/hata |", "|---|---|---|---|---|"];
 const gun = new Date().toISOString().slice(0, 10);
+// Bir mağaza en çok bu kadar süre okunur; robots.txt'de uzun bekleme isteyen siteler işi zaman aşımına sokmasın.
+const SON_AN = Date.now() + Number(arg("dakika") ?? 40) * 60_000;
 
 await Promise.all(MAGAZALAR.filter((m) => m.durum === "acik" && (!sadece || m.slug === sadece)).map(async (m) => {
   for (const [kategori, kesif] of Object.entries(m.kesif)) {
@@ -46,6 +48,7 @@ await Promise.all(MAGAZALAR.filter((m) => m.durum === "acik" && (!sadece || m.sl
       const say: Record<string, number> = {};
       let engel = 0;
       for (const url of secilen) {
+        if (Date.now() > SON_AN) { console.log(`${m.slug}: süre doldu, kalanı sonraki tura`); break; }
         const y = await getir(url, m.bekleme);
         if (y.engel) {
           engel++;
