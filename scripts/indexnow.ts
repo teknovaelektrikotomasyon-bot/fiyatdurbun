@@ -23,10 +23,13 @@ await kapat();
 
 for (let s = 0; s < adresler.length; s += 10000) {
   const parca = adresler.slice(s, s + 10000);
-  const yanit = await fetch("https://api.indexnow.org/indexnow", {
-    method: "POST",
-    headers: { "content-type": "application/json; charset=utf-8" },
-    body: JSON.stringify({ host: new URL(site).host, key: anahtar, keyLocation: `${site}/${anahtar}.txt`, urlList: parca }),
-  });
-  console.log(`IndexNow: ${parca.length} adres → HTTP ${yanit.status}`);
+  // Bing ve Yandex'e ayrı ayrı gönderilir; biri reddederse diğeri yine alır.
+  for (const uc of ["https://www.bing.com/indexnow", "https://yandex.com/indexnow"]) {
+    const yanit = await fetch(uc, {
+      method: "POST",
+      headers: { "content-type": "application/json; charset=utf-8" },
+      body: JSON.stringify({ host: new URL(site).host, key: anahtar, keyLocation: `${site}/${anahtar}.txt`, urlList: parca }),
+    });
+    console.log(`IndexNow ${new URL(uc).host}: ${parca.length} adres → HTTP ${yanit.status} ${yanit.ok ? "" : (await yanit.text()).slice(0, 200)}`);
+  }
 }
