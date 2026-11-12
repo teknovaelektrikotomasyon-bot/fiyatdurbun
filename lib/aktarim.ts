@@ -12,13 +12,17 @@ const slugla = (s: string) => duzle(s).replace(/\s+/g, "-").replace(/\+/g, "-plu
 
 // Kod içindeki kategori ağacını tabloya eşitler (toplu, tek sorguda). Eski veritabanları için sütunları da ekler.
 async function kategoriAgaciniEsitle() {
-  await q("alter table kategori add column if not exists sira int not null default 0");
-  await q("alter table kategori add column if not exists google_id int");
+  // ALTER TABLE, sütun varken bile tabloyu kilitlemeye çalışır ve sitenin okumalarını bekler; yalnızca eksikse çalıştır.
+  const sutunlar = new Set((await q<{ c: string }>("select column_name as c from information_schema.columns where table_name = 'kategori'")).map((x) => x.c));
+  if (!sutunlar.has("sira")) await q("alter table kategori add column sira int not null default 0");
+  if (!sutunlar.has("google_id")) await q("alter table kategori add column google_id int");
   const k = tumKategoriler();
   await q(`insert into kategori (slug, ad, sira, google_id)
            select * from unnest($1::text[], $2::text[], $3::int[], $4::int[])
-           on conflict (slug) do update set ad=excluded.ad, sira=excluded.sira, google_id=excluded.google_id`,
+           on conflict (slug) do update set ad=excluded.ad, sira=excluded.sira, google_id=excluded.google_id
+           where (kategori.ad, kategori.sira, kategori.google_id) is distinct from (excluded.ad, excluded.sira, excluded.google_id)`,
     [k.map((x) => x.slug), k.map((x) => x.ad), k.map((x) => x.sira), k.map((x) => x.g)]);
+  // Yalnızca değişen satırları günceller (her çalıştırmada 415 satırı yeniden yazmamak için).
   await q(`update kategori c set ust_id = u.id
            from unnest($1::text[], $2::text[]) as x(slug, ust) left join kategori u on u.slug = x.ust
            where c.slug = x.slug and c.ust_id is distinct from u.id`,
