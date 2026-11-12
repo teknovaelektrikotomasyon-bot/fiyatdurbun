@@ -35,7 +35,7 @@ export function samsungListeOku(html: string): { buySayfalari: string[]; tekille
     const fiyat = Number(teklif?.price);
     const hafiza = /-(\d+)(gb|tb)-sm-/i.exec(url);
     if (!hafiza || !fiyat || /OutOfStock/i.test(String(teklif?.availability ?? ""))) continue;
-    tekiller.push({ marka: "Samsung", model: ad.replace(/\s*\(.*?\)\s*/g, " ").trim(), depolamaGb: gb(hafiza[1], hafiza[2]), fiyat, para: String(teklif?.priceCurrency ?? "EUR"), url });
+    tekiller.push({ marka: "Samsung", model: ad.replace(/\s*\(.*?\)\s*/g, " ").trim(), depolamaGb: gb(hafiza[1], hafiza[2]), fiyat, para: String(teklif?.priceCurrency ?? "EUR"), url, gorsel: typeof o.image === "string" ? mutlak(o.image) : undefined });
   }
   return { buySayfalari: [...buy], tekiller: enUcuzlar(tekiller) };
 }
@@ -52,7 +52,7 @@ export function samsungBuyOku(html: string): DisSatir[] {
     const m = /^(.*?)\s+(\d+)\s?(GB|TB)\b/i.exec(ad);
     if (!m || !fiyat || typeof teklif?.url !== "string") continue;
     if (/OutOfStock/i.test(String(teklif.availability ?? "")) || yenilenmis(ad, teklif.url)) continue;
-    satirlar.push({ marka: "Samsung", model: m[1].trim(), depolamaGb: gb(m[2], m[3]), fiyat, para: String(teklif.priceCurrency ?? "EUR"), url: mutlak(teklif.url) });
+    satirlar.push({ marka: "Samsung", model: m[1].trim(), depolamaGb: gb(m[2], m[3]), fiyat, para: String(teklif.priceCurrency ?? "EUR"), url: mutlak(teklif.url), gorsel: typeof o.image === "string" ? mutlak(o.image) : undefined });
   }
   return enUcuzlar(satirlar);
 }

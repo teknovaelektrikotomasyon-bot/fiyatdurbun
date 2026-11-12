@@ -82,7 +82,8 @@ export function modelBul(ad: string, marka?: string) {
 }
 
 export function eslesmeAnahtari(marka: string, model: string, depolama?: number) {
-  return [duzle(marka), duzle(model).replace(/\b5g\b/g, "5g"), depolama ?? ""].join("|");
+  // Samsung katlanabilirlerde "Z" öneki mağazaya göre yazılıp yazılmıyor ("Galaxy Z Fold8" = "Galaxy Fold8").
+  return [duzle(marka), duzle(model).replace(/\b5g\b/g, "5g").replace(/^galaxy z (fold|flip)/, "galaxy $1"), depolama ?? ""].join("|");
 }
 
 // Mağazanın ham özellik tablosu → bizim alanlar. Etiketler mağazadan mağazaya değişir; burada eş anlamlıları topluyoruz.

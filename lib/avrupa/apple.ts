@@ -3,7 +3,7 @@
 // Çok ekran boyutlu sayfalarda (Pro / Pro Max) model adı boyut etiketinden, tek modelli sayfalarda Product JSON-LD'den alınır.
 import { decode, jsonLdNesneleri } from "../toplayici/okuyucu.ts";
 
-export type AppleFiyat = { model: string; depolamaGb: number; fiyat: number; para: string };
+export type AppleFiyat = { model: string; depolamaGb: number; fiyat: number; para: string; gorsel?: string };
 
 export { AVRUPA_ULKELERI as APPLE_ULKELERI } from "./ulkeler.ts";
 
@@ -75,7 +75,7 @@ export function appleSayfaOku(html: string): AppleFiyat[] {
     if (!depolamaGb || !fiyat || !model) continue;
     const anahtar = `${model}|${depolamaGb}`;
     const var_ = enIyi.get(anahtar);
-    if (!var_ || fiyat < var_.fiyat) enIyi.set(anahtar, { model, depolamaGb, fiyat, para });
+    if (!var_ || fiyat < var_.fiyat) enIyi.set(anahtar, { model, depolamaGb, fiyat, para, gorsel: typeof urunLd?.image === "string" ? urunLd.image : undefined });
   }
   return [...enIyi.values()];
 }

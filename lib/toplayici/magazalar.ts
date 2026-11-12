@@ -3,7 +3,8 @@
 
 export type Kesif =
   | { tur: "sitemap"; url: string; filtre: RegExp }                 // site haritasından ürün linkleri
-  | { tur: "liste"; url: string; urunLinki: RegExp; sayfa?: (u: string, n: number) => string };
+  | { tur: "liste"; url: string; urunLinki: RegExp; sayfa?: (u: string, n: number) => string }
+  | { tur: "ozel"; oku: (bekleme: number) => Promise<OkunanTeklif[]> };  // sayfa başına çok seçenek (resmî mağazalar)
 
 export type MagazaTanimi = {
   slug: string;
@@ -14,6 +15,9 @@ export type MagazaTanimi = {
   ozellikOku?: (html: string) => Record<string, string>; // sayfadaki teknik özellik tablosu
   bekleme: number;                       // aynı siteye istekler arası en az bekleme (ms)
 };
+
+import type { OkunanTeklif } from "./okuyucu.ts";
+import { appleTurkiye, samsungTurkiye } from "./resmi.ts";
 
 const temiz = (s: string) => s.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
 
@@ -44,6 +48,16 @@ export const MAGAZALAR: MagazaTanimi[] = [
     },
     bekleme: 3000,
   },
+  {
+    slug: "apple-tr", ad: "Apple Türkiye", site: "https://www.apple.com/tr", durum: "acik",
+    kesif: { "akilli-telefon": { tur: "ozel", oku: appleTurkiye } },
+    bekleme: 3000,
+  },
+  {
+    slug: "samsung-tr", ad: "Samsung Türkiye", site: "https://www.samsung.com/tr", durum: "acik",
+    kesif: { "akilli-telefon": { tur: "ozel", oku: samsungTurkiye } },
+    bekleme: 3000,
+  },
   // Aşağıdakiler sunucudan 403 veriyor; korumayı aşmıyoruz. Satış ortaklığı beslemesi ya da izinle eklenecek.
   { slug: "hepsiburada", ad: "Hepsiburada", site: "https://www.hepsiburada.com", durum: "engelli", kesif: {}, bekleme: 4000 },
   { slug: "trendyol", ad: "Trendyol", site: "https://www.trendyol.com", durum: "engelli", kesif: {}, bekleme: 4000 },
@@ -54,7 +68,7 @@ export const MAGAZALAR: MagazaTanimi[] = [
 
 export const magaza = (slug: string) => MAGAZALAR.find((m) => m.slug === slug);
 
-export function linkleriCikar(k: Kesif, metin: string, site: string): string[] {
+export function linkleriCikar(k: Exclude<Kesif, { tur: "ozel" }>, metin: string, site: string): string[] {
   const s = new Set<string>();
   if (k.tur === "sitemap") {
     for (const m of metin.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)) if (k.filtre.test(m[1])) s.add(m[1].replace(/^http:/, "https:"));

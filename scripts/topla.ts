@@ -22,6 +22,17 @@ const gun = new Date().toISOString().slice(0, 10);
 
 await Promise.all(MAGAZALAR.filter((m) => m.durum === "acik" && (!sadece || m.slug === sadece)).map(async (m) => {
   for (const [kategori, kesif] of Object.entries(m.kesif)) {
+    if (kesif.tur === "ozel") {
+      let teklifler: Awaited<ReturnType<typeof kesif.oku>> = [];
+      try { teklifler = await kesif.oku(m.bekleme); } catch (e) { ozet.push(`| ${m.ad} | - | 0 | - | ${(e as Error).message} |`); continue; }
+      for (const t of teklifler) {
+        appendFileSync(cikti, JSON.stringify({ magaza: m.slug, kategori, gun, ...t }) + "\n");
+        if (aktarim) await aktarim.kaydet(m.slug, kategori, t, gun);
+        console.log(`${m.slug} ${t.fiyat} TL ${t.ad}`);
+      }
+      ozet.push(`| ${m.ad} | ${teklifler.length} | ${teklifler.length} | 0 | 0 |`);
+      continue;
+    }
     const kaynak = await getir(kesif.url, m.bekleme);
     if (kaynak.engel || !kaynak.html) { ozet.push(`| ${m.ad} | - | 0 | - | keşif: ${kaynak.engel ?? "boş"} |`); continue; }
     const linkler = linkleriCikar(kesif, kaynak.html, m.site).slice(0, limit);

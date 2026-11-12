@@ -10,4 +10,4 @@ export const AVRUPA_ULKELERI = [
 export const ULKE_ADI: Record<string, string> = Object.fromEntries(AVRUPA_ULKELERI.map((u) => [u.kod, u.ad]));
 export const KAYNAK_ADI: Record<string, string> = { apple: "Apple Store", samsung: "Samsung Shop" };
 
-export type DisSatir = { marka: string; model: string; depolamaGb: number; fiyat: number; para: string; url: string };
+export type DisSatir = { marka: string; model: string; depolamaGb: number; fiyat: number; para: string; url: string; gorsel?: string };
