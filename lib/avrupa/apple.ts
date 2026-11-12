@@ -5,13 +5,7 @@ import { decode, jsonLdNesneleri } from "../toplayici/okuyucu.ts";
 
 export type AppleFiyat = { model: string; depolamaGb: number; fiyat: number; para: string };
 
-export const APPLE_ULKELERI = [
-  { kod: "DE", ad: "Almanya", yol: "de" },
-  { kod: "FR", ad: "Fransa", yol: "fr" },
-  { kod: "IT", ad: "İtalya", yol: "it" },
-  { kod: "ES", ad: "İspanya", yol: "es" },
-  { kod: "NL", ad: "Hollanda", yol: "nl" },
-] as const;
+export { AVRUPA_ULKELERI as APPLE_ULKELERI } from "./ulkeler.ts";
 
 /** Ülkenin iPhone satın alma sayfasındaki model sayfalarının adresleri. */
 export function appleModelSayfalari(html: string, ulkeYol: string): string[] {
@@ -66,10 +60,16 @@ export function appleSayfaOku(html: string): AppleFiyat[] {
     const ad = v ? temizMetin(v.split(/\n|<span/)[0]) : "";
     return ad || tekAd;
   };
+  // Tek hafızalı modellerde (ör. iPhone 16) hafıza seçimi yoktur; hafıza, boyut etiketinde "128 GB" olarak yazar.
+  const etiketHafizasi = (anahtar: string | undefined) => {
+    const v = anahtar ? veri.displayValues.dimensionScreensize?.[anahtar]?.value : undefined;
+    const bulunan = v ? [...temizMetin(v).matchAll(/(\d+)\s?(GB|TB)\b/gi)] : [];
+    return bulunan.length === 1 ? gb(bulunan[0][1] + bulunan[0][2]) : null;
+  };
 
   const enIyi = new Map<string, AppleFiyat>();
   for (const p of veri.products ?? []) {
-    const depolamaGb = gb(p.dimensionCapacity ?? "");
+    const depolamaGb = p.dimensionCapacity ? gb(p.dimensionCapacity) : etiketHafizasi(p.dimensionScreensize);
     const fiyat = veri.displayValues.prices?.[p.fullPrice]?.amountBeforeTradeIn;
     const model = boyutAdi(p.dimensionScreensize);
     if (!depolamaGb || !fiyat || !model) continue;

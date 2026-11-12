@@ -1,9 +1,7 @@
 import { tl, type DisFiyat } from "@/lib/sorgular.ts";
-import { APPLE_ULKELERI } from "@/lib/avrupa/apple.ts";
+import { KAYNAK_ADI as KAYNAK, ULKE_ADI as ULKE } from "@/lib/avrupa/ulkeler.ts";
 
 // Ürünün Avrupa'daki resmî mağaza fiyatları. Her satır o gün okunan gerçek fiyattır ve kaynağına bağlanır.
-const ULKE = Object.fromEntries(APPLE_ULKELERI.map((u) => [u.kod, u.ad]));
-const KAYNAK: Record<string, string> = { apple: "Apple Store" };
 const euro = (n: number) => new Intl.NumberFormat("tr-TR", { style: "currency", currency: "EUR", maximumFractionDigits: n % 1 ? 2 : 0 }).format(n);
 const tarih = (s: string) => new Date(s).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Istanbul" });
 
@@ -47,7 +45,7 @@ export function AvrupaFiyatlari({ satirlar, trFiyat, urunAdi }: { satirlar: DisF
                 <td className="sag"><span className="teklif-fiyat fiyat">{euro(s.fiyat)}</span></td>
                 <td className="sag fiyat">≈ {tl(Math.round(tlk))}</td>
                 {f != null && <td className="sag kucuk">{Math.abs(f) < 0.01 ? "aynı" : f > 0 ? <span className="artis-yazi">TR %{(f * 100).toFixed(0)} pahalı</span> : <span className="dusus-yazi">TR %{(-f * 100).toFixed(0)} ucuz</span>}</td>}
-                <td className="sag"><a className="dugme ikincil" href={s.url} target="_blank" rel="nofollow noopener noreferrer">{KAYNAK[s.kaynak] ?? "Sitede"} gör<span className="gorunmez"> ({ULKE[s.ulke]}, yeni sekmede açılır)</span></a></td>
+                <td className="sag"><a className="dugme ikincil" href={s.url} target="_blank" rel="nofollow noopener noreferrer">{KAYNAK[s.kaynak] ?? "Sitede"}&apos;da gör<span className="gorunmez"> ({ULKE[s.ulke]}, yeni sekmede açılır)</span></a></td>
               </tr>
             );
           })}

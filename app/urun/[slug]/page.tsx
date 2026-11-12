@@ -10,6 +10,7 @@ import { uye } from "@/lib/oturum.ts";
 import { kategoriYolu } from "@/lib/katalog/agac.ts";
 import { JsonLd } from "@/components/JsonLd";
 import { AvrupaFiyatlari, avrupaOzeti } from "@/components/AvrupaFiyatlari";
+import { ULKE_ADI } from "@/lib/avrupa/ulkeler.ts";
 import { kirintiJsonLd, kirp, mutlak } from "@/lib/seo.ts";
 import { takipEt, takiptenCik } from "@/app/hesabim/islemler";
 
@@ -132,7 +133,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
           {(() => {
             const oz = avrupaOzeti(avrupa, enUcuz?.fiyat ?? null);
             if (!oz) return null;
-            const ulke = ({ DE: "Almanya", FR: "Fransa", IT: "İtalya", ES: "İspanya", NL: "Hollanda" } as Record<string, string>)[oz.enUcuz.ulke] ?? oz.enUcuz.ulke;
+            const ulke = ULKE_ADI[oz.enUcuz.ulke] ?? oz.enUcuz.ulke;
             return <p className="avrupa-ipucu">Avrupa&apos;da en ucuz {ulke}&apos;da: {oz.enUcuz.fiyat.toLocaleString("tr-TR")} € ≈ {tl(Math.round(oz.tlKarsilik))}. <a href="#avrupa">Avrupa fiyatlarını karşılaştır</a></p>;
           })()}
           {sp.takip === "eklendi" && <p className="kucuk" style={{ color: "var(--dusus)" }}>Takibe aldınız. Fiyat düşünce e-posta göndereceğiz.</p>}
