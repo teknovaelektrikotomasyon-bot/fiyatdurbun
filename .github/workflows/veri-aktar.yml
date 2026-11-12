@@ -18,8 +18,26 @@ jobs:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - name: Secret kontrolü
+        # Şifreyi yazdırmadan adresin biçimini denetler.
         run: |
           if [ -z "$DATABASE_URL" ]; then echo "::error::DATABASE_URL secret'ı tanımlı değil"; exit 1; fi
+          node -e '
+            const s = process.env.DATABASE_URL, t = s.trim();
+            const r = [];
+            if (s !== t) r.push("başında/sonunda boşluk veya satır sonu var");
+            if (/^["\x27]|["\x27]$/.test(t)) r.push("tırnak içinde yazılmış");
+            if (!/^postgres(ql)?:\/\//.test(t)) r.push("postgresql:// ile başlamıyor (başı: " + t.slice(0, 12).replace(/:.*/, ":…") + ")");
+            if (/YOUR-PASSWORD|\[|\]/.test(t)) r.push("[YOUR-PASSWORD] veya köşeli parantez kalmış");
+            const at = (t.match(/@/g) || []).length;
+            if (at !== 1) r.push("@ işareti " + at + " kez geçiyor (1 olmalı)");
+            const yetki = t.replace(/^[a-z]+:\/\//, "").split("@")[0] || "";
+            const sifre = yetki.split(":").slice(1).join(":");
+            if (/[#\/?%:\s]/.test(sifre)) r.push("şifrede adresi bozan işaret var (# / ? % : veya boşluk)");
+            let host = "?"; try { host = new URL(t).hostname; } catch { r.push("adres URL olarak okunamadı"); }
+            console.log("Sunucu: " + host + " | şifre uzunluğu: " + sifre.length);
+            if (r.length) { for (const x of r) console.log("::error::DATABASE_URL: " + x); process.exit(1); }
+            console.log("DATABASE_URL biçimi uygun");
+          '
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
         with:
