@@ -8,6 +8,7 @@ import type { DisSatir } from "./ulkeler.ts";
 
 const gb = (sayi: string, birim: string) => Number(sayi) * (birim.toLowerCase() === "tb" ? 1024 : 1);
 const yenilenmis = (ad: string, url: string) => /re-?newed|refurb|reconditionn|ricondizionat|reacondicionad/i.test(ad) || /\/sm5[a-z]/i.test(url);
+const tekSatir = (s: string) => s.replace(/\s+/g, " ").trim(); // bazı adlarda satır sonu var ("Galaxy Z\nFold8")
 const mutlak = (u: string) => (u.startsWith("//") ? "https:" + u : u);
 
 function enUcuzlar(satirlar: DisSatir[]) {
@@ -26,6 +27,7 @@ export function samsungListeOku(html: string): { buySayfalari: string[]; tekille
   const tekiller: DisSatir[] = [];
   for (const o of jsonLdNesneleri(html)) {
     if (o["@type"] !== "Product" || typeof o.url !== "string" || typeof o.name !== "string") continue;
+    o.name = tekSatir(o.name);
     const url = mutlak(o.url);
     if (yenilenmis(o.name, url)) continue;
     if (/\/buy\/?(\?|$)/.test(url)) { buy.add(url.split("?")[0]); continue; }
@@ -43,6 +45,7 @@ export function samsungBuyOku(html: string): DisSatir[] {
   const satirlar: DisSatir[] = [];
   for (const o of jsonLdNesneleri(html)) {
     if (o["@type"] !== "Product" || typeof o.sku !== "string" || typeof o.name !== "string") continue;
+    o.name = tekSatir(o.name);
     const teklif = o.offers as Record<string, unknown> | undefined;
     const fiyat = Number(teklif?.price);
     // Ad biçimi: "<model> <hafıza>GB | <RAM>GB <renk>"; model, ilk hafıza ifadesinden önceki kısımdır.
