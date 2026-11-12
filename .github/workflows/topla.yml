@@ -32,6 +32,12 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           SITE_URL: https://fiyatdurbun.com
         run: node --experimental-strip-types scripts/bildirim.ts
+      - name: Arama motorlarına bildir (IndexNow: Bing, Yandex)
+        if: env.DATABASE_URL != ''
+        continue-on-error: true
+        env:
+          SITE_URL: https://fiyatdurbun.com
+        run: node --experimental-strip-types scripts/indexnow.ts --son 7
       # Veritabanı bağlanana kadar ham okumalar "veri" dalında saklanır; fiyat geçmişi kaybolmaz, sonra içe aktarılır.
       - name: Ham veriyi sakla
         run: |

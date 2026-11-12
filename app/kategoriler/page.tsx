@@ -2,15 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { KATEGORI_AGACI, agacSayilari, tumKategoriler } from "@/lib/katalog/agac.ts";
 import { kategoriUrunSayilari } from "@/lib/sorgular.ts";
+import { JsonLd } from "@/components/JsonLd";
+import { kirintiJsonLd } from "@/lib/seo.ts";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Tüm kategoriler", description: "Fiyat Dürbün'deki tüm ürün kategorileri: elektronikten süpermarkete, mobilyadan el aletlerine." };
+export const metadata: Metadata = { title: "Tüm kategoriler", alternates: { canonical: "/kategoriler" }, description: "Fiyat Dürbün'deki tüm ürün kategorileri: elektronikten süpermarkete, mobilyadan el aletlerine." };
 
 export default async function Kategoriler() {
   const sayilar = agacSayilari(await kategoriUrunSayilari());
   const n = (s: string) => sayilar.get(s) ?? 0;
   return (
     <>
+      <JsonLd veri={kirintiJsonLd([{ ad: "Ana sayfa", yol: "/" }, { ad: "Tüm kategoriler", yol: "/kategoriler" }])} />
       <nav className="yol" aria-label="Konum"><Link href="/">Ana sayfa</Link> / <span aria-current="page">Tüm kategoriler</span></nav>
       <div className="kat-ust">
         <div>

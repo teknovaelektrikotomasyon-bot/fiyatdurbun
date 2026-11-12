@@ -1,0 +1,20 @@
+name: IndexNow bildirimi
+# Site haritasındaki tüm adresleri Bing ve Yandex'e bildirir (ilk kurulumda ya da büyük değişikliklerden sonra elle).
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bildir:
+    runs-on: ubuntu-latest
+    env:
+      SITE_URL: https://fiyatdurbun.com
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --experimental-strip-types scripts/indexnow.ts

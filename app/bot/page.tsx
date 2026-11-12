@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "FiyatDurbunBot hakkında" };
+export const metadata: Metadata = { title: "FiyatDurbunBot hakkında", alternates: { canonical: "/bot" } };
 
 export default function Bot() {
   return (

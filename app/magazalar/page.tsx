@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { magazalar } from "@/lib/sorgular.ts";
 
-export const metadata: Metadata = { title: "Mağazalar ve güven kontrolü" };
+export const metadata: Metadata = { title: "Mağazalar ve güven kontrolü", alternates: { canonical: "/magazalar" } };
 export const dynamic = "force-dynamic";
 
 const DURUM: Record<string, [string, string]> = {

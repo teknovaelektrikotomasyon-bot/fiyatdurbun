@@ -8,6 +8,8 @@ import { benzerler, fiyatGecmisi, ozellikler, teklifler, tl, urun as urunAl } fr
 import { q1 } from "@/lib/db.ts";
 import { uye } from "@/lib/oturum.ts";
 import { kategoriYolu } from "@/lib/katalog/agac.ts";
+import { JsonLd } from "@/components/JsonLd";
+import { kirintiJsonLd, kirp, mutlak } from "@/lib/seo.ts";
 import { takipEt, takiptenCik } from "@/app/hesabim/islemler";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +19,18 @@ export async function generateMetadata({ params }: P): Promise<Metadata> {
   const u = await urunAl((await params).slug);
   if (!u) return {};
   const ad = `${u.marka} ${u.model} ${u.varyant ?? ""}`.trim();
-  return { title: `${ad} fiyatları`, description: `${ad} en ucuz ${tl(u.fiyat)}. ${u.magaza_sayisi} mağazanın fiyatı, fiyat geçmişi ve indirim kontrolü.` };
+  const yol = `/urun/${u.slug}`;
+  // Başlıkta fiyat: arama sonucunda kullanıcının aradığı cevabı doğrudan gösterir, tıklanmayı artırır.
+  const title = u.fiyat != null ? `${ad} Fiyatları: En Ucuz ${tl(u.fiyat)}` : `${ad} Fiyatları`;
+  const ozet = [u.ozellikler.ram_gb && `${u.ozellikler.ram_gb} GB RAM`, u.ozellikler.ekran_inc && `${u.ozellikler.ekran_inc}″ ekran`, u.ozellikler.batarya_mah && `${u.ozellikler.batarya_mah} mAh`].filter(Boolean).join(", ");
+  const description = kirp(u.fiyat != null
+    ? `${ad} en ucuz ${tl(u.fiyat)}. ${u.magaza_sayisi} mağazanın fiyatı, kargo dahil sıralama, 30 günlük fiyat geçmişi ve sahte indirim kontrolü.${ozet ? ` ${ozet}.` : ""}`
+    : `${ad} şu an stokta görünmüyor. Fiyat geçmişini görün, stoğa girince haber alın.${ozet ? ` ${ozet}.` : ""}`);
+  return {
+    title, description,
+    alternates: { canonical: yol },
+    openGraph: { type: "website", url: yol, title, description },
+  };
 }
 
 const deger = (v: unknown, birim: string | null) => {
@@ -52,17 +65,44 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
   }, {}));
   const gruplar = [...new Set(ozl.map((o) => o.grup ?? "Diğer"))];
   const o = u.ozellikler;
-  const jsonld = {
-    "@context": "https://schema.org", "@type": "Product", name: `${ad} ${u.varyant ?? ""}`.trim(), brand: { "@type": "Brand", name: u.marka }, image: u.gorsel ?? undefined,
-    offers: stokta.length ? { "@type": "AggregateOffer", priceCurrency: "TRY", lowPrice: stokta[0].fiyat, highPrice: stokta[stokta.length - 1].fiyat, offerCount: stokta.length } : undefined,
-  };
+  // Stok yoksa son görülen fiyat (Google, fiyatsız ürün işaretlemesini geçersiz sayar).
+  const sonBilinen = gecmis.length ? gecmis[gecmis.length - 1].fiyat : null;
+  const kirintilar = [{ ad: "Ana sayfa", yol: "/" }, ...kategoriYolu(kat?.slug ?? "").map((y) => ({ ad: y.ad, yol: `/kategori/${y.slug}` })), { ad: `${ad} ${u.varyant ?? ""}`.trim(), yol: `/urun/${u.slug}` }];
+  const gtin = u.gtin && /^\d{8,14}$/.test(u.gtin) ? u.gtin : undefined;
+  const jsonld = [
+    {
+      "@context": "https://schema.org", "@type": "Product",
+      "@id": mutlak(`/urun/${u.slug}#urun`),
+      name: `${ad} ${u.varyant ?? ""}`.trim(),
+      url: mutlak(`/urun/${u.slug}`),
+      sku: u.slug,
+      ...(gtin ? { gtin } : {}),
+      brand: { "@type": "Brand", name: u.marka },
+      image: u.gorsel ? [u.gorsel] : undefined,
+      category: kategoriYolu(kat?.slug ?? "").map((y) => y.ad).join(" > "),
+      offers: stokta.length
+        ? {
+            "@type": "AggregateOffer", priceCurrency: "TRY", availability: "https://schema.org/InStock",
+            lowPrice: stokta[0].fiyat, highPrice: Math.max(...stokta.map((t) => t.fiyat)), offerCount: stokta.length,
+            offers: satirlar.filter((t) => t.stokta).map((t) => ({
+              "@type": "Offer", price: t.fiyat, priceCurrency: "TRY", availability: "https://schema.org/InStock",
+              url: mutlak(`/urun/${u.slug}`), seller: { "@type": "Organization", name: t.magaza },
+              ...(t.kargo != null ? { shippingDetails: { "@type": "OfferShippingDetails", shippingRate: { "@type": "MonetaryAmount", value: t.kargo, currency: "TRY" }, shippingDestination: { "@type": "DefinedRegion", addressCountry: "TR" } } } : {}),
+            })),
+          }
+        : sonBilinen != null
+          ? { "@type": "Offer", price: sonBilinen, priceCurrency: "TRY", availability: "https://schema.org/OutOfStock", url: mutlak(`/urun/${u.slug}`) }
+          : undefined,
+    },
+    kirintiJsonLd(kirintilar),
+  ].filter((x) => (x as Record<string, unknown>)["@type"] !== "Product" || (x as Record<string, unknown>).offers);
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonld) }} />
+      <JsonLd veri={jsonld} />
       <nav className="yol" aria-label="Konum"><Link href="/">Ana sayfa</Link>{kategoriYolu(kat?.slug ?? "").map((y) => <span key={y.slug}> / <Link href={`/kategori/${y.slug}`}>{y.ad}</Link></span>)} / <Link href={`/kategori/${kat?.slug}?marka=${u.marka.toLowerCase()}`}>{u.marka}</Link> / <span aria-current="page">{u.model} {u.varyant}</span></nav>
       <section className="kutu urun-ust">
-        <div className="urun-gorsel">{u.gorsel ? <img src={u.gorsel} alt={ad} /> : <span className="soluk">görsel yok</span>}</div>
+        <div className="urun-gorsel">{u.gorsel ? <img src={u.gorsel} alt={`${ad} ${u.varyant ?? ""}`.trim()} fetchPriority="high" decoding="async" /> : <span className="soluk">görsel yok</span>}</div>
         <div className="urun-bilgi">
           <h1>{ad} {u.varyant}</h1>
           <ul className="anahtar-ozellikler">
@@ -143,6 +183,8 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
         </div>
       </section>
 
+      <UrunBilgi ad={`${ad} ${u.varyant ?? ""}`.trim()} enUcuz={enUcuz ? { magaza: enUcuz.magaza, fiyat: enUcuz.fiyat } : null} magazaSayisi={stokta.length ? new Set(stokta.map((t) => t.magaza)).size : 0} gunluk={gunlukMin} kategori={kat?.ad} />
+
       {benzer.length > 0 && (
         <section>
           <div className="serit-baslik"><h2>Diğer seçenekler</h2></div>
@@ -150,5 +192,31 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
         </section>
       )}
     </>
+  );
+}
+
+// Ürün hakkında kısa, veriden üretilen metin: "X fiyatı ne kadar, en ucuz nerede" aramalarına doğrudan cevap verir.
+function UrunBilgi({ ad, enUcuz, magazaSayisi, gunluk, kategori }: { ad: string; enUcuz: { magaza: string; fiyat: number } | null; magazaSayisi: number; gunluk: { gun: string; fiyat: number }[]; kategori?: string }) {
+  const sinir = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+  const son30 = gunluk.filter((g) => g.gun >= sinir).map((g) => g.fiyat);
+  const gunSayisi = new Set(gunluk.map((g) => g.gun)).size;
+  return (
+    <section className="kategori-bilgi" aria-labelledby="urun-bilgi-baslik">
+      <h2 id="urun-bilgi-baslik">{ad} fiyatı ne kadar?</h2>
+      {enUcuz ? (
+        <p>
+          {ad} bugün en ucuz {tl(enUcuz.fiyat)} fiyatla {enUcuz.magaza} mağazasında satılıyor. Fiyatını {magazaSayisi} mağazada karşılaştırıyoruz.
+          {gunSayisi >= 7 && son30.length > 0 && <> Son 30 günde en düşük {tl(Math.min(...son30))}, en yüksek {tl(Math.max(...son30))} görüldü.</>}
+          {" "}Kargo ücretleri mağazaya göre değiştiği için yukarıdaki tabloyu kargo dahil fiyata göre sıraladık.
+        </p>
+      ) : (
+        <p>{ad} şu an izlediğimiz mağazaların hiçbirinde stokta görünmüyor. Takibe alırsanız stoğa girdiğinde ya da fiyatı düştüğünde e-posta ile haber veririz.</p>
+      )}
+      <div className="sss">
+        <div><h3>Bu fiyat iyi mi?</h3><p>Sayfanın başındaki ölçek, bugünkü en ucuz fiyatın son 30 günün en düşüğü ile en yükseği arasında nerede durduğunu gösterir. Ölçeğin sol ucu, son 30 günün en iyi fiyatıdır.</p></div>
+        <div><h3>İndirim gerçek mi?</h3><p>Bir mağaza fiyatı son 30 günde daha düşükse tabloda &quot;30 günde … idi&quot; uyarısını görürsünüz. Böylece önce artırılıp sonra indirilmiş fiyatları ayırt edebilirsiniz.</p></div>
+        {kategori && <div><h3>Benzer ürünlere nereden bakarım?</h3><p>Aynı modelin diğer seçenekleri aşağıda; tüm modeller için {kategori.toLocaleLowerCase("tr")} kategorisine göz atabilirsiniz.</p></div>}
+      </div>
+    </section>
   );
 }

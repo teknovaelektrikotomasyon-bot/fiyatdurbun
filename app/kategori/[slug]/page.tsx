@@ -5,7 +5,9 @@ import { Filtreler } from "@/components/Filtreler";
 import { UrunKarti } from "@/components/UrunKarti";
 import { KategoriYanMenu } from "@/components/KategoriYanMenu";
 import { agacSayilari, altSluglar, kategoriBul, kategoriYolu, ustKategori, type KategoriDugumu } from "@/lib/katalog/agac.ts";
-import { filtreSecenekleri, kategori as kategoriSatiri, kategoriIdleri, kategoriUrunSayilari, ozellikler, urunler, type Filtre } from "@/lib/sorgular.ts";
+import { filtreSecenekleri, kategori as kategoriSatiri, kategoriIdleri, kategoriMarkalari, kategoriOzet, kategoriUrunSayilari, ozellikler, tl, urunler, type Filtre } from "@/lib/sorgular.ts";
+import { JsonLd } from "@/components/JsonLd";
+import { ayYil, kirintiJsonLd, kirp, mutlak } from "@/lib/seo.ts";
 
 export const dynamic = "force-dynamic";
 type P = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
@@ -13,17 +15,48 @@ type P = { params: Promise<{ slug: string }>; searchParams: Promise<Record<strin
 const SAYFA_BOYU = 48;
 const SIRALAR = [["fiyat", "En ucuz"], ["dusen", "En çok düşen"], ["magaza", "En çok mağaza"], ["pahali", "En pahalı"]] as const;
 
-export async function generateMetadata({ params }: P): Promise<Metadata> {
+type Durum = { slug: string; marka?: string; sayfa: number; sirali: boolean; digerFiltre: boolean };
+
+// Hangi adres dizine girsin? Temiz kategori, tek marka ve sayfalama girer; sıralama ve diğer filtre birleşimleri
+// aynı içeriğin kopyası sayılır: canonical temiz adrese gösterilir, filtreli olanlar noindex olur.
+function durumCoz(slug: string, f: Filtre): Durum {
+  const marka = f.marka && !f.marka.includes(",") ? f.marka.toLowerCase() : undefined;
+  const digerFiltre = Object.keys(f).some((k) => !["sirala", "sayfa", "marka"].includes(k)) || Boolean(f.marka && !marka);
+  return { slug, marka, sayfa: Math.max(1, Number(f.sayfa) || 1), sirali: Boolean(f.sirala && f.sirala !== "fiyat"), digerFiltre };
+}
+
+function canonicalYol(d: Durum) {
+  const p = new URLSearchParams();
+  if (d.marka) p.set("marka", d.marka);
+  if (d.sayfa > 1 && !d.digerFiltre) p.set("sayfa", String(d.sayfa));
+  const q = p.toString();
+  return `/kategori/${d.slug}${q ? `?${q}` : ""}`;
+}
+
+const filtreCoz = async (sp: P["searchParams"]): Promise<Filtre> =>
+  Object.fromEntries(Object.entries(await sp).map(([a, v]) => [a, Array.isArray(v) ? v[0] : v]));
+
+export async function generateMetadata({ params, searchParams }: P): Promise<Metadata> {
   const slug = (await params).slug;
   const d = kategoriBul(slug);
   if (!d) return {};
-  const sayi = agacSayilari(await kategoriUrunSayilari()).get(slug) ?? 0;
-  const satir = await kategoriSatiri(slug);
+  const durum = durumCoz(slug, await filtreCoz(searchParams));
+  const idler = (await kategoriIdleri(altSluglar(slug))).map((x) => x.id);
+  const [oz, markalar] = await Promise.all([kategoriOzet(idler, durum.marka), durum.marka ? kategoriMarkalari(idler) : Promise.resolve([])]);
+  const markaAdi = durum.marka ? markalar.find((m) => m.ad.toLowerCase() === durum.marka)?.ad : undefined;
+  const dolu = Boolean(oz?.urun) && (!durum.marka || Boolean(markaAdi));
+  const ad = `${markaAdi ? `${markaAdi} ` : ""}${d.ad}`;
+  const baslik = dolu ? `${ad} Fiyatları${durum.marka ? "" : " ve Modelleri"} (${ayYil()})${durum.sayfa > 1 ? ` - Sayfa ${durum.sayfa}` : ""}` : `${ad} Fiyatları`;
+  const aciklama = dolu && oz
+    ? kirp(`${ad} fiyatları: ${oz.urun} modelin ${oz.magaza} mağazadaki fiyatı karşılaştırıldı. En ucuz ${tl(oz.min)}'den başlayan fiyatlar, 30 günlük fiyat geçmişi ve sahte indirim kontrolü.`)
+    : `${d.ad} fiyatlarını mağaza mağaza karşılaştırın, fiyat geçmişini görün, ucuzlayınca haber alın.`;
+  const yol = canonicalYol(durum);
   return {
-    title: `${d.ad} fiyatları`,
-    description: satir?.aciklama ?? `${d.ad} fiyatlarını mağaza mağaza karşılaştırın, fiyat geçmişini görün, ucuzlayınca haber alın.`,
-    // Henüz ürünü olmayan kategori sayfaları arama motorlarına gösterilmez (boş sayfa izlenimi vermesin).
-    robots: sayi ? undefined : { index: false, follow: true },
+    title: baslik,
+    description: aciklama,
+    alternates: { canonical: yol },
+    openGraph: { url: yol, title: baslik, description: aciklama },
+    robots: !dolu || durum.digerFiltre ? { index: false, follow: true } : undefined,
   };
 }
 
@@ -31,8 +64,8 @@ export default async function KategoriSayfasi({ params, searchParams }: P) {
   const slug = (await params).slug;
   const d = kategoriBul(slug);
   if (!d) notFound();
-  const ham = await searchParams;
-  const f: Filtre = Object.fromEntries(Object.entries(ham).map(([a, v]) => [a, Array.isArray(v) ? v[0] : v]));
+  const f = await filtreCoz(searchParams);
+  const durum = durumCoz(slug, f);
 
   const [idler, satir, yaprakSayilari] = await Promise.all([kategoriIdleri(altSluglar(slug)), kategoriSatiri(slug), kategoriUrunSayilari()]);
   const sayilar = agacSayilari(yaprakSayilari);
@@ -46,20 +79,31 @@ export default async function KategoriSayfasi({ params, searchParams }: P) {
   const sonrakiVar = ham_liste.length > SAYFA_BOYU;
   const liste = ham_liste.slice(0, SAYFA_BOYU);
   const filtreli = Object.keys(f).some((k) => k !== "sirala" && k !== "sayfa");
+  const [markalar, oz] = toplam ? await Promise.all([kategoriMarkalari(ids), kategoriOzet(ids, durum.marka)]) : [[], null];
+  const markaAdi = durum.marka ? markalar.find((m) => m.ad.toLowerCase() === durum.marka)?.ad : undefined;
+  const baslikAdi = `${markaAdi && !durum.digerFiltre ? `${markaAdi} ` : ""}${d.ad}`;
 
   const yol = kategoriYolu(slug);
   const siralaLink = (s: string) => { const p = new URLSearchParams(f as Record<string, string>); p.set("sirala", s); p.delete("sayfa"); return `?${p}`; };
   const sayfaLink = (n: number) => { const p = new URLSearchParams(f as Record<string, string>); n > 1 ? p.set("sayfa", String(n)) : p.delete("sayfa"); const q = p.toString(); return q ? `?${q}` : "?"; };
 
+  const kirintilar = [{ ad: "Ana sayfa", yol: "/" }, ...yol.map((y) => ({ ad: y.ad, yol: `/kategori/${y.slug}` }))];
+  const jsonld: unknown[] = [kirintiJsonLd(kirintilar)];
+  if (liste.length) jsonld.push({
+    "@context": "https://schema.org", "@type": "ItemList", name: `${baslikAdi} fiyatları`, numberOfItems: liste.length,
+    itemListElement: liste.map((u, i) => ({ "@type": "ListItem", position: (sayfa - 1) * SAYFA_BOYU + i + 1, url: mutlak(`/urun/${u.slug}`), name: `${u.marka} ${u.model} ${u.varyant ?? ""}`.trim() })),
+  });
+
   return (
     <>
+      <JsonLd veri={jsonld} />
       <nav className="yol" aria-label="Konum">
         <Link href="/">Ana sayfa</Link>
         {yol.map((y, i) => <span key={y.slug}> / {i === yol.length - 1 ? <span aria-current="page">{y.ad}</span> : <Link href={`/kategori/${y.slug}`}>{y.ad}</Link>}</span>)}
       </nav>
       <div className="kat-ust">
         <div>
-          <h1>{d.ad}{toplam ? " fiyatları" : ""}</h1>
+          <h1>{baslikAdi}{toplam ? " fiyatları" : ""}</h1>
           <p>{toplam ? `${filtreli ? "Filtrelere uyan ürünler" : `${toplam} ürün`}${sayfa > 1 ? `, sayfa ${sayfa}` : ""}. Mağaza fiyatları gün içinde güncellenir.` : "Bu kategoride henüz fiyat okumuyoruz."}</p>
         </div>
         {toplam > 0 && (
@@ -70,6 +114,15 @@ export default async function KategoriSayfasi({ params, searchParams }: P) {
       </div>
 
       {d.alt && d.alt.length > 0 && <AltKategoriler d={d} sayilar={sayilar} />}
+      {markalar.length > 1 && (
+        <nav className="marka-serit" aria-label="Markaya göre">
+          <span className="soluk kucuk">Markaya göre:</span>
+          {markalar.slice(0, 14).map((m) => (
+            <Link key={m.ad} href={`/kategori/${slug}?marka=${encodeURIComponent(m.ad.toLowerCase())}`} aria-current={durum.marka === m.ad.toLowerCase() ? "true" : undefined}>{m.ad}</Link>
+          ))}
+          {durum.marka && <Link href={`/kategori/${slug}`}>Tüm markalar</Link>}
+        </nav>
+      )}
 
       {toplam > 0 && sec ? (
         <div className="kat-govde">
@@ -92,6 +145,7 @@ export default async function KategoriSayfasi({ params, searchParams }: P) {
       ) : (
         <BosKategori d={d} sayilar={sayilar} />
       )}
+      {oz && oz.urun > 0 && sayfa === 1 && !durum.digerFiltre && <KategoriBilgi ad={baslikAdi} oz={oz} markalar={durum.marka ? [] : markalar} />}
     </>
   );
 }
@@ -126,5 +180,28 @@ function BosKategori({ d, sayilar }: { d: KategoriDugumu; sayilar: Map<string, n
         <p><Link className="dugme" href="/kategori/akilli-telefon">Akıllı telefon fiyatlarına bak</Link> <Link className="dugme ikincil" href="/kategoriler">Tüm kategoriler</Link></p>
       </div>
     </div>
+  );
+}
+
+// Sayfanın altındaki bilgi metni: tamamen veriden üretilir, her kategori ve marka için kendine özgüdür.
+function KategoriBilgi({ ad, oz, markalar }: { ad: string; oz: NonNullable<Awaited<ReturnType<typeof kategoriOzet>>>; markalar: { ad: string; n: number }[] }) {
+  const kucuk = ad.toLocaleLowerCase("tr");
+  return (
+    <section className="kategori-bilgi" aria-labelledby="kategori-bilgi-baslik">
+      <h2 id="kategori-bilgi-baslik">{ad} fiyatları hakkında</h2>
+      <p>
+        Fiyat Dürbün&apos;de şu an {oz.magaza} mağazada satılan {oz.urun} {kucuk} modelinin fiyatını izliyoruz.
+        {oz.min != null && oz.max != null && <> Fiyatlar {tl(oz.min)} ile {tl(oz.max)} arasında değişiyor.</>}
+        {markalar.length > 1 && <> En çok modeli olan markalar {markalar.slice(0, 3).map((m) => m.ad).join(", ")}.</>}
+        {" "}Mağaza fiyatlarını günde birkaç kez okuyup her günü kaydediyoruz; bu sayede bir indirimin gerçekten indirim olup olmadığını fiyat geçmişinden görebilirsiniz.
+      </p>
+      <div className="sss">
+        {oz.en_ucuz && oz.min != null && (
+          <div><h3>En ucuz {kucuk} hangisi?</h3><p>Bugün en düşük fiyatlı model {oz.en_ucuz}: {tl(oz.min)}. Kargo ücreti mağazaya göre değişir; ürün sayfasında kargo dahil sıralamayı görebilirsiniz.</p></div>
+        )}
+        <div><h3>Fiyatlar ne sıklıkla güncelleniyor?</h3><p>Mağaza fiyatlarını günde dört kez okuyoruz. Her ürün sayfasında son 30 günün en düşük ve en yüksek fiyatını ölçek üzerinde gösteriyoruz.</p></div>
+        <div><h3>Fiyat Dürbün satış yapıyor mu?</h3><p>Hayır. Fiyatları karşılaştırıp sizi ürünü satan mağazaya yönlendiriyoruz. Satın almadan önce fiyatı mağazanın sayfasında kontrol edin.</p></div>
+      </div>
+    </section>
   );
 }

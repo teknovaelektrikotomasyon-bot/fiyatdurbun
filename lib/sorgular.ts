@@ -3,7 +3,7 @@ import { q, q1 } from "./db.ts";
 
 export type Ozellik = { anahtar: string; ad: string; tur: string; birim: string | null; filtre: string; grup: string | null };
 export type UrunKart = {
-  id: number; slug: string; model: string; varyant: string | null; marka: string; gorsel: string | null;
+  id: number; slug: string; model: string; varyant: string | null; marka: string; gorsel: string | null; gtin?: string | null;
   ozellikler: Record<string, string | number | boolean>;
   fiyat: number | null; magaza_sayisi: number; once30: number | null; enDusuk30: number | null; enYuksek30: number | null;
 };
@@ -34,7 +34,7 @@ const URUN_TABAN = `
       (select max(dm) from (select min(f4.fiyat) as dm from fiyat_gecmisi f4 where f4.urun_id = f.urun_id and f4.gun >= current_date - 30 group by f4.gun) z)::float8 as en_yuksek30
     from fiyat_gecmisi f group by urun_id
   )
-  select u.id, u.slug, u.model, u.varyant, mk.ad as marka, u.gorsel, u.ozellikler, t.fiyat, coalesce(t.magaza_sayisi,0) as magaza_sayisi,
+  select u.id, u.slug, u.model, u.varyant, mk.ad as marka, u.gorsel, u.ozellikler, u.gtin, t.fiyat, coalesce(t.magaza_sayisi,0) as magaza_sayisi,
          g.once30 as "once30", g.en_dusuk30 as "enDusuk30", g.en_yuksek30 as "enYuksek30", u.kategori_id
   from urun u join marka mk on mk.id = u.marka_id
   left join t on t.urun_id = u.id left join g on g.urun_id = u.id`;
@@ -99,6 +99,26 @@ export async function kategoriUrunSayilari() {
     `select k.slug, count(distinct u.id)::int as n from kategori k join urun u on u.kategori_id = k.id
      where exists (select 1 from teklif t where t.urun_id = u.id and t.stokta) group by k.slug`);
   return new Map(r.map((x) => [x.slug, x.n]));
+}
+
+// Başlık ve açıklama metinleri için kategori (ve isteğe bağlı marka) özeti.
+export async function kategoriOzet(kategoriIdler: number[], marka?: string) {
+  if (!kategoriIdler.length) return null;
+  return q1<{ urun: number; magaza: number; min: number | null; max: number | null; en_ucuz: string | null; marka_sayisi: number }>(
+    `select count(distinct u.id)::int as urun, count(distinct t.magaza_id)::int as magaza,
+            min(t.fiyat)::float8 as min, max(t.fiyat)::float8 as max, count(distinct u.marka_id)::int as marka_sayisi,
+            (array_agg(mk.ad || ' ' || u.model || coalesce(' ' || u.varyant, '') order by t.fiyat))[1] as en_ucuz
+     from urun u join teklif t on t.urun_id = u.id and t.stokta join marka mk on mk.id = u.marka_id join magaza m on m.id = t.magaza_id and m.aktif
+     where u.kategori_id = any($1::int[]) and ($2::text is null or lower(mk.ad) = $2)`, [kategoriIdler, marka?.toLowerCase() ?? null]);
+}
+
+// Kategori sayfasındaki marka bağlantıları ve site haritası için: kategoride ürünü olan markalar.
+export async function kategoriMarkalari(kategoriIdler: number[]) {
+  if (!kategoriIdler.length) return [];
+  return q<{ ad: string; n: number }>(
+    `select mk.ad, count(distinct u.id)::int as n from urun u join marka mk on mk.id = u.marka_id
+     where u.kategori_id = any($1::int[]) and exists (select 1 from teklif t where t.urun_id = u.id and t.stokta)
+     group by mk.ad order by n desc, mk.ad`, [kategoriIdler]);
 }
 
 export async function urun(slug: string) {

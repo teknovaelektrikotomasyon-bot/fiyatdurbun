@@ -305,6 +305,16 @@ main > .kap > .kapsam { margin-top: 0; }
   .yan-menu-ust { display: none; }
 }
 .bos-kategori { padding: 28px; max-width: 760px; }
+.marka-serit { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: -6px 0 20px; }
+.marka-serit a { font-size: 13.5px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--cizgi); background: var(--yuzey); text-decoration: none; }
+.marka-serit a:hover { border-color: var(--cizgi-koyu); }
+.marka-serit a[aria-current] { background: var(--gece); border-color: var(--gece); color: #fff; }
+@media (max-width: 860px) { .marka-serit { flex-wrap: nowrap; overflow-x: auto; margin: -6px -14px 18px; padding: 0 14px; scrollbar-width: none; } .marka-serit a, .marka-serit span { flex: none; } }
+.kategori-bilgi { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--cizgi); max-width: 820px; }
+.kategori-bilgi h2 { margin-bottom: 10px; }
+.kategori-bilgi p { color: var(--soluk); margin: 0 0 10px; max-width: 72ch; }
+.sss { display: grid; gap: 4px; margin-top: 16px; }
+.sss h3 { margin: 12px 0 4px; }
 .sayfalama { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; }
 .bos-kategori h2 { margin-bottom: 8px; }
 .bos-kategori p { color: var(--soluk); margin: 0 0 12px; max-width: 64ch; }

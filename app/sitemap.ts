@@ -16,6 +16,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Ürünü olan kategoriler (alt kategoriler dahil sayılır); boş kategoriler noindex olduğu için haritaya girmez.
   const sayilar = agacSayilari(await kategoriUrunSayilari());
   const kategoriler = tumKategoriler().filter((k) => (sayilar.get(k.slug) ?? 0) > 0).map((k) => ({ slug: k.slug, son: null }));
+  // Marka sayfaları ("Samsung Akıllı Telefon fiyatları"): yalnızca yaprak kategorilerde ve en az 2 ürünü olan markalar.
+  const markaSayfalari = await q<{ kategori: string; marka: string }>(
+    `select k.slug as kategori, lower(mk.ad) as marka from urun u join kategori k on k.id = u.kategori_id join marka mk on mk.id = u.marka_id
+     where exists (select 1 from teklif t where t.urun_id = u.id and t.stokta)
+     group by k.slug, lower(mk.ad) having count(*) >= 2`,
+  );
   // Yalnızca en az bir mağazada fiyatı olan ürünler.
   const urunler = await q<Satir>(
     `select u.slug, max(t.guncelleme) as son
@@ -37,6 +43,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: simdi,
       changeFrequency: "hourly" as const,
       priority: 0.9,
+    })),
+    ...markaSayfalari.map((m) => ({
+      url: `${site}/kategori/${m.kategori}?marka=${encodeURIComponent(m.marka)}`,
+      lastModified: simdi,
+      changeFrequency: "daily" as const,
+      priority: 0.7,
     })),
     ...urunler.map((u) => ({
       url: `${site}/urun/${u.slug}`,

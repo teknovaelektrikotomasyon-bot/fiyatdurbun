@@ -1,11 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { UrunKarti } from "@/components/UrunKarti";
 import { Olcek } from "@/components/Olcek";
 import { enCokDusenler, fiyatGecmisi, populer } from "@/lib/sorgular.ts";
 import { q1 } from "@/lib/db.ts";
+import { JsonLd } from "@/components/JsonLd";
+import { organizasyonJsonLd, siteJsonLd } from "@/lib/seo.ts";
 import { KATEGORI_AGACI } from "@/lib/katalog/agac.ts";
 
 export const dynamic = "force-dynamic";
+// Kök düzendeki canonical tüm sayfalara miras kalacağı için yalnızca burada veriliyor.
+export const metadata: Metadata = { alternates: { canonical: "/" }, openGraph: { url: "/" } };
 
 export default async function AnaSayfa() {
   const [dusen, pop, say] = await Promise.all([
@@ -22,6 +27,7 @@ export default async function AnaSayfa() {
 
   return (
     <>
+      <JsonLd veri={[organizasyonJsonLd(), siteJsonLd()]} />
       <section className="bant">
         <div className="kap bant-ic">
           <div className="bant-metin">
@@ -32,7 +38,7 @@ export default async function AnaSayfa() {
               <button>Fiyatları bul</button>
             </form>
             <p className="ornek-aramalar">
-              Sık arananlar: <Link href="/ara?q=iphone 17">iPhone 17</Link>, <Link href="/ara?q=galaxy s">Galaxy S serisi</Link>, <Link href="/kategori/akilli-telefon?5g=1&fiyat=-20000">20.000 TL altı 5G telefonlar</Link>
+              Sık bakılanlar: <Link href="/kategori/akilli-telefon?marka=apple">iPhone</Link>, <Link href="/kategori/akilli-telefon?marka=samsung">Samsung</Link>, <Link href="/kategori/akilli-telefon?marka=xiaomi">Xiaomi</Link>, <Link href="/kategori/akilli-telefon">tüm akıllı telefonlar</Link>
             </p>
           </div>
           {vitrin?.fiyat != null && (

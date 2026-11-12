@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import "./globals.css";
 import { Logo } from "@/components/Logo";
@@ -6,11 +6,27 @@ import { KategoriMenusu } from "@/components/KategoriMenusu";
 import { KATEGORI_AGACI } from "@/lib/katalog/agac.ts";
 import { uye } from "@/lib/oturum.ts";
 
-export const metadata: Metadata = {
-  title: { default: "Fiyat Dürbün — Fiyat karşılaştırma", template: "%s | Fiyat Dürbün" },
-  description: "Ürün fiyatlarını mağaza mağaza karşılaştır, fiyat geçmişini gör, takip ettiğin ürün ucuzlayınca haber al.",
-  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
+const site = process.env.SITE_URL ?? "http://localhost:3000";
+const dogrulama = {
+  google: process.env.GOOGLE_SITE_VERIFICATION,
+  yandex: process.env.YANDEX_VERIFICATION,
+  other: process.env.BING_VERIFICATION ? { "msvalidate.01": process.env.BING_VERIFICATION } : undefined,
 };
+
+export const metadata: Metadata = {
+  metadataBase: new URL(site),
+  title: { default: "Fiyat Karşılaştırma: En Ucuz Fiyatlar ve Fiyat Geçmişi | Fiyat Dürbün", template: "%s | Fiyat Dürbün" },
+  description: "Ürün fiyatlarını mağaza mağaza karşılaştırın, fiyat geçmişini görün, indirimin gerçek olup olmadığını öğrenin. Takip ettiğiniz ürün ucuzlayınca e-posta ile haber alın.",
+  applicationName: "Fiyat Dürbün",
+  openGraph: { type: "website", siteName: "Fiyat Dürbün", locale: "tr_TR" },
+  twitter: { card: "summary_large_image" },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
+  formatDetection: { telephone: false },
+  verification: dogrulama,
+  category: "shopping",
+};
+
+export const viewport: Viewport = { themeColor: "#102a3a", width: "device-width", initialScale: 1 };
 
 export default async function Kok({ children }: { children: React.ReactNode }) {
   const u = await uye();

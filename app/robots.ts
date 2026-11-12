@@ -10,8 +10,9 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // Tıklama yönlendirmesi, hesap ve arama sonuçları dizine girmesin.
-        disallow: ["/git/", "/hesabim", "/giris", "/ara"],
+        // Tıklama yönlendirmesi ve hesap sayfaları taranmasın. Sıralama varyantları aynı listenin kopyası olduğu için
+        // taranmaz (tarama bütçesi ürün sayfalarına kalsın). Arama sonuçları taranabilir ama sayfada noindex var.
+        disallow: ["/git/", "/hesabim", "/giris", "/*?*sirala="],
       },
     ],
     sitemap: `${site}/sitemap.xml`,
