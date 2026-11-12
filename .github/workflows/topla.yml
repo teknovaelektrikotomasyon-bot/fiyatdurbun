@@ -7,10 +7,14 @@ on:
         required: false
   schedule:
     - cron: "17 */6 * * *"   # 6 saatte bir
+permissions:
+  contents: write
 jobs:
   topla:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,13 +23,23 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Topla
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           EK=""; [ -n "$DATABASE_URL" ] && EK="--db"
           node --experimental-strip-types scripts/topla.ts --limit "${{ inputs.limit || 0 }}" --cikti veri/okunan.jsonl $EK
-      - uses: actions/upload-artifact@v4
-        with:
-          name: okunan
-          path: veri/okunan.jsonl
-          retention-days: 14
+      - name: Takip bildirimleri
+        if: env.DATABASE_URL != ''
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SITE_URL: https://fiyatdurbun.com
+        run: node --experimental-strip-types scripts/bildirim.ts
+      # Veritabanı bağlanana kadar ham okumalar "veri" dalında saklanır; fiyat geçmişi kaybolmaz, sonra içe aktarılır.
+      - name: Ham veriyi sakla
+        run: |
+          DOSYA="okunan/$(date -u +%Y-%m-%d_%H%M).jsonl"
+          mv veri/okunan.jsonl /tmp/okunan.jsonl
+          git config user.name "fiyatdurbun-toplayici"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin veri:veri 2>/dev/null && git checkout veri || git checkout --orphan veri
+          git rm -rfq --cached . >/dev/null 2>&1 || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name okunan -exec rm -rf {} +
+          mkdir -p okunan && mv /tmp/okunan.jsonl "$DOSYA"
+          git add okunan && git commit -qm "Toplama $DOSYA" && git push -q origin veri
