@@ -22,6 +22,15 @@ if (db) {
   await db.q("alter table magaza add column if not exists kaynak text not null default 'elle'");
   await db.q("alter table magaza add column if not exists kesif jsonb");
 }
+// Sitenin kendi adı başlıktan düzgün çıkmayan mağazalar.
+const ADLAR: Record<string, string> = {
+  narecza: "Narecza", proteinocean: "Protein Ocean", bkmkitap: "BKM Kitap", casper: "Casper", mudo: "Mudo", ttec: "ttec",
+  petzzshop: "Petzzshop", dermokozmetika: "Dermokozmetika", kozmela: "Kozmela", mamaciteyze: "Mamacı Teyze", flormar: "Flormar",
+  intersport: "Intersport", fakir: "Fakir", "gaming-gen": "Gaming.gen.tr", akilliphone: "Akıllı Phone", robotistan: "Robotistan",
+  direnc: "Direnc.net", dermoeczanem: "Dermoeczanem", petfix: "PetFix", petza: "Petza", ozdilekteyim: "Özdilekteyim",
+};
+if (db) for (const [slug, ad] of Object.entries(ADLAR)) await db.q("update magaza set ad=$2 where slug=$1 and kaynak='oto'", [slug, ad]);
+
 const mevcut = new Set<string>(db ? (await db.q<{ site: string }>("select site from magaza where kaynak <> 'oto' or not $1", [yeniden]))
   .map((r) => new URL(r.site).hostname.replace(/^www\./, "")) : []);
 
@@ -78,7 +87,7 @@ function siteAdi(html: string, alan: string) {
   const baslik = html.match(/<title[^>]*>([^<]{2,120})<\/title>/i)?.[1];
   const ad = og ?? baslik?.split(/\s[|\-–—:]\s/).map((s) => s.trim()).filter(Boolean).sort((a, b) => a.length - b.length)[0];
   const temiz = ad ? decode(ad).trim() : "";
-  return temiz && temiz.length <= 40 ? temiz : alan.replace(/\.(com|net|gen)?\.?(tr)?$/, "");
+  return temiz && temiz.length <= 40 && !/^(https?:|www\.)/i.test(temiz) && !/^(kitap|anasayfa|ana sayfa|home)$/i.test(temiz) ? temiz : alan.replace(/\.(com|net|gen)?\.?(tr)?$/, "");
 }
 
 const satirlar = ["| Aday | Tür | Sonuç | Harita | Fiyat/yol | Firma | Not |", "|---|---|---|---|---|---|---|"];
@@ -136,7 +145,7 @@ async function dene(a: { alan: string; tur: string }) {
   const urlFiltre = `^https?://(www\\.)?${a.alan.replace(/\./g, "\\.")}/` + (ipuclu.length >= 10 ? `.*(${URUN_YOL.source.slice(1, -1)})` : "");
   const kesif = { haritalar: kokler, dosyaFiltre, urlFiltre, tur: a.tur, tarih: new Date().toISOString().slice(0, 10) };
   const slug = a.alan.split(".")[0].replace(/[^a-z0-9-]/g, "") + (/\.gen\.tr$/.test(a.alan) ? "-gen" : "");
-  const ad = siteAdi(ana.html, a.alan);
+  const ad = ADLAR[slug] ?? siteAdi(ana.html, a.alan);
   const not = `Otomatik keşif ${kesif.tarih}: ${fiyatli}/4 örnek fiyatlı, ${yollu}/4 kategori yolu. Firma: ${firmaOzet}${f.etbis ? " (ETBİS bağlantısı sitede var, doğrulanmadı)" : ""}.`;
   if (db) {
     await db.q(`insert into magaza (slug, ad, site, aktif, kaynak, kesif, unvan, vergi_no, mersis_no, telefon, guven_notu, durum)
