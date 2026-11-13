@@ -52,7 +52,7 @@ export default async function Kok({ children }: { children: React.ReactNode }) {
             <Link href="/kategoriler">Tüm kategoriler</Link>
           </nav>
           <div className="kap">
-            <span>Fiyat Dürbün fiyatları mağazaların herkese açık sayfalarından okur; satın almadan önce mağazadaki fiyatı kontrol edin.</span>
+            <span>Fiyat Dürbün fiyatları mağazaların herkese açık sayfalarından okur; satın almadan önce mağazadaki fiyatı kontrol edin. Amazon Ortağı olarak, uygun alışverişlerden gelir elde ediyoruz; bazı mağaza bağlantıları ortaklık bağlantısıdır ve size ek maliyet getirmez.</span>
             <nav className="alt-linkler" aria-label="Alt bağlantılar"><Link href="/hakkimizda">Hakkımızda</Link><Link href="/magazalar">Mağazalar ve güven kontrolü</Link><Link href="/bot">Botumuz hakkında</Link></nav>
           </div>
         </footer>

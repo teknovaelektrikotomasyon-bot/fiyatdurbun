@@ -34,6 +34,9 @@ export default async function Hakkimizda() {
       <h2>Mağazaları nasıl kontrol ediyoruz?</h2>
       <p>Büyük-küçük her mağazayı listeleyebiliriz ama önce kimliğine bakarız: ticari unvan, vergi ve MERSİS numarası, Ticaret Bakanlığı ETBİS kaydı. Bunları göstermeyen mağaza yayına alınmaz. Elle doğrulaması bitmeyen mağaza “Firma bilgisi kontrol ediliyor” etiketiyle görünür. Aynı ürünü satan diğer mağazaların yarısından ucuz teklifler “piyasanın çok altında” uyarısı alır ve en ucuz fiyat hesabına girmez; böyle teklifleri çok olan mağaza otomatik olarak listeden çıkar. Tüm liste: <Link href="/magazalar">Mağazalar ve güven kontrolü</Link>.</p>
 
+      <h2>Nasıl gelir elde ediyoruz?</h2>
+      <p>Amazon Ortağı olarak, uygun alışverişlerden gelir elde ediyoruz. Bazı “Mağazaya git” ve “Amazon'da ara” bağlantıları ortaklık bağlantısıdır: bu bağlantıdan yapılan alışverişte mağaza bize küçük bir pay öder, sizin ödediğiniz fiyat değişmez. Bu ödemeler sıralamayı etkilemez; ürünler her zaman fiyata göre sıralanır.</p>
+
       <h2>Fiyatlar her zaman doğru mu?</h2>
       <p>Fiyatlar mağazanın sayfasında okunduğu andaki hâlidir; mağaza fiyatı sonradan değiştirebilir, sepette ek indirim ya da kargo çıkabilir. Satın almadan önce mağazadaki son fiyatı kontrol edin. Hatalı bir fiyat ya da yanlış eşleşmiş bir ürün görürseniz bize bildirin; düzeltiriz.</p>
     </article>

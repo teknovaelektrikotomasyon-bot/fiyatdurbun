@@ -10,6 +10,7 @@ import { uye } from "@/lib/oturum.ts";
 import { kategoriYolu } from "@/lib/katalog/agac.ts";
 import { JsonLd } from "@/components/JsonLd";
 import { AvrupaFiyatlari, avrupaOzeti } from "@/components/AvrupaFiyatlari";
+import { amazonAramaLinki } from "@/lib/ortaklik";
 import { ULKE_ADI } from "@/lib/avrupa/ulkeler.ts";
 import { kirintiJsonLd, kirp, mutlak } from "@/lib/seo.ts";
 import { takipEt, takiptenCik } from "@/app/hesabim/islemler";
@@ -168,6 +169,10 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
             })}
           </tbody>
         </table>
+        <p className="amazon-ara">
+          <a href={amazonAramaLinki(`${ad} ${u.varyant ?? ""}`.trim())} target="_blank" rel="nofollow sponsored noopener">Amazon.com.tr'de bu ürünü ara</a>
+          <span className="soluk kucuk"> · Amazon fiyatı burada gösterilmez, Amazon'da açılır. Ortaklık bağlantısıdır.</span>
+        </p>
       </section>
 
       <AvrupaFiyatlari satirlar={avrupa} trFiyat={enUcuz?.fiyat ?? null} urunAdi={`${ad} ${u.varyant ?? ""}`.trim()} />

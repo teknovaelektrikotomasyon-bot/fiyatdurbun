@@ -437,3 +437,7 @@ main > .kap > .kapsam { margin-top: 0; }
   .vitrin-baslik img { width: 72px; height: 72px; margin-bottom: -24px; }
   .vitrin-ad { max-width: calc(100% - 78px); }
 }
+
+/* Amazon ortaklık bağlantısı (fiyatsız; Amazon API açılana kadar) */
+.amazon-ara { margin: 14px 0 0; }
+.amazon-ara a { font-weight: 600; color: var(--lacivert, #102a3a); text-decoration: underline; text-underline-offset: 3px; }
