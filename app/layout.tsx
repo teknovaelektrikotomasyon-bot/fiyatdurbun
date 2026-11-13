@@ -53,7 +53,7 @@ export default async function Kok({ children }: { children: React.ReactNode }) {
           </nav>
           <div className="kap">
             <span>Fiyat Dürbün fiyatları mağazaların herkese açık sayfalarından okur; satın almadan önce mağazadaki fiyatı kontrol edin.</span>
-            <nav className="alt-linkler" aria-label="Alt bağlantılar"><Link href="/magazalar">Mağazalar ve güven kontrolü</Link><Link href="/bot">Botumuz hakkında</Link></nav>
+            <nav className="alt-linkler" aria-label="Alt bağlantılar"><Link href="/hakkimizda">Hakkımızda</Link><Link href="/magazalar">Mağazalar ve güven kontrolü</Link><Link href="/bot">Botumuz hakkında</Link></nav>
           </div>
         </footer>
       </body>

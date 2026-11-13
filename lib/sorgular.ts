@@ -187,5 +187,5 @@ export async function magazalar() {
     guven_notu: string | null; guven_kontrol: string | null; son_okuma: string | null; teklif_sayisi: number }>(
     `select m.*, m.sikayet_puani::float8 as sikayet_puani, m.guven_kontrol::text as guven_kontrol, m.son_okuma::text as son_okuma,
        (select count(*)::int from teklif t where t.magaza_id=m.id and t.stokta) as teklif_sayisi
-     from magaza m order by m.aktif desc, teklif_sayisi desc`);
+     from magaza m where m.aktif or m.kaynak <> 'oto' order by m.aktif desc, teklif_sayisi desc`);
 }

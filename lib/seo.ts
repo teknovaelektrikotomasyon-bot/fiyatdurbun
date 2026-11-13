@@ -38,6 +38,12 @@ export function organizasyonJsonLd() {
     name: SITE_ADI,
     url: mutlak("/"),
     logo: mutlak("/logo.png"),
+    description: "Türkiye'deki çevrim içi mağazaların fiyatlarını karşılaştıran, 30 günlük fiyat geçmişini ve Avrupa fiyatlarını gösteren bağımsız fiyat karşılaştırma sitesi.",
+    foundingDate: "2026",
+    areaServed: "TR",
+    knowsLanguage: "tr",
+    // Sosyal hesaplar açıldıkça buraya eklenir (Google'ın markayı tanıması için).
+    sameAs: [] as string[],
   };
 }
 

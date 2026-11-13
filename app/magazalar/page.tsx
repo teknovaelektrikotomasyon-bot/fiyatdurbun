@@ -14,7 +14,7 @@ export default async function Magazalar() {
     <>
       <div className="kat-ust"><div>
         <h1>Mağazalar</h1>
-        <p style={{ maxWidth: "70ch" }}>Büyük-küçük her mağazanın fiyatını gösteriyoruz ama önce kontrol ediyoruz: ticari unvan, MERSİS ve vergi numarası, Ticaret Bakanlığı ETBİS kaydı, açık adres ve telefon, iade süresi, yetkili satıcılık ve müşteri şikâyetleri. Kontrolü bitmeyen mağaza “Kontrol sürüyor” etiketiyle görünür; sorunlu çıkan mağaza listeden çıkarılır.</p>
+        <p style={{ maxWidth: "70ch" }}>Büyük-küçük her mağazanın fiyatını gösteriyoruz ama önce kontrol ediyoruz: ticari unvan, MERSİS ve vergi numarası, Ticaret Bakanlığı ETBİS kaydı, açık adres ve telefon, iade süresi, yetkili satıcılık ve müşteri şikâyetleri. Kontrolü bitmeyen mağaza “Kontrol sürüyor” etiketiyle görünür; sorunlu çıkan mağaza listeden çıkarılır. Ayrıca her turda fiyatlar karşılaştırılır: aynı ürünü satan diğer mağazaların yarısından ucuz bir teklif “piyasanın çok altında” uyarısı alır ve en ucuz fiyat hesabına girmez; bu tür teklifleri çok olan mağaza otomatik olarak yayından kaldırılır.</p>
       </div></div>
       <div className="kutu">
         <table className="teklif-tablo">
