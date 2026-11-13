@@ -16,9 +16,15 @@ export async function girisBaglantisiGonder(form: FormData) {
   if ((son?.n ?? 0) < 3) {
     const jeton = await girisJetonuOlustur(eposta);
     const link = `${siteAdresi()}/giris/dogrula?j=${jeton}&donus=${encodeURIComponent(donus)}`;
-    await epostaGonder(eposta, "Fiyat Dürbün giriş bağlantınız",
-      `<p>Merhaba,</p><p>Fiyat Dürbün'e girmek için aşağıdaki bağlantıya tıklayın. Bağlantı 15 dakika geçerli ve tek kullanımlık.</p>
-       <p><a href="${link}">Giriş yap</a></p><p>Bu isteği siz yapmadıysanız bu e-postayı yok sayabilirsiniz.</p>`);
+    try {
+      await epostaGonder(eposta, "Fiyat Dürbün giriş bağlantınız",
+        `<p>Merhaba,</p><p>Fiyat Dürbün'e girmek için aşağıdaki bağlantıya tıklayın. Bağlantı 15 dakika geçerli ve tek kullanımlık.</p>
+         <p><a href="${link}">Giriş yap</a></p><p>Bu isteği siz yapmadıysanız bu e-postayı yok sayabilirsiniz.</p>`);
+    } catch (e) {
+      // E-posta servisi hata verirse sayfa çökmesin; kullanıcıya açık bir mesaj gösterilir, ayrıntı sunucu günlüğüne yazılır.
+      console.error("giriş e-postası gönderilemedi:", (e as Error).message);
+      redirect(`/giris?hata=gonderilemedi&donus=${encodeURIComponent(donus)}`);
+    }
   }
   redirect(`/giris?gonderildi=1`);
 }

@@ -19,7 +19,7 @@ export default async function Giris({ searchParams }: P) {
       <input type="hidden" name="donus" value={sp.donus ?? "/hesabim"} />
       <label className="kucuk" htmlFor="eposta">E-posta</label>
       <input id="eposta" type="email" name="eposta" required autoComplete="email" placeholder="ornek@eposta.com" />
-      {sp.hata && <p className="kucuk" style={{ color: "var(--artis)" }}>Geçerli bir e-posta adresi yazın.</p>}
+      {sp.hata && <p className="kucuk" style={{ color: "var(--artis)" }}>{sp.hata === "gonderilemedi" ? "Giriş e-postası şu an gönderilemedi. Birkaç dakika sonra tekrar deneyin." : "Geçerli bir e-posta adresi yazın."}</p>}
       <button className="dugme" style={{ width: "100%" }}>Giriş bağlantısı gönder</button>
     </form>
   );
