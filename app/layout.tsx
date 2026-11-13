@@ -12,7 +12,7 @@ const dogrulama = {
   yandex: process.env.YANDEX_VERIFICATION,
   other: {
     // Admitad (Mitgo) reklam alanı doğrulaması
-    "mitgo-verification": "3ec4f0bf-a1b8-43d7-9a45-f7bbdaf82e93",
+    "mitgo-verification": ["3ec4f0bf-a1b8-43d7-9a45-f7bbdaf82e93", "8a9796cf-11d2-4b1e-ad92-1da03e009bd1"],
     ...(process.env.BING_VERIFICATION ? { "msvalidate.01": process.env.BING_VERIFICATION } : {}),
   },
 };
