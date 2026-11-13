@@ -618,3 +618,6 @@ main > .kap > .kapsam { margin-top: 0; }
 .uyelik-hata { color: var(--artis); background: var(--artis-zemin); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin: 10px 0; }
 .uyelik-hata p { margin: 2px 0; }
 .uyelik input[type=email] { margin: 0; }
+.kunye-tablo { border-collapse: collapse; margin: 12px 0 18px; }
+.kunye-tablo th { text-align: left; font-weight: 600; padding: 6px 18px 6px 0; vertical-align: top; color: var(--soluk); }
+.kunye-tablo td { padding: 6px 0; }

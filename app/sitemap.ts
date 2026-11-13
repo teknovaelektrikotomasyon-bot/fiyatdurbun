@@ -39,6 +39,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${site}/magazalar`, changeFrequency: "weekly", priority: 0.5 },
     { url: `${site}/hakkimizda`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${site}/kullanim-kosullari`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${site}/gizlilik`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${site}/kunye`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${site}/magazanizi-ekleyin`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${site}/bot`, changeFrequency: "monthly", priority: 0.2 },
     { url: `${site}/kategoriler`, changeFrequency: "weekly", priority: 0.6 },

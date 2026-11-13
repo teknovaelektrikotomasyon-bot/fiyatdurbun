@@ -32,7 +32,7 @@ export default async function Kayit({ searchParams }: P) {
       <label>Şifre <span className="soluk kucuk">(en az 8 karakter, harf ve rakam)</span><input name="sifre" type="password" required minLength={8} autoComplete="new-password" /></label>
       <label>Şifre (tekrar)<input name="sifre2" type="password" required minLength={8} autoComplete="new-password" /></label>
       <label className="uyelik-kutu"><input type="checkbox" name="onay" value="evet" required />
-        <span><Link href="/kullanim-kosullari" target="_blank">Kullanım koşullarını</Link> ve aşağıdaki aydınlatma metnini okudum.</span></label>
+        <span><Link href="/kullanim-kosullari" target="_blank">Kullanım koşullarını</Link> ve <Link href="/gizlilik" target="_blank">gizlilik politikasını / aydınlatma metnini</Link> okudum.</span></label>
       <label className="uyelik-kutu"><input type="checkbox" name="ileti" value="evet" />
         <span>Fırsat ve kampanya e-postaları almak istiyorum (isteğe bağlı, istediğiniz zaman vazgeçebilirsiniz).</span></label>
       <button className="dugme">Kayıt ol</button>
