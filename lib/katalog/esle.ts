@@ -216,7 +216,7 @@ const ENGEL: Record<string, RegExp> = {
   "cep-telefonu-ve-aksesuarlari": /\b(smd|kondansator|direnc|diyot|transistor|entegre|mosfet|trimpot|ethernet|cat ?[5-8]e?|rj ?45|vga|dvi|hdmi|displayport|kvm|sata|ses karti|rca|aux|ses kablosu|sim karti? okuyucu|arac kamerasi|park modu|hava pompasi|akilli saat|bileklik|kordon|band \d)\b/,
 };
 const BAGLAM: Record<string, RegExp> = {
-  "cep-telefonu-ve-aksesuarlari": /\b(telefon|cep|iphone|samsung|galaxy|xiaomi|redmi|huawei|oppo|realme|honor|vivo|poco|tecno|infinix|nokia|motorola|reeder|casper via|general mobile|magsafe|android|ios|gsm|smartphone|powerbank|power bank|tasinabilir sarj|sarj aleti|sarj cihazi|sarj adaptoru|hizli sarj|lightning|type c|usb c|ekran koruyucu|kablosuz sarj|arac ici tutucu)\b/,
+  "cep-telefonu-ve-aksesuarlari": /\b(telefon|cep|iphone|samsung|galaxy|xiaomi|redmi|huawei|oppo|realme|honor|vivo|poco|tecno|infinix|nokia|motorola|reeder|casper via|general mobile|magsafe|android|ios|gsm|smartphone|powerbank|power bank|tasinabilir sarj|sarj aleti|sarj cihazi|sarj adaptoru|hizli sarj|lightning|type c|usb c|micro usb|sarj kablosu|data kablosu|sarj ve data|ekran koruyucu|kablosuz sarj|arac ici tutucu)\b/,
 };
 
 /** Mağaza kategori yolu + ürün adı → kategori. `kokler`: mağazanın eşlenebileceği bölümler (ana bölüm ya da herhangi bir alt dalın slug'ı). */
