@@ -68,6 +68,22 @@ const turMu = (o: Record<string, unknown>, t: string) => {
   return Array.isArray(v) ? v.includes(t) : v === t;
 };
 
+/** EAN-8/12/13/14 denetim hanesi doğru mu? (Rastgele sayıyı barkod sanmamak için.) */
+export function eanGecerli(k: string) {
+  if (!/^\d{8}$|^\d{12,14}$/.test(k) || /^0+$/.test(k)) return false;
+  const d = k.split("").map(Number);
+  const kontrol = d.pop()!;
+  const top = d.reverse().reduce((t, x, i) => t + x * (i % 2 === 0 ? 3 : 1), 0);
+  return (10 - (top % 10)) % 10 === kontrol;
+}
+
+/** Schema'da gtin yoksa: mağaza kodu/üretici kodu geçerli bir EAN ise ya da sayfada "Barkod: …" yazıyorsa onu kullan. */
+function barkodBul(html: string, adaylar: (string | undefined)[]) {
+  for (const a of adaylar) { const k = (a ?? "").replace(/\D/g, ""); if (k.length === (a ?? "").trim().length && eanGecerli(k) && k.length >= 12) return k; }
+  const m = html.match(/(?:barkod|barcode|ean(?:13)?|gtin)\s*(?:no|numaras[ıi]|kodu)?\s*(?:<[^>]{0,80}>\s*){0,4}[:\-]?\s*(?:<[^>]{0,80}>\s*){0,4}(\d{12,14})\b/i);
+  return m && eanGecerli(m[1]) ? m[1] : undefined;
+}
+
 export function urunOku(html: string, url: string): OkunanTeklif | null {
   const nesneler = jsonLdNesneleri(html);
   const p = nesneler.find((o) => turMu(o, "Product") && (o.offers || o.name));
@@ -99,7 +115,8 @@ export function urunOku(html: string, url: string): OkunanTeklif | null {
     if (g && typeof g === "object") { const c = (g as Record<string, unknown>).contentUrl ?? (g as Record<string, unknown>).url; return Array.isArray(c) ? String(c[0]) : c ? String(c) : undefined; }
     return undefined;
   })();
-  const gtin = [p.gtin13, p.gtin, p.gtin12, p.gtin14, p.gtin8].map((x) => (x == null ? "" : String(x).replace(/\D/g, ""))).find((x) => x.length >= 8);
+  const gtin = [p.gtin13, p.gtin, p.gtin12, p.gtin14, p.gtin8].map((x) => (x == null ? "" : String(x).replace(/\D/g, ""))).find((x) => x.length >= 8)
+    ?? barkodBul(html, [metin(p.sku), metin(p.mpn), metin(p.productID), metin(secili.sku)]);
   const rating = p.aggregateRating as Record<string, unknown> | undefined;
   return {
     url: metin(secili.url) && /^https?:/.test(String(secili.url)) ? String(secili.url) : url,
