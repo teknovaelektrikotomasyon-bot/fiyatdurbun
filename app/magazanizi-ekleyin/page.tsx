@@ -76,7 +76,7 @@ export default async function MagazaniziEkleyin({ searchParams }: P) {
             </select>
           </label>
           <label>E-ticaret site adresi<input name="site" required placeholder="www.magazaniz.com" maxLength={120} /></label>
-          <label>Ürün feed adresi (XML) <span className="soluk kucuk">(isteğe bağlı)</span><input name="feed" placeholder="https://www.magazaniz.com/cimri.xml" maxLength={300} /></label>
+          <label>Ürün feed adresi (XML) <span className="soluk kucuk">(isteğe bağlı)</span><input name="feed" placeholder="https://www.magazaniz.com/urunler.xml" maxLength={300} /></label>
         </fieldset>
         <fieldset>
           <legend>Yetkili kişi</legend>
