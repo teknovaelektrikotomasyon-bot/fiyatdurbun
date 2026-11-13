@@ -153,7 +153,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
                   <td>
                     <div className="magaza-ad">{t.magaza}</div>
                     <div className="rozetler">
-                      {t.magaza_durum === "onayli" ? <span className="rozet yesil">Kontrol edildi</span> : t.magaza_durum === "uyari" ? <span className="rozet kirmizi">Dikkat</span> : t.firma_var ? <span className="rozet" title="Mağazanın ticari unvan, vergi ve MERSİS bilgileri sitesinde var; henüz elle doğrulanmadı.">Firma bilgisi kontrol ediliyor</span> : <span className="rozet sari" title="Mağazanın sitesinde ticari unvan, vergi no ya da MERSİS bilgisi bulamadık. Satın almadan önce mağazayı kendiniz araştırın.">Firma bilgisi bulunamadı</span>}
+                      {t.magaza_durum === "onayli" ? <span className="rozet yesil">Kontrol edildi</span> : t.magaza_durum === "uyari" ? <span className="rozet kirmizi">Dikkat</span> : null}
                       {t.yetkili_satici && <span className="rozet">{t.yetkili_satici}</span>}
                     </div>
                   </td>

@@ -126,14 +126,14 @@ export async function urun(slug: string) {
 }
 
 export type Teklif = {
-  id: number; magaza: string; magaza_slug: string; magaza_durum: string; yetkili_satici: string | null; mersis: boolean; firma_var: boolean;
+  id: number; magaza: string; magaza_slug: string; magaza_durum: string; yetkili_satici: string | null; mersis: boolean;
   baslik: string; url: string; fiyat: number; kargo: number | null; stokta: boolean; renk: string | null; satici: string | null;
   garanti: string | null; guncelleme: string; en_dusuk30: number | null; supheli: boolean;
 };
 
 export async function teklifler(urunId: number) {
   return q<Teklif>(`
-    select t.id, m.ad as magaza, m.slug as magaza_slug, m.durum as magaza_durum, m.yetkili_satici, (m.mersis_no is not null) as mersis, (m.unvan is not null or m.vergi_no is not null or m.mersis_no is not null) as firma_var,
+    select t.id, m.ad as magaza, m.slug as magaza_slug, m.durum as magaza_durum, m.yetkili_satici, (m.mersis_no is not null) as mersis,
       t.baslik, t.url, t.fiyat::float8 as fiyat, t.kargo::float8 as kargo, t.stokta, t.renk, t.satici, t.garanti, t.guncelleme::text, t.supheli,
       (select min(f.fiyat)::float8 from fiyat_gecmisi f where f.urun_id=t.urun_id and f.magaza_id=t.magaza_id and f.gun >= current_date-30 and f.gun < current_date) as en_dusuk30
     from teklif t join magaza m on m.id=t.magaza_id

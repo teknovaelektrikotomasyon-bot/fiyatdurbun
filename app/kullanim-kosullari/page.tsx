@@ -30,9 +30,8 @@ export default function KullanimKosullari() {
         <strong> Geçerli olan, satın alma anında mağaza sayfasında gösterilen bilgidir.</strong> Satın almadan önce fiyatı ve ürün özelliklerini mağazada kontrol ediniz.</p>
 
       <h2>3. Mağazalar hakkında</h2>
-      <p>Sitede yer alan mağazalar Fiyat Dürbün'ün iş ortağı, temsilcisi ya da bayisi değildir. Mağazaların ticari unvan, vergi ve MERSİS bilgileri
-        mağazaların kendi sitelerinden okunur; “Firma bilgisi kontrol ediliyor” ya da “Firma bilgisi bulunamadı” ibaresi taşıyan mağazaların bilgileri
-        tarafımızca doğrulanmamıştır. Bir mağazanın sitede listelenmesi, o mağazanın güvenilir olduğuna dair bir beyan ya da tavsiye değildir.
+      <p>Sitede yer alan mağazalar Fiyat Dürbün'ün iş ortağı, temsilcisi ya da bayisi değildir. Mağaza ve ürün bilgileri mağazaların kendi
+        sitelerinden okunur ve tarafımızca doğrulanmaz. Bir mağazanın sitede listelenmesi, o mağazanın güvenilir olduğuna dair bir beyan ya da tavsiye değildir.
         Mağazaların ürünleri, hizmetleri, yükümlülüklerini yerine getirip getirmemesi ve yasal sorumlulukları ilgili mağazaya aittir.</p>
       <p>Piyasanın belirgin biçimde altında kalan teklifleri “Dikkat” ibaresiyle işaretleyebilir, şüpheli bulduğumuz mağazaları önceden haber vermeksizin
         listeden çıkarabiliriz. Bu kontroller kullanıcıya kolaylık sağlamak içindir; bir mağazanın güvenilirliğine ilişkin güvence niteliği taşımaz.</p>
