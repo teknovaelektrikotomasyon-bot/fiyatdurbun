@@ -25,7 +25,7 @@ const URUN_TABAN = `
   with t as (
     select urun_id, min(fiyat)::float8 as fiyat, count(distinct magaza_id)::int as magaza_sayisi
     from teklif tk join magaza m on m.id = tk.magaza_id
-    where stokta and urun_id is not null and m.aktif and m.durum <> 'kapali' group by urun_id
+    where stokta and not tk.supheli and urun_id is not null and m.aktif and m.durum <> 'kapali' group by urun_id
   ), g as (
     select urun_id,
       (select min(f2.fiyat) from fiyat_gecmisi f2 where f2.urun_id = f.urun_id and f2.gun = (select min(gun) from fiyat_gecmisi f3 where f3.urun_id = f.urun_id and f3.gun >= current_date - 30))::float8 as once30,
@@ -73,7 +73,7 @@ export async function filtreSecenekleri(kategoriIdler: number[], ozl: Ozellik[])
     `select mk.ad, count(*)::int as n from urun u join marka mk on mk.id=u.marka_id
      where u.kategori_id = any($1::int[]) and exists (select 1 from teklif t where t.urun_id=u.id and t.stokta) group by mk.ad order by n desc, mk.ad`, [kategoriId]);
   const fiyat = await q1<{ min: number; max: number }>(
-    `select min(fiyat)::float8 as min, max(fiyat)::float8 as max from teklif t join urun u on u.id=t.urun_id where u.kategori_id = any($1::int[]) and t.stokta`, [kategoriId]);
+    `select min(fiyat)::float8 as min, max(fiyat)::float8 as max from teklif t join urun u on u.id=t.urun_id where u.kategori_id = any($1::int[]) and t.stokta and not t.supheli`, [kategoriId]);
   const secenek: Record<string, { deger: string; n: number }[]> = {};
   const aralik: Record<string, { min: number; max: number }> = {};
   for (const o of ozl) {
@@ -128,17 +128,17 @@ export async function urun(slug: string) {
 export type Teklif = {
   id: number; magaza: string; magaza_slug: string; magaza_durum: string; yetkili_satici: string | null; mersis: boolean;
   baslik: string; url: string; fiyat: number; kargo: number | null; stokta: boolean; renk: string | null; satici: string | null;
-  garanti: string | null; guncelleme: string; en_dusuk30: number | null;
+  garanti: string | null; guncelleme: string; en_dusuk30: number | null; supheli: boolean;
 };
 
 export async function teklifler(urunId: number) {
   return q<Teklif>(`
     select t.id, m.ad as magaza, m.slug as magaza_slug, m.durum as magaza_durum, m.yetkili_satici, (m.mersis_no is not null) as mersis,
-      t.baslik, t.url, t.fiyat::float8 as fiyat, t.kargo::float8 as kargo, t.stokta, t.renk, t.satici, t.garanti, t.guncelleme::text,
+      t.baslik, t.url, t.fiyat::float8 as fiyat, t.kargo::float8 as kargo, t.stokta, t.renk, t.satici, t.garanti, t.guncelleme::text, t.supheli,
       (select min(f.fiyat)::float8 from fiyat_gecmisi f where f.urun_id=t.urun_id and f.magaza_id=t.magaza_id and f.gun >= current_date-30 and f.gun < current_date) as en_dusuk30
     from teklif t join magaza m on m.id=t.magaza_id
     where t.urun_id=$1 and m.aktif and m.durum <> 'kapali'
-    order by t.stokta desc, t.fiyat + coalesce(t.kargo,0)`, [urunId]);
+    order by t.stokta desc, t.supheli, t.fiyat + coalesce(t.kargo,0)`, [urunId]);
 }
 
 export type DisFiyat = { ulke: string; kaynak: string; url: string; fiyat: number; para: string; kur: number; kur_tarihi: string; guncelleme: string };

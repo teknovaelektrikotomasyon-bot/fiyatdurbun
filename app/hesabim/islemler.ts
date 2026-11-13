@@ -30,7 +30,7 @@ export async function takipEt(form: FormData) {
   const urunId = Number(form.get("urun"));
   const hedefHam = String(form.get("hedef") ?? "").replace(/[^\d,.]/g, "").replace(/\./g, "").replace(",", ".");
   const hedef = hedefHam ? Number(hedefHam) : null;
-  const simdi = await q1<{ f: number }>("select min(fiyat)::float8 as f from teklif where urun_id=$1 and stokta", [urunId]);
+  const simdi = await q1<{ f: number }>("select min(fiyat)::float8 as f from teklif where urun_id=$1 and stokta and not supheli", [urunId]);
   await q(`insert into takip (uye_id, urun_id, hedef, eklenme_fiyati, son_bildirilen) values ($1,$2,$3,$4,$4)
            on conflict (uye_id, urun_id) do update set hedef=excluded.hedef`, [ben.id, urunId, hedef && hedef > 0 ? hedef : null, simdi?.f ?? null]);
   revalidatePath(`/urun/${slug}`);

@@ -1,0 +1,21 @@
+name: Otomatik mağaza verisini temizle
+# Yalnız elle: oto mağazaların teklif/fiyat geçmişini ve yalnız onlardan gelen ürünleri siler.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  temizle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SORGU_ZAMAN_ASIMI_MS: "120000"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --experimental-strip-types scripts/oto-temizle.ts

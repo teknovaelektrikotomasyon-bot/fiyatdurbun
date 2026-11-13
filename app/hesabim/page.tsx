@@ -14,7 +14,7 @@ export default async function Hesabim() {
   if (!ben) redirect("/giris?donus=/hesabim");
   const liste = await q<{ id: number; slug: string; ad: string; gorsel: string | null; hedef: number | null; eklenme: number | null; simdi: number | null }>(`
     select u.id, u.slug, mk.ad || ' ' || u.model || ' ' || coalesce(u.varyant,'') as ad, u.gorsel, tk.hedef::float8 as hedef, tk.eklenme_fiyati::float8 as eklenme,
-      (select min(fiyat)::float8 from teklif t where t.urun_id=u.id and t.stokta) as simdi
+      (select min(fiyat)::float8 from teklif t where t.urun_id=u.id and t.stokta and not t.supheli) as simdi
     from takip tk join urun u on u.id=tk.urun_id join marka mk on mk.id=u.marka_id where tk.uye_id=$1 order by tk.olusturma desc`, [ben.id]);
   return (
     <>

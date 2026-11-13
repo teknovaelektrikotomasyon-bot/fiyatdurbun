@@ -10,6 +10,8 @@ export const duzMetin = (s: string) =>
 
 // Kategori adlarında olmayan ama mağazalarda sık geçen karşılıklar (slug → ek kelimeler).
 const ES_ANLAMLI: Record<string, string[]> = {
+  "orta-sehpa": ["sehpa", "kahve sehpasi", "yan sehpa", "zigon sehpa", "orta sehpa"],
+  "bebek-cilt-bakimi": ["bebek kremi", "bebek yagi", "bebek losyonu", "bebek sampuani", "pisik kremi", "bebek kolonyasi", "bebek bakim sutu", "bebek masaj yagi", "baby cream", "baby oil"],
   "gelistirme-karti": ["arduino", "raspberry pi", "esp32", "esp8266", "stm32", "deneyap", "micro bit", "microbit", "pico", "nodemcu", "gelistirme kartlari", "mikrodenetleyici"],
   "sensor-modul": ["sensor", "sensorler", "modul", "moduller", "role", "role karti", "lcd ekran", "oled", "rfid", "gps modul", "bluetooth modul", "wifi modul", "kamera modulu"],
   "motor-surucu": ["servo", "servo motor", "step motor", "dc motor", "motor surucu", "redektorlu motor", "motor driver", "esc"],
@@ -166,6 +168,13 @@ const YALNIZ: Record<string, string[]> = {
   "kablosuz-kulaklik": ["kablosuz kulaklik", "bluetooth kulaklik", "tws"],
   "telefon-kilifi": ["telefon kilifi", "kilif", "kiliflar"],
   "ev-ofis-telefonu": ["telsiz telefon", "masaustu telefon"],
+  // Mobilya oda başlıkları genel kelimelerden ("mutfak", "bebek", "yatak") eşleşmesin; yalnız mobilya sözcükleriyle.
+  "oturma-odasi": ["oturma odasi mobilya", "oturma grubu", "salon takimi"],
+  "yatak-odasi": ["yatak odasi takimi", "yatak odasi mobilya"],
+  "yemek-odasi": ["yemek odasi takimi", "yemek odasi mobilya", "mutfak masasi"],
+  "calisma-odasi": ["calisma odasi mobilya", "ofis mobilyasi"],
+  "bebek-genc-odasi": ["bebek odasi takimi", "genc odasi takimi", "cocuk odasi mobilya", "bebek mobilyasi"],
+  "bahce-mobilyasi": ["bahce mobilyasi", "balkon takimi"],
 };
 
 type Aday = { slug: string; yol: string[]; derinlik: number; kelimeler: string[]; aksesuar: boolean };
@@ -207,6 +216,7 @@ export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kok
   let enIyi: EslemeSonucu | null = null;
   for (const a of ADAYLAR) {
     if (!kokler.includes(a.yol[0])) continue;
+    if (a.derinlik === 0) continue; // ana bölümün kendisine ürün konmaz
     if (urunAksesuar && !a.aksesuar) continue;
     // Yolun son halkası en güçlü işaret; ürün adı ve üst halkalar onu destekler.
     let pSon = 0, pAd = 0, pUst = 0, pIkinci = 0;

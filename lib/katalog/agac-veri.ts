@@ -2,7 +2,7 @@
 // g = Google ürün taksonomisi kimliği (satış ortaklığı beslemelerindeki google_product_category ile eşlemek için).
 export type KategoriDugumu = { ad: string; slug: string; g: number | null; alt?: KategoriDugumu[] };
 
-// 478 kategori, 3 seviye. Sıra = menüdeki sıra.
+// 479 kategori, 3 seviye. Sıra = menüdeki sıra.
 export const KATEGORI_AGACI: KategoriDugumu[] = [
   { ad: "Elektronik", slug: "elektronik", g: 222, alt: [
     { ad: "Cep Telefonu ve Aksesuarları", slug: "cep-telefonu-ve-aksesuarlari", g: 270, alt: [
@@ -385,6 +385,7 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
     { ad: "Bebek Bakım ve Güvenlik", slug: "bebek-bakim", g: 5252, alt: [
       { ad: "Bebek Telsizi ve Kamerası", slug: "bebek-telsizi", g: 541 },
       { ad: "Bebek Banyo", slug: "bebek-banyo", g: 4678 },
+      { ad: "Bebek Cilt Bakımı", slug: "bebek-cilt-bakimi", g: 4678 },
       { ad: "Ateş Ölçer", slug: "ates-olcer", g: 501 },
       { ad: "Bebek Güvenliği", slug: "bebek-guvenligi", g: 540 }
     ] },

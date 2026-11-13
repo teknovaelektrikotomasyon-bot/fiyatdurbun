@@ -13,7 +13,7 @@ const liste = await q<Satir>(`
     tk.hedef::float8 as hedef, tk.son_bildirilen::float8 as son, en.fiyat::float8 as simdi, en.magaza, en.magaza_id, en.teklif_id
   from takip tk join uye u2 on u2.id=tk.uye_id join urun u on u.id=tk.urun_id join marka mk on mk.id=u.marka_id
   join lateral (select t.fiyat, m.ad as magaza, m.id as magaza_id, t.id as teklif_id from teklif t join magaza m on m.id=t.magaza_id
-                where t.urun_id=tk.urun_id and t.stokta and m.aktif and m.durum <> 'kapali' order by t.fiyat limit 1) en on true`);
+                where t.urun_id=tk.urun_id and t.stokta and not t.supheli and m.aktif and m.durum <> 'kapali' order by t.fiyat limit 1) en on true`);
 
 let gonderilen = 0;
 for (const s of liste) {

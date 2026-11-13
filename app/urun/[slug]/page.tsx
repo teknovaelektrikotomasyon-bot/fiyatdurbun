@@ -59,7 +59,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
     else { v.secenek++; if (t.renk && !v.renkler.includes(t.renk)) v.renkler.push(t.renk); }
   }
   const satirlar = [...magazaBasina.values()];
-  const stokta = tk.filter((t) => t.stokta);
+  const stokta = tk.filter((t) => t.stokta && !t.supheli);
   const enUcuz = stokta[0];
   const gunlukMin = Object.values(gecmis.reduce<Record<string, { gun: string; fiyat: number }>>((a, g) => {
     if (!a[g.gun] || g.fiyat < a[g.gun].fiyat) a[g.gun] = { gun: g.gun, fiyat: g.fiyat };
@@ -86,7 +86,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
         ? {
             "@type": "AggregateOffer", priceCurrency: "TRY", availability: "https://schema.org/InStock",
             lowPrice: stokta[0].fiyat, highPrice: Math.max(...stokta.map((t) => t.fiyat)), offerCount: stokta.length,
-            offers: satirlar.filter((t) => t.stokta).map((t) => ({
+            offers: satirlar.filter((t) => t.stokta && !t.supheli).map((t) => ({
               "@type": "Offer", price: t.fiyat, priceCurrency: "TRY", availability: "https://schema.org/InStock",
               url: mutlak(`/urun/${u.slug}`), seller: { "@type": "Organization", name: t.magaza },
               ...(t.kargo != null ? { shippingDetails: { "@type": "OfferShippingDetails", shippingRate: { "@type": "MonetaryAmount", value: t.kargo, currency: "TRY" }, shippingDestination: { "@type": "DefinedRegion", addressCountry: "TR" } } } : {}),
@@ -148,7 +148,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
             {satirlar.map((t, i) => {
               const sahte = t.en_dusuk30 != null && t.fiyat > t.en_dusuk30 * 1.02;
               return (
-                <tr key={t.id} className={i === 0 && t.stokta ? "en-ucuz" : undefined}>
+                <tr key={t.id} className={i === 0 && t.stokta && !t.supheli ? "en-ucuz" : undefined}>
                   <td>
                     <div className="magaza-ad">{t.magaza}</div>
                     <div className="rozetler">
@@ -159,7 +159,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
                   <td className="kucuk"><div>{t.secenek > 1 ? `${t.secenek} seçenek` : t.baslik}{t.renkler.length > 1 && <span className="soluk">: {t.renkler.join(", ")}</span>}</div><div className="soluk">{[t.satici && `Satıcı: ${t.satici.replace(/\.$/, "")}`, t.garanti && `Garanti: ${t.garanti.toLowerCase()}`].filter(Boolean).join(". ")}</div></td>
                   <td className="sag">
                     <div className="teklif-fiyat fiyat">{tl(t.fiyat)}</div>
-                    {!t.stokta ? <span className="rozet">Stokta yok</span> : sahte ? <span className="rozet sari" title="Son 30 gündeki en düşük fiyatı">30 günde {tl(t.en_dusuk30)} idi</span> : null}
+                    {!t.stokta ? <span className="rozet">Stokta yok</span> : t.supheli ? <span className="rozet kirmizi" title="Bu fiyat, aynı ürünü satan diğer mağazaların yarısından daha düşük. Farklı bir ürün ya da güvenilmez bir teklif olabilir; en ucuz fiyat hesabına katılmadı.">Dikkat: piyasanın çok altında</span> : sahte ? <span className="rozet sari" title="Son 30 gündeki en düşük fiyatı">30 günde {tl(t.en_dusuk30)} idi</span> : null}
                   </td>
                   <td className="sag kucuk">{t.kargo == null ? <span className="soluk">Sepette görünür</span> : t.kargo === 0 ? "Ücretsiz" : tl(t.kargo)}</td>
                   <td className="sag">{t.stokta && <a className="dugme" href={`/git/${t.id}?k=tablo`} rel="nofollow sponsored">Mağazaya git</a>}</td>

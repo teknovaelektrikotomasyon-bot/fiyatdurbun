@@ -323,6 +323,7 @@ Anne, Bebek ve Oyuncak | Baby & Toddler | anne-bebek-oyuncak
   Bebek Bakım ve Güvenlik | Baby Health | bebek-bakim
     Bebek Telsizi ve Kamerası | Baby Monitors | bebek-telsizi
     Bebek Banyo | Baby Bathing | bebek-banyo
+    Bebek Cilt Bakımı | Baby Bathing? | bebek-cilt-bakimi
     Ateş Ölçer | 501 | ates-olcer
     Bebek Güvenliği | Baby Safety | bebek-guvenligi
   Oyuncak | Toys

@@ -27,8 +27,17 @@ const SON_AN = Date.now() + Number(arg("dakika") ?? 40) * 60_000;
 
 // Otomatik keşifle eklenen mağazalar (scripts/kesif.ts): veritabanındaki tanımdan genel mağaza olarak okunur.
 // Tüm ana bölümlere eşlenebilirler ama kategori yolu (breadcrumb) olmayan ürün alınmaz.
+// Mağaza türüne göre izinli ana bölümler (tümüne izin vermek "mobilyada mikser" gibi yanlış eşleşme doğurur).
+const TUR_KOK: Record<string, string[]> = {
+  elektronik: ["elektronik"], bilgisayar: ["elektronik"], telefon: ["elektronik"], aksesuar: ["elektronik"], robotik: ["elektronik", "kitap-muzik-hobi"],
+  "ev-aletleri": ["beyaz-esya-ev-aletleri", "ev-dekorasyon-mutfak"], ev: ["ev-dekorasyon-mutfak", "mobilya"], mobilya: ["mobilya", "ev-dekorasyon-mutfak"],
+  kozmetik: ["kozmetik-kisisel-bakim", "anne-bebek-oyuncak"], takviye: ["kozmetik-kisisel-bakim", "supermarket"], pet: ["pet-shop"],
+  bebek: ["anne-bebek-oyuncak"], oyuncak: ["anne-bebek-oyuncak"], market: ["supermarket", "kozmetik-kisisel-bakim", "anne-bebek-oyuncak"],
+  "yapi-market": ["yapi-market-bahce"], bahce: ["yapi-market-bahce"], kitap: ["kitap-muzik-hobi", "ofis-kirtasiye"], ofis: ["ofis-kirtasiye"],
+  spor: ["spor-ve-outdoor", "giyim-ayakkabi-aksesuar"], otomotiv: ["otomotiv"],
+};
 const KOKLER = KATEGORI_AGACI.map((d) => d.slug);
-type OtoKesif = { haritalar: string[]; dosyaFiltre: string; urlFiltre: string };
+type OtoKesif = { haritalar: string[]; dosyaFiltre: string; urlFiltre: string; tur?: string; kokler?: string[] };
 const otoMagazalar: MagazaTanimi[] = [];
 if (aktarim) {
   const { q } = await import("../lib/db.ts");
@@ -36,7 +45,7 @@ if (aktarim) {
     const satir = await q<{ slug: string; ad: string; site: string; kesif: OtoKesif }>(
       "select slug, ad, site, kesif from magaza where kaynak='oto' and aktif and durum <> 'kapali' and kesif is not null");
     for (const r of satir) otoMagazalar.push({ slug: r.slug, ad: r.ad, site: r.site, durum: "acik", bekleme: 3000,
-      kesif: { genel: { tur: "genel", filtre: new RegExp(r.kesif.urlFiltre), kokler: KOKLER, butce: Number(arg("oto-butce") ?? 150),
+      kesif: { genel: { tur: "genel", filtre: new RegExp(r.kesif.urlFiltre), kokler: (r.kesif.kokler ?? TUR_KOK[r.kesif.tur ?? ""] ?? []).filter((k) => KOKLER.includes(k)), butce: Number(arg("oto-butce") ?? 150),
         haritalar: r.kesif.haritalar, dosyaFiltre: new RegExp(r.kesif.dosyaFiltre, "i"), yolZorunlu: true } } });
   } catch (e) { console.log("otomatik mağazalar okunamadı:", (e as Error).message); }
 }
