@@ -4,7 +4,8 @@ import { getir } from "./istek.ts";
 const HARITA_IPUCU = /(product|urun|prd|item)/i;
 
 /** robots.txt'de ya da /sitemap.xml'de listelenen haritalardan, filtreye uyan adresler (en çok `sinir` adres). */
-export async function haritaAdresleri(site: string, haritalar: string[], filtre: RegExp, sinir = 50000, bekleme = 1500, enCokDosya = 60): Promise<string[]> {
+/** `dosyaFiltre`: verilirse yalnız adı buna uyan alt haritalar okunur (otomatik eklenen mağazalarda ürün haritaları). */
+export async function haritaAdresleri(site: string, haritalar: string[], filtre: RegExp, sinir = 50000, bekleme = 1500, enCokDosya = 60, dosyaFiltre?: RegExp): Promise<string[]> {
   const kuyruk = [...(haritalar.length ? haritalar : [new URL("/sitemap.xml", site).toString()])];
   const gorulen = new Set<string>();
   const sonuc = new Set<string>();
@@ -16,7 +17,11 @@ export async function haritaAdresleri(site: string, haritalar: string[], filtre:
     const y = await getir(h, bekleme);
     if (y.engel || !y.html) continue;
     const locs = [...y.html.matchAll(/<loc>\s*(?:<!\[CDATA\[)?\s*([^<\s\]]+)/g)].map((m) => m[1].replace(/&amp;/g, "&"));
-    if (/<sitemapindex/i.test(y.html)) { kuyruk.push(...locs.filter((l) => !/(image|video|blog|news|haber|category|kategori|brand|marka)/i.test(l))); continue; }
+    if (/<sitemapindex/i.test(y.html)) {
+      kuyruk.push(...locs.filter((l) => !/(image|video|blog|news|haber|category|kategori|brand|marka)/i.test(l) && (!dosyaFiltre || dosyaFiltre.test(l) || /index|sitemap\.xml$/i.test(l))));
+      continue;
+    }
+    if (dosyaFiltre && !dosyaFiltre.test(h) && !haritalar.includes(h)) continue;
     for (const l of locs) if (filtre.test(l)) sonuc.add(l.replace(/^http:/, "https:"));
   }
   return [...sonuc].slice(0, sinir);

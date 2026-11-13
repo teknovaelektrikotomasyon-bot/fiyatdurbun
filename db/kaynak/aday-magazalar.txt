@@ -1,0 +1,171 @@
+# Otomatik keşif adayları: her satır "alan-adı tür". Kesif betiği (scripts/kesif.ts) her birini dener:
+# robots izni, 403/bot koruması yok, ürün site haritası, ürün sayfasında TL fiyat ve kategori yolu, firma bilgisi.
+# Geçen mağaza "inceleniyor" durumunda listeye girer ve sitede "Kontrol sürüyor" rozetiyle görünür.
+# Fiyat karşılaştırma siteleri (akakçe, cimri, epey) ve botlara kapalı olduğu bilinenler buraya yazılmaz.
+
+# --- Elektronik / bilgisayar / telefon ---
+incehesap.com bilgisayar
+itopya.com bilgisayar
+sinerji.gen.tr bilgisayar
+gaming.gen.tr bilgisayar
+gurgencler.com.tr elektronik
+elmacik.com elektronik
+jetklik.com elektronik
+akilliphone.com telefon
+direnc.net elektronik
+robotistan.com elektronik
+f1depo.com elektronik
+evkur.com.tr elektronik
+vestel.com.tr elektronik
+casper.com.tr bilgisayar
+monsternotebook.com.tr bilgisayar
+dyson.com.tr ev-aletleri
+arzum.com.tr ev-aletleri
+fakir.com.tr ev-aletleri
+korkmaz.com.tr ev-aletleri
+tefal.com.tr ev-aletleri
+philips.com.tr ev-aletleri
+sinbo.com.tr ev-aletleri
+kumtel.com ev-aletleri
+ttec.com.tr aksesuar
+pazarama.com pazaryeri
+pttavm.com pazaryeri
+n11.com pazaryeri
+ciceksepeti.com pazaryeri
+idefix.com pazaryeri
+istanbulbilisim.com.tr bilgisayar
+teknobiyotik.com elektronik
+oyuncupazari.com bilgisayar
+bimeks.com.tr elektronik
+dijitalkabin.com elektronik
+gamegaraj.com bilgisayar
+pckolik.com bilgisayar
+hizlial.com elektronik
+# --- Ev / mutfak / mobilya ---
+emsan.com.tr ev
+schafer.com.tr ev
+jumbo.com.tr ev
+bernardo.com.tr ev
+porland.com ev
+kutahyaporselen.com ev
+pasabahce.com ev
+linens.com.tr ev
+chakra.com.tr ev
+yatas.com.tr mobilya
+dogtas.com mobilya
+istikbal.com.tr mobilya
+kelebek.com mobilya
+alfemo.com.tr mobilya
+vivense.com mobilya
+modalife.com mobilya
+evidea.com ev
+tchibo.com.tr ev
+mudo.com.tr ev
+madamecoco.com ev
+hisarcatal.com ev
+tac.com.tr ev
+ozdilekteyim.com ev
+# --- Kozmetik / dermokozmetik / parfüm ---
+dermoeczanem.com kozmetik
+narecza.com kozmetik
+kozvit.com kozmetik
+dermoderm.com.tr kozmetik
+dermojet.com kozmetik
+kozmela.com kozmetik
+sevil.com.tr kozmetik
+eveshop.com.tr kozmetik
+gratis.com kozmetik
+watsons.com.tr kozmetik
+sephora.com.tr kozmetik
+flormar.com.tr kozmetik
+goldenrose.com.tr kozmetik
+farmasi.com.tr kozmetik
+beymen.com kozmetik
+cosmetica.com.tr kozmetik
+dermatica.com.tr kozmetik
+eczanem.com kozmetik
+ecza1.com kozmetik
+pembeeczane.com kozmetik
+dermokozmetika.com.tr kozmetik
+cilek.com.tr kozmetik
+parfumdunyasi.com kozmetik
+tester.com.tr kozmetik
+bioblas.com.tr kozmetik
+cosmed.com.tr kozmetik
+# --- Takviye / sporcu gıdası ---
+supplementler.com takviye
+proteinocean.com takviye
+bigjoysports.com takviye
+hardline.com.tr takviye
+vitaminler.com takviye
+vitaminsepeti.com takviye
+fitmoda.com takviye
+sporcuvitamini.com takviye
+nutriden.com.tr takviye
+# --- Pet ---
+zoocenter.com.tr pet
+petzzshop.com pet
+mamaciteyze.com pet
+ekopetshop.com pet
+riobongo.com pet
+petkolik.com pet
+petshopcity.com pet
+evcilhayvanmarket.com pet
+kedimamaci.com pet
+petfix.com.tr pet
+maskotpet.com pet
+patimama.com pet
+mamapet.com.tr pet
+petza.com.tr pet
+pethane.com pet
+petmax.com.tr pet
+# --- Anne-bebek / oyuncak ---
+mothercare.com.tr bebek
+chicco.com.tr bebek
+toyzzshop.com oyuncak
+babymall.com.tr bebek
+bebekdukkani.com bebek
+oyuncakhobi.com oyuncak
+lego.com oyuncak
+# --- Market ---
+cagri.com market
+bizimtoptan.com.tr market
+sokmarket.com.tr market
+hakmarexpress.com.tr market
+happycenter.com.tr market
+marketpaketi.com.tr market
+tarimkredi.com.tr market
+kooperatifmarket.com.tr market
+# --- Yapı / hırdavat / bahçe ---
+hirdavatci.com yapi-market
+bauhaus.com.tr yapi-market
+aletdepom.com yapi-market
+hirdavatdunyasi.com yapi-market
+yapimarket.com.tr yapi-market
+elektrikmalzemem.com yapi-market
+ekovatt.com yapi-market
+bahcemarket.com bahce
+tohumcu.com bahce
+# --- Kitap / kırtasiye / ofis ---
+bkmkitap.com kitap
+kitapsec.com kitap
+babil.com kitap
+pandora.com.tr kitap
+ilknokta.com kitap
+avansas.com ofis
+kirtasiyeburada.com ofis
+tonerkartus.com ofis
+# --- Spor / outdoor ---
+intersport.com.tr spor
+sportive.com.tr spor
+superstep.com.tr spor
+barcin.com spor
+korayspor.com spor
+spx.com.tr spor
+bisiklet.com.tr spor
+kampmalzemeleri.com spor
+outdoorstore.com.tr spor
+# --- Otomotiv ---
+lastiksepeti.com otomotiv
+lastikcim.com.tr otomotiv
+otoyedekparcaburada.com otomotiv

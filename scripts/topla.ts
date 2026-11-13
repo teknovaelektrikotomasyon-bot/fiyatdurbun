@@ -3,7 +3,8 @@
 //  --db: DATABASE_URL (ya da yerel PGlite) veritabanına da yazar.
 import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { MAGAZALAR, linkleriCikar } from "../lib/toplayici/magazalar.ts";
+import { MAGAZALAR, linkleriCikar, type MagazaTanimi } from "../lib/toplayici/magazalar.ts";
+import { KATEGORI_AGACI } from "../lib/katalog/agac.ts";
 import { getir } from "../lib/toplayici/istek.ts";
 import { urunOku } from "../lib/toplayici/okuyucu.ts";
 import { robotsAl } from "../lib/toplayici/istek.ts";
@@ -24,7 +25,23 @@ const gun = new Date().toISOString().slice(0, 10);
 // Bir mağaza en çok bu kadar süre okunur; robots.txt'de uzun bekleme isteyen siteler işi zaman aşımına sokmasın.
 const SON_AN = Date.now() + Number(arg("dakika") ?? 40) * 60_000;
 
-await Promise.all(MAGAZALAR.filter((m) => m.durum === "acik" && (!sadece || m.slug === sadece)).map(async (m) => {
+// Otomatik keşifle eklenen mağazalar (scripts/kesif.ts): veritabanındaki tanımdan genel mağaza olarak okunur.
+// Tüm ana bölümlere eşlenebilirler ama kategori yolu (breadcrumb) olmayan ürün alınmaz.
+const KOKLER = KATEGORI_AGACI.map((d) => d.slug);
+type OtoKesif = { haritalar: string[]; dosyaFiltre: string; urlFiltre: string };
+const otoMagazalar: MagazaTanimi[] = [];
+if (aktarim) {
+  const { q } = await import("../lib/db.ts");
+  try {
+    const satir = await q<{ slug: string; ad: string; site: string; kesif: OtoKesif }>(
+      "select slug, ad, site, kesif from magaza where kaynak='oto' and aktif and durum <> 'kapali' and kesif is not null");
+    for (const r of satir) otoMagazalar.push({ slug: r.slug, ad: r.ad, site: r.site, durum: "acik", bekleme: 3000,
+      kesif: { genel: { tur: "genel", filtre: new RegExp(r.kesif.urlFiltre), kokler: KOKLER, butce: Number(arg("oto-butce") ?? 150),
+        haritalar: r.kesif.haritalar, dosyaFiltre: new RegExp(r.kesif.dosyaFiltre, "i"), yolZorunlu: true } } });
+  } catch (e) { console.log("otomatik mağazalar okunamadı:", (e as Error).message); }
+}
+
+await Promise.all([...MAGAZALAR, ...otoMagazalar].filter((m) => m.durum === "acik" && (!sadece || m.slug === sadece)).map(async (m) => {
   for (const [kategori, kesif] of Object.entries(m.kesif)) {
     if (kesif.tur === "ozel") {
       let teklifler: Awaited<ReturnType<typeof kesif.oku>> = [];
@@ -39,7 +56,7 @@ await Promise.all(MAGAZALAR.filter((m) => m.durum === "acik" && (!sadece || m.sl
     }
     if (kesif.tur === "genel") {
       const robots = await robotsAl(m.site);
-      const tumu = await haritaAdresleri(m.site, robots.siteHaritalari, kesif.filtre, 200000, m.bekleme);
+      const tumu = await haritaAdresleri(m.site, kesif.haritalar ?? robots.siteHaritalari, kesif.filtre, 200000, m.bekleme, 60, kesif.dosyaFiltre);
       const gorulen = aktarim ? await aktarim.okunmusAdresler(m.slug) : new Map<string, number>();
       // Önce hiç okunmamış adresler (karışık sırayla), sonra en eski okunanlar.
       const yeni = tumu.filter((u) => !gorulen.has(u)).sort(() => Math.random() - 0.5);
@@ -60,7 +77,7 @@ await Promise.all(MAGAZALAR.filter((m) => m.durum === "acik" && (!sadece || m.sl
         if (!t) { say.fiyatsiz = (say.fiyatsiz ?? 0) + 1; continue; }
         const kayit = { ...t, url }; // site haritasındaki adres (kademeli taramada "okundu" bilgisi bununla tutulur)
         appendFileSync(cikti, JSON.stringify({ magaza: m.slug, kategori, gun, ...kayit }) + "\n");
-        const r = aktarim ? await aktarim.kaydetGenel(m.slug, kayit, kesif.kokler, gun) : { durum: "kuru" };
+        const r = aktarim ? await aktarim.kaydetGenel(m.slug, kayit, kesif.kokler, gun, kesif.yolZorunlu) : { durum: "kuru" };
         say[r.durum] = (say[r.durum] ?? 0) + 1;
       }
       console.log(`${m.slug}: haritada ${tumu.length}, yeni ${yeni.length}, okunan ${secilen.length}`, say);

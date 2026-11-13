@@ -130,8 +130,10 @@ async function kategoriId(slug: string) {
 
 const markaTemizle = (m: string) => m.replace(/\s+(ev aletleri|türkiye|turkiye|official)$/i, "").replace(/\s+/g, " ").trim();
 
-export async function kaydetGenel(magazaSlug: string, t: Kayit, kokler: string[], gun = new Date().toISOString().slice(0, 10)) {
+export async function kaydetGenel(magazaSlug: string, t: Kayit, kokler: string[], gun = new Date().toISOString().slice(0, 10), yolZorunlu = false) {
   if (!(t.fiyat > 0) || !t.ad) return { durum: "fiyatsiz" as const };
+  if (!/^(TRY|TL)$/i.test(t.para || "TRY")) return { durum: "fiyatsiz" as const };
+  if (yolZorunlu && !(t.kategoriYolu && t.kategoriYolu.length >= 2)) return { durum: "kategorisiz" as const };
   const es = kategoriEsle(t.kategoriYolu, t.ad, kokler);
   if (!es) return { durum: "kategorisiz" as const };
   if (es.slug === "akilli-telefon") { await kaydet(magazaSlug, "akilli-telefon", t, gun); return { durum: "telefon" as const }; }

@@ -74,7 +74,9 @@ create table if not exists magaza (
   sikayet_puani numeric(3,1),                  -- Şikayetvar memnuniyet / çözüm puanı (elle girilir)
   guven_notu   text,                           -- kontrol eden kişinin notu
   guven_kontrol timestamptz,                   -- son kontrol tarihi
-  durum        text not null default 'inceleniyor' check (durum in ('inceleniyor','onayli','uyari','kapali'))
+  durum        text not null default 'inceleniyor' check (durum in ('inceleniyor','onayli','uyari','kapali')),
+  kaynak       text not null default 'elle',   -- elle (kodda tanımlı) | oto (scripts/kesif.ts ile eklendi)
+  kesif        jsonb                           -- oto mağazalar: {haritalar, dosyaFiltre, urlFiltre}
 );
 
 -- Teklif: bir mağazanın bir ürün için güncel fiyatı.
