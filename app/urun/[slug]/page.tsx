@@ -116,7 +116,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
             {o["5g"] === true && <li><b>5G</b></li>}
           </ul>
           {enUcuz ? <Olcek fiyat={u.fiyat ?? enUcuz.fiyat} gecmis={gunlukMin} magazaSayisi={u.magaza_sayisi} /> : <div className="not">Şu an hiçbir mağazada stokta görünmüyor. Takip edin, stoğa girince haber verelim.</div>}
-          <div className="takip-form">
+          <div className="takip-form" id="alarm">
             {enUcuz && <a className="dugme mercek" href={`/git/${enUcuz.id}?k=urun-ust`} rel="nofollow sponsored">{enUcuz.magaza} sitesine git</a>}
             {ben ? (
               takip ? (

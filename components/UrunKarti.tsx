@@ -20,7 +20,7 @@ export function kisaOzet(o: UrunKart["ozellikler"]) {
 export function UrunKarti({ u }: { u: UrunKart }) {
   return (
     <Link href={`/urun/${u.slug}`} className="kart">
-      <div className="kart-gorsel">{u.gorsel ? <img src={u.gorsel} referrerPolicy="no-referrer" alt="" loading="lazy" /> : <span className="soluk kucuk">Görsel yok</span>}</div>
+      <div className="kart-gorsel"><span className="kart-zil" title="Ürün sayfasında fiyat alarmı kurabilirsiniz" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M8 22V14a8 8 0 0 1 16 0v8l2 3H6z" /><path d="M13 28h6" /></svg></span>{u.gorsel ? <img src={u.gorsel} referrerPolicy="no-referrer" alt="" loading="lazy" /> : <span className="soluk kucuk">Görsel yok</span>}</div>
       <div className="kart-govde">
         <div className="kart-ad"><span className="kart-marka">{u.marka}</span> {u.model} {u.varyant && <span className="kart-varyant">{u.varyant}</span>}</div>
         <div className="kart-ozet">{kisaOzet(u.ozellikler)}</div>
@@ -29,7 +29,7 @@ export function UrunKarti({ u }: { u: UrunKart }) {
           <DegisimRozeti u={u} />
         </div>
         <MiniOlcek fiyat={u.fiyat} enDusuk={u.enDusuk30} enYuksek={u.enYuksek30} />
-        <div className="kart-magaza">{u.magaza_sayisi > 1 ? `${u.magaza_sayisi} mağazada karşılaştır` : "1 mağazada"}</div>
+        <div className="kart-magaza">{u.magaza_sayisi > 1 ? <><b>{u.magaza_sayisi} fiyat</b> arasında en ucuz</> : "1 mağazada"}</div>
       </div>
     </Link>
   );

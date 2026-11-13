@@ -44,9 +44,14 @@ export default async function Kok({ children }: { children: React.ReactNode }) {
               <input name="q" placeholder="Ürün, marka ya da model ara" aria-label="Ara" />
               <button aria-label="Ara"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" strokeWidth="2.4" /><path d="M15.5 15.5 21 21" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" /></svg></button>
             </form>
-            <Link className="ust-link gizle" href="/magazalar">Mağazalar</Link>
-            <Link className="ust-link gizle" href="/magazanizi-ekleyin">Mağazanızı ekleyin</Link>
-            <Link className="ust-link" href={u ? "/hesabim" : "/giris"}>{u ? "Takip listem" : "Giriş yap"}</Link>
+            <Link className="ust-ikon" href={u ? "/hesabim" : "/giris?donus=/hesabim"}>
+              <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M8 22V14a8 8 0 0 1 16 0v8l2 3H6z" /><path d="M13 28h6" /></svg>
+              <span>Fiyat alarmı</span>
+            </Link>
+            <Link className="ust-ikon" href={u ? "/hesabim" : "/giris"}>
+              <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="16" cy="12" r="5" /><path d="M6 28c1-6 5-9 10-9s9 3 10 9" /></svg>
+              <span>{u ? "Hesabım" : "Giriş yap"}</span>
+            </Link>
           </div>
           <KategoriMenusu />
         </header>
@@ -58,7 +63,7 @@ export default async function Kok({ children }: { children: React.ReactNode }) {
           </nav>
           <div className="kap">
             <span>Fiyat Dürbün satış yapmaz; fiyatları mağazaların herkese açık sayfalarından okur ve mağazaların güvenilirliği için güvence vermez. Satın almadan önce mağazadaki fiyatı kontrol edin. Amazon Ortağı olarak, uygun alışverişlerden gelir elde ediyoruz; bazı mağaza bağlantıları ortaklık bağlantısıdır ve size ek maliyet getirmez.</span>
-            <nav className="alt-linkler" aria-label="Alt bağlantılar"><Link href="/gercek-indirimler">Gerçek ve sahte indirimler</Link><Link href="/hakkimizda">Hakkımızda</Link><Link href="/magazalar">Mağazalar ve güven kontrolü</Link><Link href="/bot">Botumuz hakkında</Link><Link href="/kullanim-kosullari">Kullanım koşulları</Link><Link href="/magazanizi-ekleyin">Mağazanızı ekleyin</Link></nav>
+            <nav className="alt-linkler" aria-label="Alt bağlantılar"><Link href="/gercek-indirimler">Gerçek ve sahte indirimler</Link><Link href="/hakkimizda">Hakkımızda</Link><Link href="/magazalar">Mağazalar ve güven kontrolü</Link><Link href="/bot">Botumuz hakkında</Link><Link href="/kullanim-kosullari">Kullanım koşulları</Link><Link href="/magazalar">Mağazalar</Link><Link href="/magazanizi-ekleyin">Mağazanızı ekleyin</Link></nav>
           </div>
         </footer>
       </body>

@@ -5,7 +5,7 @@ import { BASVURU_TURLERI } from "@/lib/basvuru.ts";
 
 export const metadata: Metadata = {
   title: "Mağazanızı ekleyin",
-  description: "E-ticaret sitenizin ürünlerini Fiyat Dürbün'de listeleyin. Şirket bilgilerinizle başvurun; Cimri, Akakçe ya da Google Merchant XML feed'inizi kullanabilirsiniz.",
+  description: "E-ticaret sitenizin ürünlerini Fiyat Dürbün'de listeleyin. Şirket bilgilerinizle başvurun; fiyat karşılaştırma siteleri için hazırladığınız XML ürün listesini kullanabilirsiniz.",
   alternates: { canonical: "/magazanizi-ekleyin" },
 };
 
@@ -42,7 +42,7 @@ export default async function MagazaniziEkleyin({ searchParams }: P) {
         <li>Sistemimiz sitenizi kontrol eder: sitenizdeki firma bilgileri başvurudakilerle uyuşmalı, ürün sayfalarınızda fiyat okunabilmeli.</li>
         <li>Uygunsa ürünleriniz günde birkaç kez güncellenerek listelenir; sonucu e-posta ile bildiririz.</li>
       </ol>
-      <p className="kucuk soluk">En hızlı yol ürün feed'idir: Cimri, Akakçe ya da Google Merchant için hazırladığınız XML adresini aşağıya yazmanız yeterli.
+      <p className="kucuk soluk">En hızlı yol ürün feed'idir: fiyat karşılaştırma siteleri ya da Google alışveriş reklamları için hazırladığınız XML adresini aşağıya yazmanız yeterli.
         Feed yoksa ürün sayfalarınızdaki schema.org ürün bilgisi ve site haritanız kullanılır.</p>
 
       {hatalar.length > 0 && <div className="hata-kutu" role="alert">{hatalar.map((h) => <p key={h}>{HATA[h]}</p>)}</div>}
