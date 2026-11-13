@@ -31,7 +31,7 @@ const ADLAR: Record<string, string> = {
   narecza: "Narecza", proteinocean: "Protein Ocean", bkmkitap: "BKM Kitap", casper: "Casper", mudo: "Mudo", ttec: "ttec",
   petzzshop: "Petzzshop", dermokozmetika: "Dermokozmetika", kozmela: "Kozmela", mamaciteyze: "Mamacı Teyze", flormar: "Flormar",
   intersport: "Intersport", fakir: "Fakir", "gaming-gen": "Gaming.gen.tr", akilliphone: "Akıllı Phone", robotistan: "Robotistan",
-  direnc: "Direnc.net", robolinkmarket: "Robolink Market", motorobit: "Motorobit", robocombo: "Robocombo", komponentci: "Komponentci", dermoeczanem: "Dermoeczanem", petfix: "PetFix", petza: "Petza", ozdilekteyim: "Özdilekteyim",
+  direnc: "Direnc.net", robolinkmarket: "Robolink Market", gorsuelektronik: "Görsu Elektronik", samm: "SAMM Market", motorobit: "Motorobit", robocombo: "Robocombo", komponentci: "Komponentci", dermoeczanem: "Dermoeczanem", petfix: "PetFix", petza: "Petza", ozdilekteyim: "Özdilekteyim",
 };
 if (db) for (const [slug, ad] of Object.entries(ADLAR)) await db.q("update magaza set ad=$2 where slug=$1 and kaynak='oto'", [slug, ad]);
 
