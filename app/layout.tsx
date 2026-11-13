@@ -5,6 +5,7 @@ import { Logo } from "@/components/Logo";
 import { KategoriMenusu } from "@/components/KategoriMenusu";
 import { KATEGORI_AGACI } from "@/lib/katalog/agac.ts";
 import { uye } from "@/lib/oturum.ts";
+import { cikisYap } from "@/app/hesabim/islemler";
 
 const site = process.env.SITE_URL ?? "http://localhost:3000";
 const dogrulama = {
@@ -48,10 +49,24 @@ export default async function Kok({ children }: { children: React.ReactNode }) {
               <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M8 22V14a8 8 0 0 1 16 0v8l2 3H6z" /><path d="M13 28h6" /></svg>
               <span>Fiyat alarmı</span>
             </Link>
-            <Link className="ust-ikon" href={u ? "/hesabim" : "/giris"}>
-              <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="16" cy="12" r="5" /><path d="M6 28c1-6 5-9 10-9s9 3 10 9" /></svg>
-              <span>{u ? "Hesabım" : "Giriş yap"}</span>
-            </Link>
+            <details className="hesap-menu">
+              <summary className="ust-ikon">
+                <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="16" cy="12" r="5" /><path d="M6 28c1-6 5-9 10-9s9 3 10 9" /></svg>
+                <span>{u ? "Hesabım" : "Giriş yap"}</span>
+              </summary>
+              <div className="hesap-liste">
+                {u ? (<>
+                  <span className="hesap-eposta">{u.eposta}</span>
+                  <Link href="/hesabim">Takip listem ve fiyat alarmları</Link>
+                  <form action={cikisYap}><button type="submit">Çıkış yap</button></form>
+                </>) : (<>
+                  <Link href="/giris">Giriş yap</Link>
+                  <Link href="/giris">Üye ol</Link>
+                  <Link href="/giris?donus=/hesabim">Fiyat alarmlarım</Link>
+                  <Link href="/magazanizi-ekleyin">Mağazanızı ekleyin</Link>
+                </>)}
+              </div>
+            </details>
           </div>
           <KategoriMenusu />
         </header>

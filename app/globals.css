@@ -596,3 +596,10 @@ main > .kap > .kapsam { margin-top: 0; }
   .hizli-kart { flex-direction: column; justify-content: center; text-align: center; gap: 6px; font-size: 12.5px; line-height: 1.2; min-height: 82px; padding: 10px 6px; }
   .hizli-kart svg { width: 24px; height: 24px; }
 }
+.hesap-menu { position: relative; }
+.hesap-menu > summary { list-style: none; cursor: pointer; }
+.hesap-menu > summary::-webkit-details-marker { display: none; }
+.hesap-liste { position: absolute; right: 0; top: calc(100% + 10px); min-width: 240px; background: #fff; color: var(--metin); border-radius: var(--r); box-shadow: 0 12px 32px rgba(16, 42, 58, .22); padding: 8px; display: flex; flex-direction: column; z-index: 40; }
+.hesap-liste a, .hesap-liste button { display: block; text-align: left; padding: 10px 12px; border-radius: var(--r-kucuk); color: var(--metin); font: inherit; font-size: 15px; background: none; border: 0; cursor: pointer; width: 100%; }
+.hesap-liste a:hover, .hesap-liste button:hover { background: var(--kagit); }
+.hesap-eposta { padding: 6px 12px 8px; font-size: 13px; color: var(--soluk); border-bottom: 1px solid var(--cizgi); margin-bottom: 4px; overflow-wrap: anywhere; }
