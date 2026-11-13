@@ -25,7 +25,7 @@ if (aktarim) await aktarim.katalogHazirla();
 const ozet: string[] = ["| Mağaza | Link | Okundu | Fiyatsız | Engel/hata |", "|---|---|---|---|---|"];
 const gun = new Date().toISOString().slice(0, 10);
 // Bir mağaza en çok bu kadar süre okunur; robots.txt'de uzun bekleme isteyen siteler işi zaman aşımına sokmasın.
-const SON_AN = Date.now() + Number(arg("dakika") ?? 40) * 60_000;
+const SON_AN = Date.now() + Number(arg("dakika") ?? 90) * 60_000;
 
 // Otomatik keşifle eklenen mağazalar (scripts/kesif.ts): veritabanındaki tanımdan genel mağaza olarak okunur.
 // Tüm ana bölümlere eşlenebilirler ama kategori yolu (breadcrumb) olmayan ürün alınmaz.
@@ -41,7 +41,7 @@ if (aktarim) {
       // jsonb sürücüye göre metin olarak gelebilir
       if (typeof r.kesif === "string") r.kesif = JSON.parse(r.kesif);
       otoMagazalar.push({ slug: r.slug, ad: r.ad, site: r.site, durum: "acik", bekleme: 3000,
-      kesif: { genel: { tur: "genel", filtre: new RegExp(r.kesif.urlFiltre), kokler: (r.kesif.kokler ?? TUR_KOK[r.kesif.tur ?? ""] ?? []).filter((k) => KOKLER.includes(k)), butce: Number(arg("oto-butce") ?? 400),
+      kesif: { genel: { tur: "genel", filtre: new RegExp(r.kesif.urlFiltre), kokler: (r.kesif.kokler ?? TUR_KOK[r.kesif.tur ?? ""] ?? []).filter((k) => KOKLER.includes(k)), butce: Number(arg("oto-butce") ?? 1200),
         haritalar: r.kesif.haritalar, dosyaFiltre: new RegExp(r.kesif.dosyaFiltre || "x^", "i"), yolZorunlu: true, feed: r.kesif.feed } } });
     }
     console.log(`otomatik mağaza: ${otoMagazalar.length}`, otoMagazalar.map((m) => `${m.slug}:${(m.kesif.genel as { kokler: string[] }).kokler.join("+")}`).join(" "));
@@ -64,6 +64,7 @@ await Promise.all([...MAGAZALAR, ...otoMagazalar].filter((m) => m.durum === "aci
     if (kesif.tur === "genel" && kesif.feed) {
       // Herkesin okuyabildiği ürün feed'i: tek dosyada tüm katalog. Önce barkodu sitede zaten olan ürünler
       // (aynı ürüne mağaza ekler), sonra en eski güncellenenler; tur başına en çok feed-butce ürün yazılır.
+      const turBasi = new Date();
       const f = await feedGetir(kesif.feed);
       if (f.engel || !f.xml) { ozet.push(`| ${m.ad} | feed | 0 | - | ${f.engel ?? "boş"} |`); continue; }
       const urunler = feedOku(f.xml, m.site);
@@ -72,7 +73,7 @@ await Promise.all([...MAGAZALAR, ...otoMagazalar].filter((m) => m.durum === "aci
       const bilinen = aktarim ? new Set((await q<{ g: string }>("select unnest(gtin) g from urun")).map((r) => r.g)) : new Set<string>();
       const gorulen = aktarim ? await aktarim.okunmusAdresler(m.slug) : new Map<string, number>();
       const sira = (u: (typeof urunler)[number]) => (u.gtin && bilinen.has(u.gtin) ? 0 : 1) * 1e13 + (gorulen.get(u.url) ?? 0);
-      const secilen = [...urunler].sort((a, b) => sira(a) - sira(b)).slice(0, Math.min(Number(arg("feed-butce") ?? 4000), limit));
+      const secilen = [...urunler].sort((a, b) => sira(a) - sira(b)).slice(0, Math.min(Number(arg("feed-butce") ?? 15000), limit));
       const say: Record<string, number> = {};
       for (const t of secilen) {
         if (Date.now() > SON_AN) { console.log(`${m.slug}: süre doldu, kalanı sonraki tura`); break; }
@@ -90,6 +91,13 @@ await Promise.all([...MAGAZALAR, ...otoMagazalar].filter((m) => m.durum === "aci
         const mevcutlar = await q<{ id: number; url: string }>("select t.id, t.url from teklif t join magaza m on m.id=t.magaza_id where m.slug=$1", [m.slug]);
         const sil = mevcutlar.filter((x) => !feedde.has(sadeAdres(x.url))).map((x) => x.id);
         if (sil.length && urunler.length >= mevcutlar.length * 0.5) { await q("update teklif set stokta=false, guncelleme=now() where id = any($1::int[]) and stokta", [sil]); kalkan = sil.length; }
+        // Feed'in tamamı bu turda işlendiyse, bu turda güncellenmeyen her teklif eskidir (ör. önceden ürün sayfasından
+        // farklı kodla okunmuş, KDV hariç fiyatlı kayıtlar): stoktan düşürülür.
+        if (secilen.length === urunler.length && (say.kaydedildi ?? 0) >= urunler.length * 0.3) {
+          const r = await q<{ id: number }>(`update teklif set stokta=false where stokta and guncelleme < $2
+            and magaza_id = (select id from magaza where slug=$1) returning id`, [m.slug, turBasi.toISOString()]);
+          kalkan += r.length;
+        }
       }
       console.log(`${m.slug}: feed ${urunler.length}, işlenen ${secilen.length}, feed'de olmayan ${kalkan}`, say);
       ozet.push(`| ${m.ad} | feed ${urunler.length} | ${say.kaydedildi ?? 0}${say.telefon ? ` +${say.telefon} tel` : ""} | ${say.kategorisiz ?? 0} kategorisiz, ${kalkan} stoktan düştü | ${say.hata ?? 0} |`);

@@ -112,7 +112,7 @@ function siteAdi(html: string, alan: string) {
 async function feedDogrula(urunler: OkunanTeklif[]) {
   const stokta = urunler.filter((u) => u.stokta);
   const ornek = [0.15, 0.5, 0.85].map((r) => stokta[Math.floor(stokta.length * r)]).filter(Boolean);
-  let uyan = 0, yollu = 0;
+  let uyan = 0, yollu = 0, kdv = 0, uyusmaz = 0;
   const notlar: string[] = [];
   for (const o of ornek) {
     if (o.kategoriYolu && o.kategoriYolu.length >= 2) yollu++;
@@ -121,9 +121,13 @@ async function feedDogrula(urunler: OkunanTeklif[]) {
     const t = urunOku(y.html, o.url);
     if (!t) { notlar.push("sayfada fiyat yok"); continue; }
     const fark = Math.abs(t.fiyat - o.fiyat) / t.fiyat;
-    if (fark <= 0.03) uyan++; else notlar.push(`feed ${o.fiyat} / sayfa ${t.fiyat}`);
+    const oran = o.fiyat / t.fiyat;
+    if (fark <= 0.03) uyan++;
+    // Sayfa KDV hariç (×1,20 / ×1,10 / ×1,01), feed KDV dahil gösteriyorsa: tüketicinin ödediği feed fiyatıdır.
+    else if ([1.2, 1.1, 1.01].some((k) => Math.abs(oran - k) <= 0.01)) { kdv++; notlar.push(`sayfa KDV hariç: feed ${o.fiyat} / sayfa ${t.fiyat}`); }
+    else { uyusmaz++; notlar.push(`feed ${o.fiyat} / sayfa ${t.fiyat}`); }
   }
-  return { tamam: uyan >= 2 && yollu >= 2, ozet: `${uyan}/${ornek.length} fiyat uyuştu, ${yollu}/${ornek.length} kategori yolu${notlar.length ? " (" + notlar.join("; ") + ")" : ""}` };
+  return { tamam: uyan + kdv >= 2 && uyusmaz <= 1 && yollu >= 2, ozet: `${uyan}/${ornek.length} fiyat uyuştu${kdv ? `, ${kdv} KDV farkı` : ""}, ${yollu}/${ornek.length} kategori yolu${notlar.length ? " (" + notlar.join("; ") + ")" : ""}` };
 }
 
 const satirlar = ["| Aday | Tür | Sonuç | Harita | Fiyat/yol | Firma | Not |", "|---|---|---|---|---|---|---|"];

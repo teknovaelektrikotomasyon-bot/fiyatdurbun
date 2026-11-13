@@ -232,3 +232,34 @@ defacto.com.tr giyim
 koton.com giyim
 saatvesaat.com.tr giyim
 mi.com telefon
+
+# 2026-11-13 (2): barkodu ortak ürün satan orta ölçekli mağazalar (kitap ISBN, kozmetik, pet, takviye, elektronik)
+kitapsepeti.com kitap
+halkkitabevi.com kitap
+eganba.com kitap
+kidega.com kitap
+ucuzkitapal.com kitap
+kitapkalbi.com kitap
+kozmetiksepeti.com kozmetik
+dermostore.com.tr kozmetik
+eczahanem.com kozmetik
+farmakozmetika.com kozmetik
+bebeksepeti.com bebek
+babyhome.com.tr bebek
+oyuncakmatik.com oyuncak
+petsheyler.com pet
+kedibaba.com pet
+mamakapinda.com pet
+petshopevi.com pet
+supplementmarket.com.tr takviye
+gnc.com.tr takviye
+vitaminepi.com takviye
+teknolojimarket.com.tr elektronik
+bilgisayarix.com bilgisayar
+pcdepo.com.tr bilgisayar
+vatanbilgisayar.com bilgisayar
+oyunfor.com bilgisayar
+hirdavatmarket.com.tr yapi-market
+yapimarketim.com yapi-market
+aksesuarix.com aksesuar
+telefonaksesuarlari.com aksesuar
