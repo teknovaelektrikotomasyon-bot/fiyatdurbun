@@ -38,7 +38,11 @@ console.log("indirim eşikleri:", await q(`with gunluk as (select urun_id, gun, 
 console.log("giriş tabloları:", await q("select table_name from information_schema.tables where table_name in ('giris_jetonu','uye','takip','bildirim')"));
 if (process.env.RESEND_API_KEY) {
   const r = await fetch("https://api.resend.com/domains", { headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}` } });
-  const j = await r.json() as { data?: { name: string; status: string }[] } & Record<string, unknown>;
+  const j = await r.json() as { data?: { id: string; name: string; status: string }[] } & Record<string, unknown>;
+  for (const d of j.data ?? []) if (d.status !== "verified") {
+    const v = await fetch(`https://api.resend.com/domains/${d.id}/verify`, { method: "POST", headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}` } });
+    console.log("resend doğrulama başlatıldı:", d.name, v.status);
+  }
   console.log("resend alan adları:", r.status, JSON.stringify(j.data?.map((d) => ({ ad: d.name, durum: d.status })) ?? j));
 } else console.log("resend: RESEND_API_KEY yok");
 await kapat();
