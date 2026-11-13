@@ -8,6 +8,8 @@ import { getir, robotsAl } from "../lib/toplayici/istek.ts";
 import { urunOku, decode, type OkunanTeklif } from "../lib/toplayici/okuyucu.ts";
 import { feedBul, feedGetir, feedOku } from "../lib/toplayici/feed.ts";
 
+// Bilinen dolandırıcılık vakası olan alan adları: hiçbir koşulda eklenmez.
+const KARA_LISTE = new Set(["istanbulbilisim.com.tr"]);
 const arg = (ad: string) => { const i = process.argv.indexOf("--" + ad); return i > 0 ? process.argv[i + 1] : undefined; };
 const dbYaz = process.argv.includes("--db");
 const yeniden = process.argv.includes("--yeniden");
@@ -42,8 +44,6 @@ if (db) await db.q(`update magaza set aktif=true where kaynak='oto' and not akti
   and coalesce(guven_notu,'') not like '%yayından alındı%' and coalesce(guven_notu,'') like 'Otomatik keşif%'`);
 if (db) for (const [slug, ad] of Object.entries(ADLAR)) await db.q("update magaza set ad=$2 where slug=$1 and kaynak='oto'", [slug, ad]);
 
-// Bilinen dolandırıcılık vakası olan alan adları: hiçbir koşulda eklenmez.
-const KARA_LISTE = new Set(["istanbulbilisim.com.tr"]);
 const TANINMIS = new Set(["casper.com.tr", "evidea.com", "mudo.com.tr", "chakra.com.tr", "pasabahce.com", "kutahyaporselen.com",
   "tefal.com.tr", "fakir.com.tr", "flormar.com.tr", "gratis.com", "intersport.com.tr", "porland.com", "ttec.com.tr"]);
 if (db && yeniden && !tek) await db.q("update magaza set aktif=false where kaynak='oto'"); // yeniden denemede herkes baştan sınanır
