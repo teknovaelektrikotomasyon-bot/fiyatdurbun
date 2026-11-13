@@ -207,8 +207,8 @@ const INDIRIM_TABAN = `
     select urun_id,
       min(f) filter (where gun < current_date) min30,
       (percentile_cont(0.5) within group (order by f) filter (where gun < current_date))::float8 med30,
-      max(f) filter (where gun >= current_date - 14 and gun < current_date) max14,
-      min(f) filter (where gun < current_date - 14) eski_min,
+      max(f) filter (where gun >= current_date - 7 and gun < current_date) max14,
+      min(f) filter (where gun < current_date - 7) eski_min,
       (count(*) filter (where gun < current_date))::int gun_sayisi
     from gunluk group by urun_id
   )
@@ -218,14 +218,19 @@ const INDIRIM_TABAN = `
 /** Gerçek indirim: bugünkü fiyat son 30 günün en düşüğünde ya da altında ve 30 günlük ortancanın en az %7 altında. */
 export async function gercekIndirimler(limit = 48) {
   return q<IndirimSatiri>(`select * from (${INDIRIM_TABAN}) x
-    where gun_sayisi >= 7 and fiyat <= min30 and fiyat <= med30 * 0.93
+    where gun_sayisi >= 5 and fiyat <= min30 and fiyat <= med30 * 0.93
     order by (med30 - fiyat) / med30 desc, magaza_sayisi desc limit ${Number(limit)}`);
 }
 
-/** Sahte indirim: son 14 günde fiyat önce en az %8 zamlanmış, şimdi zirveden düşük ("indirimde") ama hâlâ zamdan önceki fiyatın üstünde. */
+/** Sahte indirim: son 7 günde fiyat önce en az %8 zamlanmış, şimdi zirveden düşük ("indirimde") ama hâlâ zamdan önceki fiyatın üstünde. */
 export async function sahteIndirimler(limit = 48) {
   return q<IndirimSatiri>(`select * from (${INDIRIM_TABAN}) x
-    where gun_sayisi >= 10 and eski_min is not null and max14 >= eski_min * 1.08
+    where gun_sayisi >= 7 and eski_min is not null and max14 >= eski_min * 1.08
       and fiyat <= max14 * 0.97 and fiyat >= eski_min * 1.02
     order by (fiyat - eski_min) / eski_min desc limit ${Number(limit)}`);
+}
+
+/** Fiyat geçmişinin başladığı gün (indirim sayfasında boş liste açıklaması için). */
+export async function gecmisBaslangic() {
+  return (await q1<{ ilk: string | null }>("select min(gun)::text ilk from fiyat_gecmisi"))?.ilk ?? null;
 }

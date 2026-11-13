@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { JsonLd } from "@/components/JsonLd";
 import { kirintiJsonLd, mutlak } from "@/lib/seo.ts";
-import { gercekIndirimler, sahteIndirimler, tl, type IndirimSatiri } from "@/lib/sorgular.ts";
+import { gecmisBaslangic, gercekIndirimler, sahteIndirimler, tl, type IndirimSatiri } from "@/lib/sorgular.ts";
 
 export const revalidate = 3600;
 export const metadata: Metadata = {
@@ -49,8 +49,8 @@ function SahteSatir({ u }: { u: IndirimSatiri }) {
         <div className="ind-govde">
           <div className="ind-ad">{ad(u)}</div>
           <ol className="ind-zincir" aria-label="Fiyatın seyri">
-            <li><span className="soluk kucuk">2–4 hafta önce</span> {tl(u.eski_min)}</li>
-            <li className="zam"><span className="soluk kucuk">son 2 haftada zam</span> {tl(u.max14)}</li>
+            <li><span className="soluk kucuk">1 hafta önce</span> {tl(u.eski_min)}</li>
+            <li className="zam"><span className="soluk kucuk">son 7 günde zam</span> {tl(u.max14)}</li>
             <li><span className="soluk kucuk">şimdi “indirimde”</span> {tl(u.fiyat)}</li>
           </ol>
         </div>
@@ -64,7 +64,9 @@ function SahteSatir({ u }: { u: IndirimSatiri }) {
 }
 
 export default async function GercekIndirimler() {
-  const [gercek, sahte] = await Promise.all([gercekIndirimler(48), sahteIndirimler(48)]);
+  const [gercek, sahte, ilk] = await Promise.all([gercekIndirimler(48), sahteIndirimler(48), gecmisBaslangic()]);
+  // Liste, yeterli gün birikince dolar: gerçek indirim 5, sahte indirim 7 günlük kayıt ister.
+  const gunEkle = (g: number) => ilk ? new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(Date.parse(ilk) + g * 864e5)) : null;
   const saat = new Intl.DateTimeFormat("tr-TR", { dateStyle: "long", timeStyle: "short", timeZone: "Europe/Istanbul" }).format(new Date());
   const paylas = encodeURIComponent("Bu indirim gerçek mi? Fiyatı 30 günün en düşüğüne inenler ve önce zamlanıp sonra indirime girenler:");
   const adres = encodeURIComponent(mutlak("/gercek-indirimler"));
@@ -89,14 +91,16 @@ export default async function GercekIndirimler() {
         <div className="bolum-baslik"><h2>Gerçek indirimler</h2>
           <span className="kucuk soluk">Bugünkü fiyat son 30 günün en düşüğünde ve olağan fiyatının en az %7 altında.</span></div>
         {gercek.length ? <ul className="ind-liste">{gercek.map((u) => <GercekSatir key={u.id} u={u} />)}</ul>
-          : <p className="soluk">Şu an bu ölçüte uyan ürün yok. Fiyatlar her saat yeniden kontrol ediliyor.</p>}
+          : <p className="soluk">Şu an bu ölçüte uyan ürün yok. Günlük fiyat kaydımız {gunEkle(0)} tarihinde başladı; bir indirimin gerçek olduğunu söyleyebilmek için
+              en az 5 günlük kayıt gerekiyor. Liste {gunEkle(6)} itibarıyla dolmaya başlayacak; fiyatlar her saat yeniden kontrol ediliyor.</p>}
       </section>
 
       <section id="sahte" className="kutu bolum">
         <div className="bolum-baslik"><h2>Önce zamlanıp sonra “indirime” girenler</h2>
-          <span className="kucuk soluk">Son 2 haftada en az %8 zamlanan, şimdi zirveden düşük görünen ama hâlâ zam öncesi fiyatın üstünde olan ürünler.</span></div>
+          <span className="kucuk soluk">Son 7 günde en az %8 zamlanan, şimdi zirveden düşük görünen ama hâlâ zam öncesi fiyatın üstünde olan ürünler.</span></div>
         {sahte.length ? <ul className="ind-liste">{sahte.map((u) => <SahteSatir key={u.id} u={u} />)}</ul>
-          : <p className="soluk">Şu an bu ölçüte uyan ürün yok.</p>}
+          : <p className="soluk">Şu an bu ölçüte uyan ürün yok. Zam ve ardından gelen “indirimi” görebilmek için en az 7 günlük kayıt gerekiyor;
+              liste {gunEkle(8)} itibarıyla, Black Friday'den (27 Kasım) önce dolmaya başlayacak.</p>}
       </section>
 
       <section className="kutu bolum metin-sayfa">
