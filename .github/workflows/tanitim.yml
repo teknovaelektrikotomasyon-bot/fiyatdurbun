@@ -1,0 +1,40 @@
+name: Mağaza tanıtım e-postası
+# Elle başlatılır. gonder=evet değilse yalnız kuru çalışma (örnek basar, göndermez).
+on:
+  workflow_dispatch:
+    inputs:
+      gonder:
+        description: "Gerçekten gönder (evet/boş)"
+        required: false
+      limit:
+        description: "En çok kaç e-posta (Resend ücretsiz: günde 100)"
+        required: false
+permissions:
+  contents: read
+  actions: read
+jobs:
+  tanitim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SORGU_ZAMAN_ASIMI_MS: "60000"
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      TANITIM_YANIT: ${{ vars.TANITIM_YANIT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Son iletişim listesini indir
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN=$(gh run list -R ${{ github.repository }} -w iletisim.yml -s success -L 1 --json databaseId -q '.[0].databaseId')
+          gh run download "$RUN" -R ${{ github.repository }} -n iletisim -D veri
+      - run: |
+          EK=""
+          [ "${{ inputs.gonder }}" = "evet" ] && EK="--gonder"
+          node --experimental-strip-types scripts/tanitim.ts --liste veri/iletisim.json --limit "${{ inputs.limit || 90 }}" $EK
