@@ -44,9 +44,14 @@ if (aktarim) {
   try {
     const satir = await q<{ slug: string; ad: string; site: string; kesif: OtoKesif }>(
       "select slug, ad, site, kesif from magaza where kaynak='oto' and aktif and durum <> 'kapali' and kesif is not null");
-    for (const r of satir) otoMagazalar.push({ slug: r.slug, ad: r.ad, site: r.site, durum: "acik", bekleme: 3000,
+    for (const r of satir) {
+      // jsonb sürücüye göre metin olarak gelebilir
+      if (typeof r.kesif === "string") r.kesif = JSON.parse(r.kesif);
+      otoMagazalar.push({ slug: r.slug, ad: r.ad, site: r.site, durum: "acik", bekleme: 3000,
       kesif: { genel: { tur: "genel", filtre: new RegExp(r.kesif.urlFiltre), kokler: (r.kesif.kokler ?? TUR_KOK[r.kesif.tur ?? ""] ?? []).filter((k) => KOKLER.includes(k)), butce: Number(arg("oto-butce") ?? 150),
         haritalar: r.kesif.haritalar, dosyaFiltre: new RegExp(r.kesif.dosyaFiltre, "i"), yolZorunlu: true } } });
+    }
+    console.log(`otomatik mağaza: ${otoMagazalar.length}`, otoMagazalar.map((m) => `${m.slug}:${(m.kesif.genel as { kokler: string[] }).kokler.join("+")}`).join(" "));
   } catch (e) { console.log("otomatik mağazalar okunamadı:", (e as Error).message); }
 }
 
