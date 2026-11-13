@@ -40,6 +40,7 @@ export default async function AnaSayfa() {
             <p className="ornek-aramalar">
               Sık bakılanlar: <Link href="/kategori/akilli-telefon?marka=apple">iPhone</Link>, <Link href="/kategori/akilli-telefon?marka=samsung">Samsung</Link>, <Link href="/kategori/akilli-telefon?marka=xiaomi">Xiaomi</Link>, <Link href="/kategori/akilli-telefon">tüm akıllı telefonlar</Link>
             </p>
+            <p className="ornek-aramalar"><Link href="/gercek-indirimler"><strong>Efsane Kasım: Bu indirim gerçek mi?</strong></Link> Zamlanıp indirime girenleri görün.</p>
           </div>
           {vitrin?.fiyat != null && (
             <Link href={`/urun/${vitrin.slug}`} className="vitrin">

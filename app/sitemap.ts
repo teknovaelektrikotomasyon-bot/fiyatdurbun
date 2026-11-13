@@ -35,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: site, lastModified: simdi, changeFrequency: "hourly", priority: 1 },
+    { url: `${site}/gercek-indirimler`, changeFrequency: "daily", priority: 0.9 },
     { url: `${site}/magazalar`, changeFrequency: "weekly", priority: 0.5 },
     { url: `${site}/hakkimizda`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${site}/kullanim-kosullari`, changeFrequency: "yearly", priority: 0.2 },

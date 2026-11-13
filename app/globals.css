@@ -491,3 +491,27 @@ main > .kap > .kapsam { margin-top: 0; }
 .bilgi-sss details p { padding-bottom: 16px; }
 .bilgi-sss a { color: var(--metin); font-weight: 600; }
 @media (max-width: 600px) { .bilgi-bant { border-radius: 16px; } .bilgi-sss { padding: 2px 16px !important; } .bilgi-bolum .kutu { padding: 18px; } }
+
+/* Gerçek / sahte indirim sayfası */
+.ind-bas { padding: 28px 0 8px; max-width: 72ch; }
+.ind-bas h1 { font-size: var(--t4); margin: 0 0 10px; }
+.ind-sekme { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.ind-sekme a { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--cizgi-koyu); text-decoration: none; color: var(--metin); font-weight: 600; font-size: 14px; }
+.ind-liste { list-style: none; margin: 0; padding: 0; }
+.ind-liste > li + li { border-top: 1px solid var(--cizgi); }
+.ind-satir { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 0; color: inherit; text-decoration: none; }
+.ind-gorsel { width: 64px; height: 64px; display: grid; place-items: center; background: #fff; border-radius: var(--r-kucuk); overflow: hidden; }
+.ind-gorsel img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.ind-ad { font-weight: 600; overflow-wrap: anywhere; }
+.ind-iz { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--t-1); color: var(--soluk); margin-top: 4px; }
+.ind-zincir { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 6px 0 0; padding: 0; font-size: var(--t-1); }
+.ind-zincir li { display: inline-flex; flex-direction: column; padding: 4px 8px; border-radius: var(--r-kucuk); background: var(--kagit); }
+.ind-zincir li.zam { background: var(--artis-zemin); }
+.ind-fiyat { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; }
+.ind-fiyat .fiyat { font-weight: 700; font-size: var(--t1); }
+.ind-paylas a { font-weight: 600; }
+@media (max-width: 560px) {
+  .ind-satir { grid-template-columns: 52px minmax(0, 1fr); }
+  .ind-gorsel { width: 52px; height: 52px; }
+  .ind-fiyat { grid-column: 2; align-items: flex-start; text-align: left; flex-direction: row; flex-wrap: wrap; align-items: center; }
+}

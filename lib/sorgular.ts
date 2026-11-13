@@ -189,3 +189,43 @@ export async function magazalar() {
        (select count(*)::int from teklif t where t.magaza_id=m.id and t.stokta) as teklif_sayisi
      from magaza m where m.aktif or m.kaynak <> 'oto' order by m.aktif desc, teklif_sayisi desc`);
 }
+
+// --- Gerçek / sahte indirim (günlük "günün en ucuzu" serisinden) -------------------------------------------
+export type IndirimSatiri = {
+  id: number; slug: string; marka: string; model: string; varyant: string | null; gorsel: string | null;
+  fiyat: number; magaza_sayisi: number; min30: number; med30: number; max14: number | null; eski_min: number | null; gun_sayisi: number;
+};
+
+const INDIRIM_TABAN = `
+  with gunluk as (
+    select urun_id, gun, min(fiyat)::float8 f from fiyat_gecmisi where gun >= current_date - 31 group by urun_id, gun
+  ), simdi as (
+    select tk.urun_id, min(tk.fiyat)::float8 fiyat, count(distinct tk.magaza_id)::int magaza_sayisi
+    from teklif tk join magaza m on m.id = tk.magaza_id
+    where tk.stokta and not tk.supheli and tk.urun_id is not null and m.aktif and m.durum <> 'kapali' group by tk.urun_id
+  ), ist as (
+    select urun_id,
+      min(f) filter (where gun < current_date) min30,
+      (percentile_cont(0.5) within group (order by f) filter (where gun < current_date))::float8 med30,
+      max(f) filter (where gun >= current_date - 14 and gun < current_date) max14,
+      min(f) filter (where gun < current_date - 14) eski_min,
+      (count(*) filter (where gun < current_date))::int gun_sayisi
+    from gunluk group by urun_id
+  )
+  select u.id, u.slug, mk.ad marka, u.model, u.varyant, u.gorsel, s.fiyat, s.magaza_sayisi, i.min30, i.med30, i.max14, i.eski_min, i.gun_sayisi
+  from ist i join simdi s on s.urun_id = i.urun_id join urun u on u.id = i.urun_id join marka mk on mk.id = u.marka_id`;
+
+/** Gerçek indirim: bugünkü fiyat son 30 günün en düşüğünde ya da altında ve 30 günlük ortancanın en az %7 altında. */
+export async function gercekIndirimler(limit = 48) {
+  return q<IndirimSatiri>(`select * from (${INDIRIM_TABAN}) x
+    where gun_sayisi >= 7 and fiyat <= min30 and fiyat <= med30 * 0.93
+    order by (med30 - fiyat) / med30 desc, magaza_sayisi desc limit ${Number(limit)}`);
+}
+
+/** Sahte indirim: son 14 günde fiyat önce en az %8 zamlanmış, şimdi zirveden düşük ("indirimde") ama hâlâ zamdan önceki fiyatın üstünde. */
+export async function sahteIndirimler(limit = 48) {
+  return q<IndirimSatiri>(`select * from (${INDIRIM_TABAN}) x
+    where gun_sayisi >= 10 and eski_min is not null and max14 >= eski_min * 1.08
+      and fiyat <= max14 * 0.97 and fiyat >= eski_min * 1.02
+    order by (fiyat - eski_min) / eski_min desc limit ${Number(limit)}`);
+}

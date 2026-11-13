@@ -58,7 +58,7 @@ export default async function Kok({ children }: { children: React.ReactNode }) {
           </nav>
           <div className="kap">
             <span>Fiyat Dürbün satış yapmaz; fiyatları mağazaların herkese açık sayfalarından okur ve mağazaların güvenilirliği için güvence vermez. Satın almadan önce mağazadaki fiyatı kontrol edin. Amazon Ortağı olarak, uygun alışverişlerden gelir elde ediyoruz; bazı mağaza bağlantıları ortaklık bağlantısıdır ve size ek maliyet getirmez.</span>
-            <nav className="alt-linkler" aria-label="Alt bağlantılar"><Link href="/hakkimizda">Hakkımızda</Link><Link href="/magazalar">Mağazalar ve güven kontrolü</Link><Link href="/bot">Botumuz hakkında</Link><Link href="/kullanim-kosullari">Kullanım koşulları</Link><Link href="/magazanizi-ekleyin">Mağazanızı ekleyin</Link></nav>
+            <nav className="alt-linkler" aria-label="Alt bağlantılar"><Link href="/gercek-indirimler">Gerçek ve sahte indirimler</Link><Link href="/hakkimizda">Hakkımızda</Link><Link href="/magazalar">Mağazalar ve güven kontrolü</Link><Link href="/bot">Botumuz hakkında</Link><Link href="/kullanim-kosullari">Kullanım koşulları</Link><Link href="/magazanizi-ekleyin">Mağazanızı ekleyin</Link></nav>
           </div>
         </footer>
       </body>
