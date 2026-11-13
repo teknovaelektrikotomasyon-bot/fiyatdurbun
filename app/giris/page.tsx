@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { girisBaglantisiGonder } from "@/app/hesabim/islemler";
 
 export const metadata: Metadata = { title: "Giriş yap", robots: { index: false } };
-type P = { searchParams: Promise<{ donus?: string; gonderildi?: string; hata?: string }> };
+type P = { searchParams: Promise<{ donus?: string; gonderildi?: string; hata?: string; neden?: string }> };
 
 export default async function Giris({ searchParams }: P) {
   const sp = await searchParams;
@@ -19,7 +19,7 @@ export default async function Giris({ searchParams }: P) {
       <input type="hidden" name="donus" value={sp.donus ?? "/hesabim"} />
       <label className="kucuk" htmlFor="eposta">E-posta</label>
       <input id="eposta" type="email" name="eposta" required autoComplete="email" placeholder="ornek@eposta.com" />
-      {sp.hata && <p className="kucuk" style={{ color: "var(--artis)" }}>{sp.hata === "gonderilemedi" ? "Giriş e-postası şu an gönderilemedi. Birkaç dakika sonra tekrar deneyin." : "Geçerli bir e-posta adresi yazın."}</p>}
+      {sp.hata && <p className="kucuk" style={{ color: "var(--artis)" }}>{sp.hata === "gonderilemedi" ? <>Giriş e-postası şu an gönderilemedi. Birkaç dakika sonra tekrar deneyin.{sp.neden && <span className="soluk" style={{ display: "block", marginTop: 6 }}>Ayrıntı: {sp.neden}</span>}</> : "Geçerli bir e-posta adresi yazın."}</p>}
       <button className="dugme" style={{ width: "100%" }}>Giriş bağlantısı gönder</button>
     </form>
   );

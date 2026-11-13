@@ -23,7 +23,9 @@ export async function girisBaglantisiGonder(form: FormData) {
     } catch (e) {
       // E-posta servisi hata verirse sayfa çökmesin; kullanıcıya açık bir mesaj gösterilir, ayrıntı sunucu günlüğüne yazılır.
       console.error("giriş e-postası gönderilemedi:", (e as Error).message);
-      redirect(`/giris?hata=gonderilemedi&donus=${encodeURIComponent(donus)}`);
+      // Geçici tanı: servis hatasının kısa özeti (anahtar ya da adres içermez) ekranda gösterilir.
+      const ozet = (e as Error).message.replace(/re_[A-Za-z0-9_]+/g, "").replace(/[^\w\s.:,()'-]/g, " ").slice(0, 160);
+      redirect(`/giris?hata=gonderilemedi&neden=${encodeURIComponent(ozet)}&donus=${encodeURIComponent(donus)}`);
     }
   }
   redirect(`/giris?gonderildi=1`);
