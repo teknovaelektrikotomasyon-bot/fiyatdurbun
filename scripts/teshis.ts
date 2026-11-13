@@ -22,4 +22,16 @@ const plan = await q<{ "QUERY PLAN": string }>(`explain (analyze, buffers) selec
     from fiyat_gecmisi f group by urun_id)
   select u.id from urun u left join t on t.urun_id=u.id left join g on g.urun_id=u.id) x`);
 console.log(plan.map((p) => p["QUERY PLAN"]).join("\n"));
+// İndirim sayfası tanısı: geçmiş kaç gün, kaç ürünün yeterli günü var, eşikler nasıl dağılıyor
+console.log("geçmiş günleri:", await q("select min(gun)::text ilk, max(gun)::text son, count(distinct gun)::int gun, count(distinct urun_id)::int urun from fiyat_gecmisi"));
+console.log("ürün başına gün sayısı:", await q(`select g, count(*)::int urun from (select urun_id, least(count(distinct gun), 31) g from fiyat_gecmisi where gun >= current_date-31 group by urun_id) x group by g order by g`));
+console.log("indirim eşikleri:", await q(`with gunluk as (select urun_id, gun, min(fiyat)::float8 f from fiyat_gecmisi where gun >= current_date-31 group by urun_id, gun),
+  s as (select urun_id, min(fiyat)::float8 fiyat from teklif where stokta and not supheli and urun_id is not null group by urun_id),
+  i as (select urun_id, min(f) filter (where gun<current_date) min30, (percentile_cont(0.5) within group (order by f) filter (where gun<current_date))::float8 med30,
+    max(f) filter (where gun>=current_date-14 and gun<current_date) max14, min(f) filter (where gun<current_date-14) eski, count(*) filter (where gun<current_date) n from gunluk group by urun_id)
+  select count(*)::int toplam, count(*) filter (where n>=3)::int n3, count(*) filter (where n>=7)::int n7,
+    count(*) filter (where n>=3 and fiyat<=min30)::int en_dusukte, count(*) filter (where n>=3 and fiyat<=min30 and fiyat<=med30*0.97)::int d3,
+    count(*) filter (where n>=3 and fiyat<=min30 and fiyat<=med30*0.93)::int d7,
+    count(*) filter (where max14 >= coalesce(eski, min30)*1.05 and fiyat <= max14*0.97)::int zam_sonra_dusus
+  from i join s using (urun_id)`));
 await kapat();
