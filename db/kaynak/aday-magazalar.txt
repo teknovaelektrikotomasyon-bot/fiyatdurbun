@@ -211,3 +211,25 @@ evimdeyokyok.com aksesuar
 gpack.com.tr aksesuar
 sumozade.com robotik
 dermoailem.com kozmetik
+
+# 2026-11-13: büyük pazaryerleri dışındaki orta/büyük zincirler
+a101.com.tr market
+carrefoursa.com market
+ebebek.com bebek
+koctas.com.tr yapi-market
+tekzen.com.tr yapi-market
+ikea.com.tr mobilya
+enzahome.com.tr mobilya
+arcelik.com.tr ev-aletleri
+beko.com.tr ev-aletleri
+bosch-home.com.tr ev-aletleri
+kitapyurdu.com kitap
+dr.com.tr kitap
+decathlon.com.tr spor
+flo.com.tr spor
+boyner.com.tr giyim
+lcw.com giyim
+defacto.com.tr giyim
+koton.com giyim
+saatvesaat.com.tr giyim
+mi.com telefon
