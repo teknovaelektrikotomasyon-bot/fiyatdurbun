@@ -156,7 +156,9 @@ async function dene(a: { alan: string; tur: string }) {
   const dosyaFiltre = urunlu.length ? URUN_DOSYA.source : secili.map((l) => l.dosya.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
   const urlFiltre = `^https?://(www\\.)?${a.alan.replace(/\./g, "\\.")}/` + (kalipli ? `.*(${URUN_YOL.source.slice(1, -1)})` : "");
   const kesif = { haritalar: kokler, dosyaFiltre, urlFiltre, tur: a.tur, tarih: new Date().toISOString().slice(0, 10) };
-  const slug = a.alan.split(".")[0].replace(/[^a-z0-9-]/g, "") + (/\.gen\.tr$/.test(a.alan) ? "-gen" : "");
+  const etiketler = a.alan.split(".");
+  const ilk = /^(market|magaza|shop|store|www)$/.test(etiketler[0]) ? etiketler[1] : etiketler[0]; // market.samm.com → samm
+  const slug = ilk.replace(/[^a-z0-9-]/g, "") + (/\.gen\.tr$/.test(a.alan) ? "-gen" : "");
   const ad = ADLAR[slug] ?? siteAdi(ana.html, a.alan);
   const not = `Otomatik keşif ${kesif.tarih}: ${fiyatli}/4 örnek fiyatlı, ${yollu}/4 kategori yolu. Firma: ${firmaOzet}${f.etbis ? " (ETBİS bağlantısı sitede var, doğrulanmadı)" : ""}.`;
   if (db) {
