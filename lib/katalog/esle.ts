@@ -10,6 +10,13 @@ export const duzMetin = (s: string) =>
 
 // Kategori adlarında olmayan ama mağazalarda sık geçen karşılıklar (slug → ek kelimeler).
 const ES_ANLAMLI: Record<string, string[]> = {
+  "kopek-oyuncak": ["kopek oyuncagi", "kopek oyuncaklari", "isirma oyuncagi", "kong", "kopek topu", "halat oyuncak"],
+  "kopek-odul": ["kopek odul", "kopek odulu", "kopek kemigi", "cigneme kemigi", "kopek bisküvisi", "kopek biskuvisi", "dental stick"],
+  "kopek-kiyafet": ["kopek yagmurlugu", "kopek montu", "kopek kazagi", "kopek kiyafeti", "kopek ayakkabisi", "kopek kulotu"],
+  "kedi-tuvaleti": ["kedi tuvaleti", "kapali kedi tuvaleti", "kum kabi", "kum kuregi"],
+  "kedi-odul": ["kedi odulu", "kedi odul", "kedi corbasi", "kedi krema", "sivi odul", "catnip"],
+  "mama-su-kabi": ["mama kabi", "su kabi", "mama ve su kabi", "otomatik mamalik", "su pinari", "suluk"],
+  "pet-vitamin": ["kedi vitamini", "kopek vitamini", "pet vitamin", "malt macunu", "biotin", "sakinlestirici sprey", "pire", "kene", "diş temizleme suyu", "dis temizleme"],
   "orta-sehpa": ["sehpa", "kahve sehpasi", "yan sehpa", "zigon sehpa", "orta sehpa"],
   "bebek-cilt-bakimi": ["bebek kremi", "bebek yagi", "bebek losyonu", "bebek sampuani", "pisik kremi", "bebek kolonyasi", "bebek bakim sutu", "bebek masaj yagi", "baby cream", "baby oil"],
   "gelistirme-karti": ["arduino", "raspberry pi", "esp32", "esp8266", "stm32", "deneyap", "micro bit", "microbit", "pico", "nodemcu", "gelistirme kartlari", "mikrodenetleyici"],
@@ -203,6 +210,7 @@ export type EslemeSonucu = { slug: string; puan: number };
 
 /** Bazı bölümlere ürün girebilmesi için ad ya da mağaza yolunda o bölüme özgü bir bağlam kelimesi şart.
  *  Örn. "1210 Kılıf SMD Kondansatör" kılıf kelimesi yüzünden telefon kılıfına düşmesin. */
+const OZEL_DAL = new Set(["elektronik-hobi"]);
 const BAGLAM: Record<string, RegExp> = {
   "cep-telefonu-ve-aksesuarlari": /\b(telefon|cep|iphone|samsung|galaxy|xiaomi|redmi|huawei|oppo|realme|honor|vivo|poco|tecno|infinix|nokia|motorola|reeder|casper via|general mobile|magsafe|android|ios|gsm|smartphone|powerbank|power bank|tasinabilir sarj|sarj aleti|sarj cihazi|sarj adaptoru|hizli sarj|lightning|type c|usb c|ekran koruyucu|kablosuz sarj|arac ici tutucu)\b/,
 };
@@ -225,6 +233,9 @@ export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kok
   let enIyi: EslemeSonucu | null = null;
   for (const a of ADAYLAR) {
     if (!a.yol.some((s) => kokler.includes(s))) continue; // mağazanın izinli bölümleri (ana bölüm ya da alt dal)
+    // Robotik dalı yalnız onu açıkça kapsamına almış (robotik/elektronik malzeme) mağazalara açık; yoksa "LED", "pil",
+    // "buton" gibi genel kelimelerle fener, oyuncak vb. buraya düşer.
+    if (a.yol.some((s) => OZEL_DAL.has(s)) && !a.yol.some((s) => OZEL_DAL.has(s) && kokler.includes(s))) continue;
     if (a.yol.some((s) => BAGLAM[s] && !BAGLAM[s].test(baglamMetni))) continue;
     if (a.derinlik === 0) continue; // ana bölümün kendisine ürün konmaz
     if (urunAksesuar && !a.aksesuar) continue;
@@ -237,9 +248,6 @@ export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kok
       if (gecer(ikinci, k)) pIkinci = Math.max(pIkinci, 5 + 3 * uzunluk);
       if (gecer(onceki, k)) pUst = Math.max(pUst, 2 + 2 * uzunluk);
     }
-    // Alt kategorisi olan bir grup başlığına (ör. "Cep Telefonu ve Aksesuarları") ürün ancak mağazanın kendi
-    // son kategorisi de o başlıksa konur; yoksa uymayan her şey en genel başlığa yığılır.
-    if (a.altVar && !pSon) continue;
     const enBuyuk = Math.max(pSon, pAd, pIkinci, pUst);
     let puan = enBuyuk + 0.5 * (pSon + pAd + pIkinci + pUst - enBuyuk);
     if (!puan) continue;

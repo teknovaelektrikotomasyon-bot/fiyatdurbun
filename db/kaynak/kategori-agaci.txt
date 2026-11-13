@@ -454,9 +454,14 @@ Pet Shop | Pet Supplies | pet-shop
     Kedi Maması | Cat Food | kedi-mamasi
     Kedi Kumu | Cat Litter | kedi-kumu
     Kedi Tırmalama ve Oyuncak | Cat Toys? | kedi-oyuncak
+    Kedi Tuvaleti | Cat Litter Boxes? | kedi-tuvaleti
+    Kedi Ödül Maması | Cat Treats? | kedi-odul
   Köpek | Dog Supplies | kopek
     Köpek Maması | Dog Food | kopek-mamasi
     Köpek Tasması ve Gezdirme | Pet Leashes? | kopek-tasmasi
+    Köpek Oyuncağı | Dog Toys? | kopek-oyuncak
+    Köpek Ödülü ve Kemik | Dog Treats? | kopek-odul
+    Köpek Kıyafeti | Pet Apparel? | kopek-kiyafet
   Kuş ve Akvaryum | Fish Supplies? | kus-akvaryum
     Akvaryum | Aquariums | akvaryum
     Kuş Yemi ve Kafes | Bird Supplies | kus
@@ -464,6 +469,8 @@ Pet Shop | Pet Supplies | pet-shop
   Pet Bakım ve Temizlik | Pet Grooming Supplies | pet-bakim
     Pet Şampuanı ve Mendili | Pet Shampoo & Conditioner | pet-sampuan
     Tarak ve Tüy Bakımı | Pet Combs & Brushes | pet-tarak
+  Mama ve Su Kabı | Pet Bowls, Feeders & Waterers? | mama-su-kabi
+  Pet Vitamin ve Sağlık | Pet Vitamins & Supplements? | pet-vitamin
   Taşıma ve Yatak | Pet Carriers & Crates? | pet-tasima
     Taşıma Çantası ve Kafes | Pet Carriers & Crates | pet-tasima-cantasi
     Yatak ve Minder | Pet Beds | pet-yatak

@@ -2,7 +2,7 @@
 // g = Google ürün taksonomisi kimliği (satış ortaklığı beslemelerindeki google_product_category ile eşlemek için).
 export type KategoriDugumu = { ad: string; slug: string; g: number | null; alt?: KategoriDugumu[] };
 
-// 479 kategori, 3 seviye. Sıra = menüdeki sıra.
+// 486 kategori, 3 seviye. Sıra = menüdeki sıra.
 export const KATEGORI_AGACI: KategoriDugumu[] = [
   { ad: "Elektronik", slug: "elektronik", g: 222, alt: [
     { ad: "Cep Telefonu ve Aksesuarları", slug: "cep-telefonu-ve-aksesuarlari", g: 270, alt: [
@@ -549,11 +549,16 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
     { ad: "Kedi", slug: "kedi", g: 4, alt: [
       { ad: "Kedi Maması", slug: "kedi-mamasi", g: 3367 },
       { ad: "Kedi Kumu", slug: "kedi-kumu", g: 4999 },
-      { ad: "Kedi Tırmalama ve Oyuncak", slug: "kedi-oyuncak", g: 5001 }
+      { ad: "Kedi Tırmalama ve Oyuncak", slug: "kedi-oyuncak", g: 5001 },
+      { ad: "Kedi Tuvaleti", slug: "kedi-tuvaleti", g: 5000 },
+      { ad: "Kedi Ödül Maması", slug: "kedi-odul", g: 5002 }
     ] },
     { ad: "Köpek", slug: "kopek", g: 5, alt: [
       { ad: "Köpek Maması", slug: "kopek-mamasi", g: 3530 },
-      { ad: "Köpek Tasması ve Gezdirme", slug: "kopek-tasmasi", g: 6249 }
+      { ad: "Köpek Tasması ve Gezdirme", slug: "kopek-tasmasi", g: 6249 },
+      { ad: "Köpek Oyuncağı", slug: "kopek-oyuncak", g: 5010 },
+      { ad: "Köpek Ödülü ve Kemik", slug: "kopek-odul", g: 5011 },
+      { ad: "Köpek Kıyafeti", slug: "kopek-kiyafet", g: 5 }
     ] },
     { ad: "Kuş ve Akvaryum", slug: "kus-akvaryum", g: 6, alt: [
       { ad: "Akvaryum", slug: "akvaryum", g: 3238 },
@@ -564,6 +569,8 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
       { ad: "Pet Şampuanı ve Mendili", slug: "pet-sampuan", g: 6406 },
       { ad: "Tarak ve Tüy Bakımı", slug: "pet-tarak", g: 6385 }
     ] },
+    { ad: "Mama ve Su Kabı", slug: "mama-su-kabi", g: 6252 },
+    { ad: "Pet Vitamin ve Sağlık", slug: "pet-vitamin", g: 5081 },
     { ad: "Taşıma ve Yatak", slug: "pet-tasima", g: 6251, alt: [
       { ad: "Taşıma Çantası ve Kafes", slug: "pet-tasima-cantasi", g: 6251 },
       { ad: "Yatak ve Minder", slug: "pet-yatak", g: 6251 }
