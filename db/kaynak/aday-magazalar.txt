@@ -169,3 +169,23 @@ outdoorstore.com.tr spor
 lastiksepeti.com otomotiv
 lastikcim.com.tr otomotiv
 otoyedekparcaburada.com otomotiv
+# --- Robotik / elektronik geliştirme (öğrenci, maker) ---
+motorobit.com robotik
+samm.com robotik
+robitshop.com robotik
+robolinkmarket.com robotik
+robocombo.com robotik
+elektrovadi.com robotik
+robotzade.com robotik
+hobielektronik.net robotik
+devreyakan.com robotik
+komponentci.net robotik
+empa.com robotik
+voltajelektronik.com robotik
+3dyazicim.com robotik
+porima3d.com robotik
+filamentmarket.com robotik
+roboshop.com.tr robotik
+direncnet.com robotik
+arduinoburada.com robotik
+maker.com.tr robotik

@@ -10,6 +10,16 @@ export const duzMetin = (s: string) =>
 
 // Kategori adlarında olmayan ama mağazalarda sık geçen karşılıklar (slug → ek kelimeler).
 const ES_ANLAMLI: Record<string, string[]> = {
+  "gelistirme-karti": ["arduino", "raspberry pi", "esp32", "esp8266", "stm32", "deneyap", "micro bit", "microbit", "pico", "nodemcu", "gelistirme kartlari", "mikrodenetleyici"],
+  "sensor-modul": ["sensor", "sensorler", "modul", "moduller", "role", "role karti", "lcd ekran", "oled", "rfid", "gps modul", "bluetooth modul", "wifi modul", "kamera modulu"],
+  "motor-surucu": ["servo", "servo motor", "step motor", "dc motor", "motor surucu", "redektorlu motor", "motor driver", "esc"],
+  "robot-kiti": ["robot kiti", "robot kitleri", "stem", "egitim seti", "kodlama seti", "robotik set", "lego education", "mbot"],
+  "elektronik-komponent": ["direnc", "kondansator", "transistor", "diyot", "led", "entegre", "potansiyometre", "buton", "regulator", "mosfet", "komponent", "pasif komponent", "yari iletken"],
+  "prototip-malzemesi": ["breadboard", "jumper", "jumper kablo", "pertinaks", "delikli plaket", "header", "konnektor", "klemens"],
+  "lehim-olcum": ["lehim", "havya", "lehim istasyonu", "multimetre", "osiloskop", "olcu aleti", "pens ampermetre", "guc kaynagi laboratuvar"],
+  "robotik-guc": ["lipo", "li ion", "18650", "pil", "batarya", "pil yuvasi", "voltaj regulatoru", "buck", "boost", "sarj modulu"],
+  "3d-filament": ["filament", "pla", "abs filament", "petg", "3d yazici parca", "nozzle", "hotend"],
+  "drone-rc-parca": ["drone", "pervane", "ucus kontrol karti", "fpv", "rc araba", "kumanda alici"],
   "akilli-telefon": ["cep telefonu", "android telefon", "ios telefon", "iphone"],
   "dizustu-bilgisayar": ["laptop", "notebook"],
   "masaustu-bilgisayar": ["hazir sistem", "masaustu pc"],

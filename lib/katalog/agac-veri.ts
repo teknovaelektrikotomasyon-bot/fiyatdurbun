@@ -2,7 +2,7 @@
 // g = Google ürün taksonomisi kimliği (satış ortaklığı beslemelerindeki google_product_category ile eşlemek için).
 export type KategoriDugumu = { ad: string; slug: string; g: number | null; alt?: KategoriDugumu[] };
 
-// 468 kategori, 3 seviye. Sıra = menüdeki sıra.
+// 478 kategori, 3 seviye. Sıra = menüdeki sıra.
 export const KATEGORI_AGACI: KategoriDugumu[] = [
   { ad: "Elektronik", slug: "elektronik", g: 222, alt: [
     { ad: "Cep Telefonu ve Aksesuarları", slug: "cep-telefonu-ve-aksesuarlari", g: 270, alt: [
@@ -98,6 +98,18 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
       { ad: "Akıllı Bileklik", slug: "akilli-bileklik", g: 500009 },
       { ad: "Akıllı Yüzük", slug: "akilli-yuzuk", g: 500009 },
       { ad: "Akıllı Saat Aksesuarı", slug: "akilli-saat-aksesuari", g: 2082 }
+    ] },
+    { ad: "Robotik ve Elektronik Geliştirme", slug: "elektronik-hobi", g: 3702, alt: [
+      { ad: "Geliştirme Kartı (Arduino, Raspberry Pi, ESP)", slug: "gelistirme-karti", g: 3702 },
+      { ad: "Sensör ve Modül", slug: "sensor-modul", g: 3702 },
+      { ad: "Motor ve Motor Sürücü", slug: "motor-surucu", g: 3702 },
+      { ad: "Robot Kiti ve STEM Seti", slug: "robot-kiti", g: 3625 },
+      { ad: "Elektronik Komponent", slug: "elektronik-komponent", g: 3702 },
+      { ad: "Breadboard, Jumper ve Prototip", slug: "prototip-malzemesi", g: 3889 },
+      { ad: "Lehim ve Ölçüm Aletleri", slug: "lehim-olcum", g: 1236 },
+      { ad: "Pil, Batarya ve Güç Modülü", slug: "robotik-guc", g: 276 },
+      { ad: "3D Yazıcı Filamenti ve Parçası", slug: "3d-filament", g: 499682 },
+      { ad: "Drone ve RC Parçaları", slug: "drone-rc-parca", g: 2546 }
     ] },
     { ad: "Akıllı Ev", slug: "akilli-ev", g: 359, alt: [
       { ad: "Güvenlik Kamerası", slug: "guvenlik-kamerasi", g: 362 },
@@ -529,8 +541,7 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
     ] },
     { ad: "Hobi ve Sanat", slug: "hobi-sanat", g: 5710, alt: [
       { ad: "Boya ve Resim Malzemeleri", slug: "resim-malzemeleri", g: 505372 },
-      { ad: "Maket ve Puzzle", slug: "maket", g: 5999 },
-      { ad: "Elektronik Hobi ve Robotik", slug: "elektronik-hobi", g: 3702 }
+      { ad: "Maket ve Puzzle", slug: "maket", g: 5999 }
     ] }
   ] },
   { ad: "Pet Shop", slug: "pet-shop", g: 2, alt: [

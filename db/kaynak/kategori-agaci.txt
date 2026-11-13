@@ -83,6 +83,17 @@ Elektronik | Electronics
     Akıllı Bileklik | Activity Monitors? | akilli-bileklik
     Akıllı Yüzük | Activity Monitors? | akilli-yuzuk
     Akıllı Saat Aksesuarı | 2082 | akilli-saat-aksesuari
+  Robotik ve Elektronik Geliştirme | Circuit Boards & Components | elektronik-hobi
+    Geliştirme Kartı (Arduino, Raspberry Pi, ESP) | Circuit Boards & Components? | gelistirme-karti
+    Sensör ve Modül | Electronic Components? | sensor-modul
+    Motor ve Motor Sürücü | Electric Motors? | motor-surucu
+    Robot Kiti ve STEM Seti | Robotic Toys? | robot-kiti
+    Elektronik Komponent | Electronic Components? | elektronik-komponent
+    Breadboard, Jumper ve Prototip | Circuit Prototyping? | prototip-malzemesi
+    Lehim ve Ölçüm Aletleri | Soldering Irons? | lehim-olcum
+    Pil, Batarya ve Güç Modülü | Batteries? | robotik-guc
+    3D Yazıcı Filamenti ve Parçası | 3D Printer Accessories? | 3d-filament
+    Drone ve RC Parçaları | Remote Control Toys? | drone-rc-parca
   Akıllı Ev | Business & Home Security
     Güvenlik Kamerası | Surveillance Cameras? | guvenlik-kamerasi
     Akıllı Priz ve Ampul | Light Bulbs? | akilli-priz-ampul
@@ -437,7 +448,6 @@ Kitap, Müzik ve Hobi | Media | kitap-muzik-hobi
   Hobi ve Sanat | Hobbies & Creative Arts | hobi-sanat
     Boya ve Resim Malzemeleri | Art & Crafting Materials? | resim-malzemeleri
     Maket ve Puzzle | Model Making? | maket
-    Elektronik Hobi ve Robotik | Circuit Boards & Components | elektronik-hobi
 Pet Shop | Pet Supplies | pet-shop
   Kedi | Cat Supplies | kedi
     Kedi Maması | Cat Food | kedi-mamasi

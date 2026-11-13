@@ -108,6 +108,26 @@ await Promise.all([...MAGAZALAR, ...otoMagazalar].filter((m) => m.durum === "aci
   }
 }));
 
+// Dolandırıcılık ve yanlış eşleşmeye karşı: aynı ürünü en az 2 başka mağaza satarken onların medyanının yarısından
+// ucuz olan teklif "şüpheli" işaretlenir; en ucuz fiyat hesabına girmez, sayfada uyarıyla en altta görünür.
+// Otomatik eklenen bir mağazanın tekliflerinin %20'si (en az 5) şüpheliyse mağaza yayından alınır.
+if (aktarim) {
+  const { q } = await import("../lib/db.ts");
+  try {
+    await q(`with s as (
+        select t.id, t.fiyat,
+          (select percentile_cont(0.5) within group (order by t2.fiyat) from teklif t2 where t2.urun_id=t.urun_id and t2.stokta and t2.magaza_id<>t.magaza_id) med,
+          (select count(distinct t2.magaza_id) from teklif t2 where t2.urun_id=t.urun_id and t2.stokta and t2.magaza_id<>t.magaza_id) n
+        from teklif t where t.urun_id is not null)
+      update teklif set supheli = (s.n >= 2 and s.fiyat < s.med * 0.5) from s
+      where teklif.id = s.id and teklif.supheli is distinct from (s.n >= 2 and s.fiyat < s.med * 0.5)`);
+    const kapanan = await q<{ slug: string; n: number; s: number }>(`update magaza m set aktif=false,
+        guven_notu = coalesce(m.guven_notu,'') || ' | ' || current_date || ': tekliflerin çoğu piyasanın yarısından ucuz, yayından alındı.'
+      from (select magaza_id, count(*) n, count(*) filter (where supheli) s from teklif group by magaza_id) x
+      where x.magaza_id=m.id and m.kaynak='oto' and m.aktif and x.s >= 5 and x.s >= x.n * 0.2 returning m.slug, x.n::int, x.s::int`);
+    for (const k of kapanan) ozet.push(`| ${k.slug} | YAYINDAN ALINDI | ${k.s}/${k.n} şüpheli fiyat | | |`);
+  } catch (e) { console.log("şüpheli fiyat kontrolü:", (e as Error).message); }
+}
 console.log(ozet.join("\n"));
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, "# Toplama " + gun + "\n" + ozet.join("\n") + "\n");
 if (aktarim) await (await import("../lib/db.ts")).kapat();

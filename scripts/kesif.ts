@@ -21,6 +21,7 @@ const db = dbYaz ? await import("../lib/db.ts") : null;
 if (db) {
   await db.q("alter table magaza add column if not exists kaynak text not null default 'elle'");
   await db.q("alter table magaza add column if not exists kesif jsonb");
+  await db.q("alter table teklif add column if not exists supheli boolean not null default false");
 }
 // Sitenin kendi adı başlıktan düzgün çıkmayan mağazalar.
 const ADLAR: Record<string, string> = {
@@ -30,6 +31,10 @@ const ADLAR: Record<string, string> = {
   direnc: "Direnc.net", dermoeczanem: "Dermoeczanem", petfix: "PetFix", petza: "Petza", ozdilekteyim: "Özdilekteyim",
 };
 if (db) for (const [slug, ad] of Object.entries(ADLAR)) await db.q("update magaza set ad=$2 where slug=$1 and kaynak='oto'", [slug, ad]);
+
+const TANINMIS = new Set(["casper.com.tr", "evidea.com", "mudo.com.tr", "chakra.com.tr", "pasabahce.com", "kutahyaporselen.com",
+  "tefal.com.tr", "fakir.com.tr", "flormar.com.tr", "gratis.com", "intersport.com.tr", "porland.com", "ttec.com.tr"]);
+if (db && yeniden && !tek) await db.q("update magaza set aktif=false where kaynak='oto'"); // yeniden denemede herkes baştan sınanır
 
 const mevcut = new Set<string>(db ? (await db.q<{ site: string }>("select site from magaza where kaynak <> 'oto' or not $1", [yeniden]))
   .map((r) => new URL(r.site).hostname.replace(/^www\./, "")) : []);
@@ -138,7 +143,9 @@ async function dene(a: { alan: string; tur: string }) {
   if (!yollu) return yaz(a.alan, a.tur, "kategori yolu yok", haritaOzet, `${fiyatli}/4, yol 0`, "-", ornekAd);
 
   const f = await firmaBilgisi(kok, ana.html);
-  const kimlik = Boolean(f.mersis || f.vergi || f.unvan || f.etbis);
+  // Dolandırıcılığa karşı: yalnız unvan yazmak yetmez (kopyalanabilir); vergi no, MERSİS ya da ETBİS bağlantısı aranır.
+  // Herkesin bildiği marka mağazalarında unvan yeterli. Diğerleri pasif eklenir, elle kontrol edilmeden yayına çıkmaz.
+  const kimlik = Boolean(f.mersis || f.vergi || f.etbis || (f.unvan && TANINMIS.has(a.alan)));
   const firmaOzet = [f.unvan && "unvan", f.vergi && "vergi", f.mersis && "MERSİS", f.etbis && "ETBİS"].filter(Boolean).join("+") || "yok";
   // Ürün haritası dosya adları: "sitemap_products_3.xml" → products; tek dosyaysa tam adı.
   const dosyaFiltre = urunlu.length ? URUN_DOSYA.source : secili.map((l) => l.dosya.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
