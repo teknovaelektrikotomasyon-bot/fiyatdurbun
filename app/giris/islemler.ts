@@ -1,10 +1,10 @@
 "use server";
 import { redirect } from "next/navigation";
 import { q, q1 } from "@/lib/db.ts";
-import { epostaGecerli, oturumAc } from "@/lib/oturum.ts";
+import { epostaGecerli, oturumAc, uye } from "@/lib/oturum.ts";
 import { epostaGonder, siteAdresi } from "@/lib/eposta.ts";
 import {
-  denemeSiniri, girisDogrula, hataliDeneme, kullaniciAdiGecerli, sifirlamaJetonu, sifreGuclu, sifreOzetle, sifreYenile, uyelikSemasi,
+  denemeSiniri, dogrulamaJetonu, girisDogrula, hataliDeneme, kullaniciAdiGecerli, sifirlamaJetonu, sifreGuclu, sifreOzetle, sifreYenile, uyelikSemasi,
 } from "@/lib/uyelik.ts";
 
 const guvenliDonus = (d: unknown) => (typeof d === "string" && d.startsWith("/") && !d.startsWith("//") ? d : "/hesabim");
@@ -44,13 +44,32 @@ export async function kayitOl(form: FormData) {
   const r = await q1<{ id: number }>(`insert into uye (eposta, ad, kullanici_adi, sifre_ozet, kvkk_onay, ileti_izni, son_giris)
     values ($1,$2,$3,$4, now(), $5, now()) returning id`, [v.eposta, v.ad, v.kullanici, await sifreOzetle(v.sifre), ileti]);
   await oturumAc(r!.id, true);
-  try {
-    await epostaGonder(v.eposta, "Fiyat Dürbün'e hoş geldiniz",
-      `<p>Merhaba ${kacis(v.ad)},</p><p>Fiyat Dürbün hesabınız oluşturuldu. Kullanıcı adınız: <b>${kacis(v.kullanici)}</b></p>
-       <p>Takip ettiğiniz ürünlerin fiyatı düşünce bu adrese haber vereceğiz: <a href="${siteAdresi()}/hesabim">Takip listem</a></p>
-       <p>Bu kaydı siz yapmadıysanız bu e-postayı yanıtlayın.</p>`);
-  } catch (e) { console.error("hoş geldin e-postası:", (e as Error).message); }
+  await dogrulamaGonder(v.eposta, v.ad, v.kullanici);
   redirect(v.donus);
+}
+
+async function dogrulamaGonder(eposta: string, ad: string | null, kullanici?: string | null) {
+  const jeton = await dogrulamaJetonu(eposta);
+  try {
+    await epostaGonder(eposta, "Fiyat Dürbün: e-posta adresinizi doğrulayın",
+      `<p>Merhaba ${kacis(ad ?? "")},</p><p>Fiyat Dürbün hesabınız oluşturuldu${kullanici ? ` (kullanıcı adı: <b>${kacis(kullanici)}</b>)` : ""}.
+       Fiyat alarmlarını alabilmek için e-posta adresinizi doğrulayın:</p>
+       <p><a href="${siteAdresi()}/eposta-dogrula?j=${jeton}" style="display:inline-block;padding:10px 18px;background:#102a3a;color:#fff;border-radius:999px;text-decoration:none">E-postamı doğrula</a></p>
+       <p>Bağlantı 24 saat geçerlidir. Bu kaydı siz yapmadıysanız bu e-postayı yok sayın.</p>`);
+    return true;
+  } catch (e) { console.error("doğrulama e-postası:", (e as Error).message); return false; }
+}
+
+/** Hesabım sayfasındaki "doğrulama e-postasını tekrar gönder" düğmesi. Saatte en çok 3 kez. */
+export async function dogrulamaTekrar() {
+  await uyelikSemasi();
+  const ben = await uye();
+  if (!ben) redirect("/giris?donus=/hesabim");
+  const son = await q1<{ n: number }>("select count(*)::int n from giris_jetonu where eposta=$1 and amac='dogrula' and son > now() + interval '23 hours'", [ben!.eposta]);
+  if ((son?.n ?? 0) >= 3) redirect("/hesabim?dogrulama=sinir");
+  const k = await q1<{ kullanici_adi: string | null }>("select kullanici_adi from uye where id=$1", [ben!.id]);
+  const ok = await dogrulamaGonder(ben!.eposta, ben!.ad, k?.kullanici_adi);
+  redirect(`/hesabim?dogrulama=${ok ? "gonderildi" : "hata"}`);
 }
 
 export async function sifreUnuttum(form: FormData) {

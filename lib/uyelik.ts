@@ -21,6 +21,8 @@ export async function uyelikSemasi() {
   const jSutun = new Set((await q<{ c: string }>("select column_name c from information_schema.columns where table_name='giris_jetonu'")).map((r) => r.c));
   if (!jSutun.has("amac")) await q("alter table giris_jetonu add column amac text not null default 'giris'");
   await q(`create table if not exists giris_denemesi (kimlik text not null, zaman timestamptz not null default now())`);
+  // Eski şifresiz (e-posta bağlantısıyla giren) hesaplar e-postayı zaten doğrulamış sayılır.
+  await q("update uye set eposta_onay=coalesce(son_giris, olusturma) where eposta_onay is null and sifre_ozet is null");
   semaHazir = true;
 }
 
@@ -82,4 +84,19 @@ export async function sifreYenile(jeton: string, yeni: string) {
 
 export async function jetonGecerli(jeton: string) {
   return Boolean(await q1("select 1 from giris_jetonu where jeton_ozet=$1 and amac='sifre' and kullanildi is null and son > now()", [ozet(jeton)]));
+}
+
+/** E-posta doğrulama jetonu (24 saat). */
+export async function dogrulamaJetonu(eposta: string) {
+  const jeton = randomBytes(24).toString("base64url");
+  await q("insert into giris_jetonu (jeton_ozet, eposta, son, amac) values ($1, $2, now() + interval '24 hours', 'dogrula')", [ozet(jeton), eposta.toLowerCase()]);
+  return jeton;
+}
+
+/** Doğrulama jetonu geçerliyse e-postayı onaylar, üye no'sunu döner. */
+export async function epostaDogrula(jeton: string) {
+  const r = await q1<{ eposta: string }>(
+    "update giris_jetonu set kullanildi=now() where jeton_ozet=$1 and amac='dogrula' and kullanildi is null and son > now() returning eposta", [ozet(jeton)]);
+  if (!r) return null;
+  return (await q1<{ id: number }>("update uye set eposta_onay=coalesce(eposta_onay, now()) where lower(eposta)=$1 returning id", [r.eposta]))?.id ?? null;
 }
