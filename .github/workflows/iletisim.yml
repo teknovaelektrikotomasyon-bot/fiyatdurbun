@@ -1,0 +1,23 @@
+name: Mağaza iletişim e-postaları
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  iletisim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SORGU_ZAMAN_ASIMI_MS: "60000"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --experimental-strip-types scripts/iletisim.ts --db
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iletisim
+          path: veri/iletisim.json
