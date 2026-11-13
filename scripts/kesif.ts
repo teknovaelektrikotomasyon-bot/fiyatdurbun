@@ -16,6 +16,7 @@ const tek = arg("aday");
 const adaylar = readFileSync("db/kaynak/aday-magazalar.txt", "utf8").split("\n")
   .map((s) => s.trim()).filter((s) => s && !s.startsWith("#"))
   .map((s) => { const [alan, tur] = s.split(/\s+/); return { alan: alan.replace(/^www\./, ""), tur: tur ?? "" }; })
+  .filter((a) => !KARA_LISTE.has(a.alan))
   .filter((a) => !tek || tek.split(",").map((x) => x.trim().replace(/^www\./, "")).includes(a.alan));
 // --feed: yeni aday denemez; mevcut otomatik mağazalarda yalnız ürün feed'i arar, bulup doğrularsa kaydeder.
 const feedModu = process.argv.includes("--feed");
@@ -36,8 +37,13 @@ const ADLAR: Record<string, string> = {
   intersport: "Intersport", fakir: "Fakir", "gaming-gen": "Gaming.gen.tr", akilliphone: "Akıllı Phone", robotistan: "Robotistan",
   direnc: "Direnc.net", robolinkmarket: "Robolink Market", gorsuelektronik: "Görsu Elektronik", samm: "SAMM Market", motorobit: "Motorobit", robocombo: "Robocombo", komponentci: "Komponentci", dermoeczanem: "Dermoeczanem", petfix: "PetFix", petza: "Petza", ozdilekteyim: "Özdilekteyim",
 };
+// Daha önce firma bilgisi yok diye pasif eklenenler uyarıyla yayına alınır (şüpheli fiyattan kapatılanlar hariç).
+if (db) await db.q(`update magaza set aktif=true where kaynak='oto' and not aktif and durum <> 'kapali'
+  and coalesce(guven_notu,'') not like '%yayından alındı%' and coalesce(guven_notu,'') like 'Otomatik keşif%'`);
 if (db) for (const [slug, ad] of Object.entries(ADLAR)) await db.q("update magaza set ad=$2 where slug=$1 and kaynak='oto'", [slug, ad]);
 
+// Bilinen dolandırıcılık vakası olan alan adları: hiçbir koşulda eklenmez.
+const KARA_LISTE = new Set(["istanbulbilisim.com.tr"]);
 const TANINMIS = new Set(["casper.com.tr", "evidea.com", "mudo.com.tr", "chakra.com.tr", "pasabahce.com", "kutahyaporselen.com",
   "tefal.com.tr", "fakir.com.tr", "flormar.com.tr", "gratis.com", "intersport.com.tr", "porland.com", "ttec.com.tr"]);
 if (db && yeniden && !tek) await db.q("update magaza set aktif=false where kaynak='oto'"); // yeniden denemede herkes baştan sınanır
@@ -211,8 +217,8 @@ async function dene(a: { alan: string; tur: string }) {
 async function kaydetMagaza(a: { alan: string; tur: string }, kok: string, anaHtml: string,
   yontem: { haritalar: string[]; dosyaFiltre: string; urlFiltre: string; feed?: string }, haritaOzet: string | number, okumaOzet: string, ornekAd: string) {
   const f = await firmaBilgisi(kok, anaHtml);
-  // Dolandırıcılığa karşı: yalnız unvan yazmak yetmez (kopyalanabilir); vergi no, MERSİS ya da ETBİS bağlantısı aranır.
-  // Herkesin bildiği marka mağazalarında unvan yeterli. Diğerleri pasif eklenir, elle kontrol edilmeden yayına çıkmaz.
+  // Firma bilgisi (vergi no, MERSİS, ETBİS; tanınmış markalarda unvan) bulunamayan mağaza da yayına çıkar ama ürün sayfasında
+  // "Firma bilgisi bulunamadı" uyarısıyla gösterilir (karar: 2026-11-13). Şüpheli fiyat kontrolü ve kara liste geçerli.
   const kimlik = Boolean(f.mersis || f.vergi || f.etbis || (f.unvan && TANINMIS.has(a.alan)));
   const firmaOzet = [f.unvan && "unvan", f.vergi && "vergi", f.mersis && "MERSİS", f.etbis && "ETBİS"].filter(Boolean).join("+") || "yok";
   const kesif = { ...yontem, tur: a.tur, tarih: new Date().toISOString().slice(0, 10) };
@@ -228,10 +234,10 @@ async function kaydetMagaza(a: { alan: string; tur: string }, kok: string, anaHt
                   vergi_no=coalesce(magaza.vergi_no, excluded.vergi_no), mersis_no=coalesce(magaza.mersis_no, excluded.mersis_no),
                   telefon=coalesce(magaza.telefon, excluded.telefon), guven_notu=excluded.guven_notu
                 where magaza.kaynak='oto'`,
-      [slug, ad, kok, kimlik, JSON.stringify(kesif), f.unvan ?? null, f.vergi ?? null, f.mersis ?? null, f.telefon ?? null, not]);
+      [slug, ad, kok, true, JSON.stringify(kesif), f.unvan ?? null, f.vergi ?? null, f.mersis ?? null, f.telefon ?? null, not]);
   }
-  if (kimlik) eklenen++;
-  yaz(a.alan, a.tur, kimlik ? "EKLENDİ" : "eklendi (pasif, firma bilgisi yok)", haritaOzet, okumaOzet, firmaOzet, `${ad} · ${ornekAd}`);
+  eklenen++;
+  yaz(a.alan, a.tur, kimlik ? "EKLENDİ" : "EKLENDİ (firma bilgisi yok, uyarılı)", haritaOzet, okumaOzet, firmaOzet, `${ad} · ${ornekAd}`);
 }
 
 console.log(`Eklenen (aktif): ${eklenen}`);

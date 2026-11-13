@@ -153,7 +153,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
                   <td>
                     <div className="magaza-ad">{t.magaza}</div>
                     <div className="rozetler">
-                      {t.magaza_durum === "onayli" ? <span className="rozet yesil">Kontrol edildi</span> : t.magaza_durum === "uyari" ? <span className="rozet kirmizi">Dikkat</span> : <span className="rozet" title="Mağazanın ticari unvan, vergi ve MERSİS bilgileri henüz elle doğrulanmadı.">Firma bilgisi kontrol ediliyor</span>}
+                      {t.magaza_durum === "onayli" ? <span className="rozet yesil">Kontrol edildi</span> : t.magaza_durum === "uyari" ? <span className="rozet kirmizi">Dikkat</span> : t.firma_var ? <span className="rozet" title="Mağazanın ticari unvan, vergi ve MERSİS bilgileri sitesinde var; henüz elle doğrulanmadı.">Firma bilgisi kontrol ediliyor</span> : <span className="rozet sari" title="Mağazanın sitesinde ticari unvan, vergi no ya da MERSİS bilgisi bulamadık. Satın almadan önce mağazayı kendiniz araştırın.">Firma bilgisi bulunamadı</span>}
                       {t.yetkili_satici && <span className="rozet">{t.yetkili_satici}</span>}
                     </div>
                   </td>
@@ -169,6 +169,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
             })}
           </tbody>
         </table>
+        <p className="kucuk soluk teklif-not">Fiyat, stok ve kargo bilgileri mağazaların sayfalarından otomatik alınır ve gecikmeli olabilir; geçerli olan mağaza sayfasındaki bilgidir. Satış mağaza ile sizin aranızda gerçekleşir, Fiyat Dürbün satış yapmaz. <Link href="/kullanim-kosullari">Kullanım koşulları</Link></p>
         <p className="amazon-ara">
           <a href={amazonAramaLinki(`${ad} ${u.varyant ?? ""}`.trim())} target="_blank" rel="nofollow sponsored noopener">Amazon.com.tr'de bu ürünü ara</a>
           <span className="soluk kucuk"> · Amazon fiyatı burada gösterilmez, Amazon'da açılır. Ortaklık bağlantısıdır.</span>
