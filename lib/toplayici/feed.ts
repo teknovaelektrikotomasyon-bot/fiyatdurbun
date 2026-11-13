@@ -7,9 +7,10 @@ import { decode, eanGecerli, type OkunanTeklif } from "./okuyucu.ts";
 
 /** Yaygın e-ticaret altyapılarının ve eklentilerinin feed yolları. */
 export const FEED_YOLLARI = [
-  "/cimri.xml", "/akakce.xml", "/google.xml", "/googlemerchant.xml", "/google-merchant.xml", "/merchant.xml",
-  "/products.xml", "/urunler.xml", "/xml/cimri.xml", "/xml/akakce.xml", "/xml/google.xml", "/feed/google.xml",
-  "/feeds/google.xml", "/export/cimri.xml",
+  "/feed/google.xml", "/feed/cimri.xml", "/feed/akakce.xml", "/feed/facebook.xml", "/feed/merchant.xml",
+  "/cimri.xml", "/akakce.xml", "/google.xml", "/googlemerchant.xml", "/google-merchant.xml", "/merchant.xml", "/google_feed.xml",
+  "/products.xml", "/urunler.xml", "/xml/cimri.xml", "/xml/akakce.xml", "/xml/google.xml", "/xml/google-merchant.xml",
+  "/feeds/google.xml", "/feeds/products.xml", "/export/cimri.xml", "/export/google.xml",
 ];
 const FEED_IPUCU = /(merchant|google|cimri|akakce|feed|urunler|products?\.xml|xmlexport|export)/i;
 const GIZLI = /[?&](token|key|apikey|api_key|hash|secret|sig|signature|auth|k|pass(word)?)=/i;
