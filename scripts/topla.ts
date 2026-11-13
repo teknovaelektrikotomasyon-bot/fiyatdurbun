@@ -10,6 +10,7 @@ import { getir } from "../lib/toplayici/istek.ts";
 import { urunOku } from "../lib/toplayici/okuyucu.ts";
 import { robotsAl } from "../lib/toplayici/istek.ts";
 import { haritaAdresleri } from "../lib/toplayici/haritalar.ts";
+import { feedGetir, feedOku, sadeAdres } from "../lib/toplayici/feed.ts";
 
 const arg = (ad: string) => { const i = process.argv.indexOf("--" + ad); return i > 0 ? process.argv[i + 1] : undefined; };
 const sadece = arg("magaza");
@@ -29,7 +30,7 @@ const SON_AN = Date.now() + Number(arg("dakika") ?? 40) * 60_000;
 // Otomatik keşifle eklenen mağazalar (scripts/kesif.ts): veritabanındaki tanımdan genel mağaza olarak okunur.
 // Tüm ana bölümlere eşlenebilirler ama kategori yolu (breadcrumb) olmayan ürün alınmaz.
 const KOKLER = tumKategoriler().map((d) => d.slug); // izinli bölüm: herhangi bir kategori slug'ı
-type OtoKesif = { haritalar: string[]; dosyaFiltre: string; urlFiltre: string; tur?: string; kokler?: string[] };
+type OtoKesif = { haritalar: string[]; dosyaFiltre: string; urlFiltre: string; tur?: string; kokler?: string[]; feed?: string };
 const otoMagazalar: MagazaTanimi[] = [];
 if (aktarim) {
   const { q } = await import("../lib/db.ts");
@@ -41,7 +42,7 @@ if (aktarim) {
       if (typeof r.kesif === "string") r.kesif = JSON.parse(r.kesif);
       otoMagazalar.push({ slug: r.slug, ad: r.ad, site: r.site, durum: "acik", bekleme: 3000,
       kesif: { genel: { tur: "genel", filtre: new RegExp(r.kesif.urlFiltre), kokler: (r.kesif.kokler ?? TUR_KOK[r.kesif.tur ?? ""] ?? []).filter((k) => KOKLER.includes(k)), butce: Number(arg("oto-butce") ?? 400),
-        haritalar: r.kesif.haritalar, dosyaFiltre: new RegExp(r.kesif.dosyaFiltre, "i"), yolZorunlu: true } } });
+        haritalar: r.kesif.haritalar, dosyaFiltre: new RegExp(r.kesif.dosyaFiltre || "x^", "i"), yolZorunlu: true, feed: r.kesif.feed } } });
     }
     console.log(`otomatik mağaza: ${otoMagazalar.length}`, otoMagazalar.map((m) => `${m.slug}:${(m.kesif.genel as { kokler: string[] }).kokler.join("+")}`).join(" "));
   } catch (e) { console.log("otomatik mağazalar okunamadı:", (e as Error).message); }
@@ -58,6 +59,40 @@ await Promise.all([...MAGAZALAR, ...otoMagazalar].filter((m) => m.durum === "aci
         console.log(`${m.slug} ${t.fiyat} TL ${t.ad}`);
       }
       ozet.push(`| ${m.ad} | ${teklifler.length} | ${teklifler.length} | 0 | 0 |`);
+      continue;
+    }
+    if (kesif.tur === "genel" && kesif.feed) {
+      // Herkesin okuyabildiği ürün feed'i: tek dosyada tüm katalog. Önce barkodu sitede zaten olan ürünler
+      // (aynı ürüne mağaza ekler), sonra en eski güncellenenler; tur başına en çok feed-butce ürün yazılır.
+      const f = await feedGetir(kesif.feed);
+      if (f.engel || !f.xml) { ozet.push(`| ${m.ad} | feed | 0 | - | ${f.engel ?? "boş"} |`); continue; }
+      const urunler = feedOku(f.xml, m.site);
+      if (urunler.length < 10) { ozet.push(`| ${m.ad} | feed ${urunler.length} | 0 | - | feed boş/bozuk |`); continue; }
+      const { q } = await import("../lib/db.ts");
+      const bilinen = aktarim ? new Set((await q<{ g: string }>("select unnest(gtin) g from urun")).map((r) => r.g)) : new Set<string>();
+      const gorulen = aktarim ? await aktarim.okunmusAdresler(m.slug) : new Map<string, number>();
+      const sira = (u: (typeof urunler)[number]) => (u.gtin && bilinen.has(u.gtin) ? 0 : 1) * 1e13 + (gorulen.get(u.url) ?? 0);
+      const secilen = [...urunler].sort((a, b) => sira(a) - sira(b)).slice(0, Math.min(Number(arg("feed-butce") ?? 4000), limit));
+      const say: Record<string, number> = {};
+      for (const t of secilen) {
+        if (Date.now() > SON_AN) { console.log(`${m.slug}: süre doldu, kalanı sonraki tura`); break; }
+        appendFileSync(cikti, JSON.stringify({ magaza: m.slug, kategori, gun, kaynak: "feed", ...t }) + "\n");
+        try {
+          const r = aktarim ? await aktarim.kaydetGenel(m.slug, t, kesif.kokler, gun, true) : { durum: "kuru" };
+          say[r.durum] = (say[r.durum] ?? 0) + 1;
+        } catch (e) { say.hata = (say.hata ?? 0) + 1; if (say.hata < 3) console.log(m.slug, (e as Error).message); }
+      }
+      // Feed tüm kataloğu verir: feed'de artık olmayan teklifler "stokta yok" yapılır (tıklama kayıtları bozulmasın diye
+      // silinmez); feed en az eski teklif sayısının yarısı kadar değilse (yarım/bozuk dosya) dokunulmaz.
+      let kalkan = 0;
+      if (aktarim) {
+        const feedde = new Set(urunler.map((u) => sadeAdres(u.url)));
+        const mevcutlar = await q<{ id: number; url: string }>("select t.id, t.url from teklif t join magaza m on m.id=t.magaza_id where m.slug=$1", [m.slug]);
+        const sil = mevcutlar.filter((x) => !feedde.has(sadeAdres(x.url))).map((x) => x.id);
+        if (sil.length && urunler.length >= mevcutlar.length * 0.5) { await q("update teklif set stokta=false, guncelleme=now() where id = any($1::int[]) and stokta", [sil]); kalkan = sil.length; }
+      }
+      console.log(`${m.slug}: feed ${urunler.length}, işlenen ${secilen.length}, feed'de olmayan ${kalkan}`, say);
+      ozet.push(`| ${m.ad} | feed ${urunler.length} | ${say.kaydedildi ?? 0}${say.telefon ? ` +${say.telefon} tel` : ""} | ${say.kategorisiz ?? 0} kategorisiz, ${kalkan} stoktan düştü | ${say.hata ?? 0} |`);
       continue;
     }
     if (kesif.tur === "genel") {

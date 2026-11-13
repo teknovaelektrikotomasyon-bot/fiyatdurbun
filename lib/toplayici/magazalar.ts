@@ -7,7 +7,7 @@ export type Kesif =
   | { tur: "ozel"; oku: (bekleme: number) => Promise<OkunanTeklif[]> }  // sayfa başına çok seçenek (resmî mağazalar)
   // Genel mağaza: site haritasındaki ürünler, kategori kategori yolundan/addan bulunur. Her turda en çok `butce` sayfa
   // okunur: önce hiç okunmamışlar, sonra en eski fiyatlar (siteyi yormadan kataloğu birkaç günde tamamlar).
-  | { tur: "genel"; filtre: RegExp; kokler: string[]; butce: number; haritalar?: string[]; dosyaFiltre?: RegExp; yolZorunlu?: boolean };
+  | { tur: "genel"; filtre: RegExp; kokler: string[]; butce: number; haritalar?: string[]; dosyaFiltre?: RegExp; yolZorunlu?: boolean; feed?: string };
 
 export type MagazaTanimi = {
   slug: string;

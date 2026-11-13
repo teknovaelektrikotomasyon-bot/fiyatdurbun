@@ -9,6 +9,9 @@ on:
       yeniden:
         description: "Daha önce eklenen otomatik mağazaları da yeniden dene (evet/boş)"
         required: false
+      feed:
+        description: "Yalnız mevcut otomatik mağazalarda ürün feed'i ara (evet/boş)"
+        required: false
   schedule:
     - cron: "23 3 * * 1"
 permissions:
@@ -32,4 +35,5 @@ jobs:
           EK="--db"
           [ -n "${{ inputs.aday }}" ] && EK="$EK --aday ${{ inputs.aday }}"
           [ "${{ inputs.yeniden }}" = "evet" ] && EK="$EK --yeniden"
+          [ "${{ inputs.feed }}" = "evet" ] && EK="$EK --feed"
           node --experimental-strip-types scripts/kesif.ts $EK

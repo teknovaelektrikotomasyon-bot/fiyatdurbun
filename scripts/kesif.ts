@@ -5,7 +5,8 @@
 // Korumayı aşmaya çalışmaz. Kullanım: node --experimental-strip-types scripts/kesif.ts [--db] [--yeniden] [--aday alan.com]
 import { appendFileSync, readFileSync } from "node:fs";
 import { getir, robotsAl } from "../lib/toplayici/istek.ts";
-import { urunOku, decode } from "../lib/toplayici/okuyucu.ts";
+import { urunOku, decode, type OkunanTeklif } from "../lib/toplayici/okuyucu.ts";
+import { feedBul } from "../lib/toplayici/feed.ts";
 
 const arg = (ad: string) => { const i = process.argv.indexOf("--" + ad); return i > 0 ? process.argv[i + 1] : undefined; };
 const dbYaz = process.argv.includes("--db");
@@ -15,7 +16,9 @@ const tek = arg("aday");
 const adaylar = readFileSync("db/kaynak/aday-magazalar.txt", "utf8").split("\n")
   .map((s) => s.trim()).filter((s) => s && !s.startsWith("#"))
   .map((s) => { const [alan, tur] = s.split(/\s+/); return { alan: alan.replace(/^www\./, ""), tur: tur ?? "" }; })
-  .filter((a) => !tek || a.alan === tek);
+  .filter((a) => !tek || tek.split(",").map((x) => x.trim().replace(/^www\./, "")).includes(a.alan));
+// --feed: yeni aday denemez; mevcut otomatik mağazalarda yalnız ürün feed'i arar, bulup doğrularsa kaydeder.
+const feedModu = process.argv.includes("--feed");
 
 const db = dbYaz ? await import("../lib/db.ts") : null;
 if (db) {
@@ -98,9 +101,53 @@ function siteAdi(html: string, alan: string) {
   return temiz && temiz.length <= 40 && !/^(https?:|www\.)/i.test(temiz) && !/^(kitap|anasayfa|ana sayfa|home)$/i.test(temiz) ? temiz : alan.replace(/\.(com|net|gen)?\.?(tr)?$/, "");
 }
 
+/** Feed'deki fiyatlar mağazanın kendi sayfasıyla uyuşuyor mu? 3 örnekten en az 2'si %3 içinde olmalı
+ *  (KDV hariç, eski ya da uydurma fiyatlı feed'ler böyle elenir). */
+async function feedDogrula(urunler: OkunanTeklif[]) {
+  const stokta = urunler.filter((u) => u.stokta);
+  const ornek = [0.15, 0.5, 0.85].map((r) => stokta[Math.floor(stokta.length * r)]).filter(Boolean);
+  let uyan = 0, yollu = 0;
+  const notlar: string[] = [];
+  for (const o of ornek) {
+    if (o.kategoriYolu && o.kategoriYolu.length >= 2) yollu++;
+    const y = await getir(o.url, 2000);
+    if (y.engel || !y.html) { notlar.push("sayfa okunamadı"); continue; }
+    const t = urunOku(y.html, o.url);
+    if (!t) { notlar.push("sayfada fiyat yok"); continue; }
+    const fark = Math.abs(t.fiyat - o.fiyat) / t.fiyat;
+    if (fark <= 0.03) uyan++; else notlar.push(`feed ${o.fiyat} / sayfa ${t.fiyat}`);
+  }
+  return { tamam: uyan >= 2 && yollu >= 2, ozet: `${uyan}/${ornek.length} fiyat uyuştu, ${yollu}/${ornek.length} kategori yolu${notlar.length ? " (" + notlar.join("; ") + ")" : ""}` };
+}
+
 const satirlar = ["| Aday | Tür | Sonuç | Harita | Fiyat/yol | Firma | Not |", "|---|---|---|---|---|---|---|"];
 const yaz = (...h: (string | number)[]) => { const t = `| ${h.join(" | ")} |`; satirlar.push(t); console.log(t); };
 let eklenen = 0;
+
+if (feedModu && db) {
+  const oto = await db.q<{ slug: string; site: string; kesif: Record<string, unknown> | string }>("select slug, site, kesif from magaza where kaynak='oto' and aktif");
+  let bulunan = 0;
+  const hv = [...oto];
+  await Promise.all(Array.from({ length: 6 }, async () => {
+    for (let m = hv.shift(); m; m = hv.shift()) {
+      try {
+        const kesif = typeof m.kesif === "string" ? JSON.parse(m.kesif) : (m.kesif ?? {});
+        const robots = await robotsAl(m.site);
+        const f = await feedBul(m.site, robots.siteHaritalari);
+        if (!f) { yaz(m.slug, "", "feed yok", "-", "-", "-", ""); continue; }
+        const d = await feedDogrula(f.urunler);
+        if (!d.tamam) { yaz(m.slug, "", "feed reddedildi", f.urunler.length, d.ozet, "-", f.url); continue; }
+        await db!.q("update magaza set kesif=$2::jsonb where slug=$1 and kaynak='oto'", [m.slug, JSON.stringify({ ...kesif, feed: f.url })]);
+        bulunan++;
+        yaz(m.slug, "", "FEED EKLENDİ", f.urunler.length, d.ozet, "-", f.url);
+      } catch (e) { yaz(m.slug, "", "hata", "-", "-", "-", (e as Error).message.slice(0, 80)); }
+    }
+  }));
+  console.log(`Feed bulunan: ${bulunan}`);
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `# Feed taraması\nFeed eklenen: ${bulunan}\n\n` + satirlar.join("\n") + "\n");
+  await db.kapat();
+  process.exit(0);
+}
 
 // Adaylar 6'şar paralel denenir (her site kendi içinde yavaş ve aralıklı okunur).
 const havuz = [...adaylar];
@@ -119,6 +166,14 @@ async function dene(a: { alan: string; tur: string }) {
   if (ana.engel || ana.durum >= 400 || !ana.html) return yaz(a.alan, a.tur, "kapalı", "-", "-", "-", ana.engel ?? `HTTP ${ana.durum}`);
   kok = new URL(kok).origin;
   const robots = await robotsAl(kok);
+  // Önce herkese açık ürün feed'i: varsa ve fiyatları sayfayla uyuşuyorsa site haritası gerekmez.
+  const feed = await feedBul(kok, robots.siteHaritalari);
+  if (feed) {
+    const d = await feedDogrula(feed.urunler);
+    if (d.tamam) return kaydetMagaza(a, kok, ana.html, { haritalar: [], dosyaFiltre: "", urlFiltre: `^https?://(www\\.)?${a.alan.replace(/\./g, "\\.")}/`, feed: feed.url },
+      `feed ${feed.urunler.length}`, d.ozet, feed.urunler[0] ? `${feed.urunler[0].ad.slice(0, 40)} ${feed.urunler[0].fiyat} TRY` : "");
+    yaz(a.alan, a.tur, "feed reddedildi, haritaya bakılıyor", feed.urunler.length, d.ozet, "-", feed.url);
+  }
   const { kokler, yaprak } = await yapraklar(kok, robots.siteHaritalari);
   if (!yaprak.length) return yaz(a.alan, a.tur, "harita yok", "0", "-", "-", "");
   // Ürün adlı haritalar varsa onlar; yoksa en kalabalık yaprak.
@@ -147,20 +202,25 @@ async function dene(a: { alan: string; tur: string }) {
   if (fiyatli < 2 || tl < 2) return yaz(a.alan, a.tur, "fiyat okunamıyor", haritaOzet, `${fiyatli}/4 fiyat, ${tl} TL`, "-", ornekAd);
   if (!yollu) return yaz(a.alan, a.tur, "kategori yolu yok", haritaOzet, `${fiyatli}/4, yol 0`, "-", ornekAd);
 
-  const f = await firmaBilgisi(kok, ana.html);
+  // Ürün haritası dosya adları: "sitemap_products_3.xml" → products; tek dosyaysa tam adı.
+  const dosyaFiltre = urunlu.length ? URUN_DOSYA.source : secili.map((l) => l.dosya.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  const urlFiltre = `^https?://(www\\.)?${a.alan.replace(/\./g, "\\.")}/` + (kalipli ? `.*(${URUN_YOL.source.slice(1, -1)})` : "");
+  return kaydetMagaza(a, kok, ana.html, { haritalar: kokler, dosyaFiltre, urlFiltre }, haritaOzet, `${fiyatli}/4, yol ${yollu}`, ornekAd);
+}
+
+async function kaydetMagaza(a: { alan: string; tur: string }, kok: string, anaHtml: string,
+  yontem: { haritalar: string[]; dosyaFiltre: string; urlFiltre: string; feed?: string }, haritaOzet: string | number, okumaOzet: string, ornekAd: string) {
+  const f = await firmaBilgisi(kok, anaHtml);
   // Dolandırıcılığa karşı: yalnız unvan yazmak yetmez (kopyalanabilir); vergi no, MERSİS ya da ETBİS bağlantısı aranır.
   // Herkesin bildiği marka mağazalarında unvan yeterli. Diğerleri pasif eklenir, elle kontrol edilmeden yayına çıkmaz.
   const kimlik = Boolean(f.mersis || f.vergi || f.etbis || (f.unvan && TANINMIS.has(a.alan)));
   const firmaOzet = [f.unvan && "unvan", f.vergi && "vergi", f.mersis && "MERSİS", f.etbis && "ETBİS"].filter(Boolean).join("+") || "yok";
-  // Ürün haritası dosya adları: "sitemap_products_3.xml" → products; tek dosyaysa tam adı.
-  const dosyaFiltre = urunlu.length ? URUN_DOSYA.source : secili.map((l) => l.dosya.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
-  const urlFiltre = `^https?://(www\\.)?${a.alan.replace(/\./g, "\\.")}/` + (kalipli ? `.*(${URUN_YOL.source.slice(1, -1)})` : "");
-  const kesif = { haritalar: kokler, dosyaFiltre, urlFiltre, tur: a.tur, tarih: new Date().toISOString().slice(0, 10) };
+  const kesif = { ...yontem, tur: a.tur, tarih: new Date().toISOString().slice(0, 10) };
   const etiketler = a.alan.split(".");
   const ilk = /^(market|magaza|shop|store|www)$/.test(etiketler[0]) ? etiketler[1] : etiketler[0]; // market.samm.com → samm
   const slug = ilk.replace(/[^a-z0-9-]/g, "") + (/\.gen\.tr$/.test(a.alan) ? "-gen" : "");
-  const ad = ADLAR[slug] ?? siteAdi(ana.html, a.alan);
-  const not = `Otomatik keşif ${kesif.tarih}: ${fiyatli}/4 örnek fiyatlı, ${yollu}/4 kategori yolu. Firma: ${firmaOzet}${f.etbis ? " (ETBİS bağlantısı sitede var, doğrulanmadı)" : ""}.`;
+  const ad = ADLAR[slug] ?? siteAdi(anaHtml, a.alan);
+  const not = `Otomatik keşif ${kesif.tarih}: ${yontem.feed ? "ürün feed'i, " : ""}${okumaOzet}. Firma: ${firmaOzet}${f.etbis ? " (ETBİS bağlantısı sitede var, doğrulanmadı)" : ""}.`;
   if (db) {
     await db.q(`insert into magaza (slug, ad, site, aktif, kaynak, kesif, unvan, vergi_no, mersis_no, telefon, guven_notu, durum)
                 values ($1,$2,$3,$4,'oto',$5::jsonb,$6,$7,$8,$9,$10,'inceleniyor')
@@ -171,7 +231,7 @@ async function dene(a: { alan: string; tur: string }) {
       [slug, ad, kok, kimlik, JSON.stringify(kesif), f.unvan ?? null, f.vergi ?? null, f.mersis ?? null, f.telefon ?? null, not]);
   }
   if (kimlik) eklenen++;
-  yaz(a.alan, a.tur, kimlik ? "EKLENDİ" : "eklendi (pasif, firma bilgisi yok)", haritaOzet, `${fiyatli}/4, yol ${yollu}`, firmaOzet, `${ad} · ${ornekAd}`);
+  yaz(a.alan, a.tur, kimlik ? "EKLENDİ" : "eklendi (pasif, firma bilgisi yok)", haritaOzet, okumaOzet, firmaOzet, `${ad} · ${ornekAd}`);
 }
 
 console.log(`Eklenen (aktif): ${eklenen}`);
