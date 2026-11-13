@@ -10,6 +10,7 @@ import { kategoriEsle } from "../lib/katalog/esle.ts";
 import { tumKategoriler } from "../lib/katalog/agac.ts";
 import { MAGAZALAR } from "../lib/toplayici/magazalar.ts";
 import { TUR_KOK } from "../lib/toplayici/oto.ts";
+import { katalogHazirla } from "../lib/aktarim.ts";
 
 const klasor = process.argv[2];
 const uygula = process.argv.includes("--uygula");
@@ -24,6 +25,8 @@ for (const f of readdirSync(klasor).filter((f) => f.endsWith(".jsonl")).sort()) 
   }
 }
 console.log(`ham okuma: ${ham.size} adres`);
+
+await katalogHazirla(); // yeni eklenen kategoriler veritabanında olsun
 
 const kokler = new Map<string, string[]>();
 for (const m of MAGAZALAR) { const g = m.kesif.genel; if (g?.tur === "genel") kokler.set(m.slug, g.kokler); }
