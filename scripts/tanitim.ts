@@ -12,10 +12,17 @@ const limit = Number(arg("limit") ?? 90);
 const KIMDEN = "Fiyat Dürbün <magaza@fiyatdurbun.com>";
 const YANIT = process.env.TANITIM_YANIT ?? "";
 
-const liste = JSON.parse(readFileSync(arg("liste") ?? "veri/iletisim.json", "utf8")) as { alan: string; eposta: string | null }[];
+const ham = JSON.parse(readFileSync(arg("liste") ?? "veri/iletisim.json", "utf8")) as { alan: string; eposta: string | null }[];
+// Temizlik: HTML kaçışı kalıntısı (u003e), takip alt alan adları (info@t.site.com), şüpheli adresler; aynı firmanın ikinci alan adı.
+const gorulenEposta = new Set<string>();
+const liste = ham.map((s) => ({ ...s, eposta: s.eposta?.replace(/^u003e/, "") ?? null }))
+  .filter((s) => s.eposta && !/@t\./.test(s.eposta) && !/^(shopify|ibilgi)@/.test(s.eposta))
+  .filter((s) => { if (gorulenEposta.has(s.eposta!)) return false; gorulenEposta.add(s.eposta!); return true; });
 await tanitimTablolari();
 const listede = new Set((await q<{ site: string }>("select site from magaza where aktif")).map((r) => new URL(r.site).hostname.replace(/^www\./, "")));
 const gonderilmis = new Set((await q<{ alan: string }>("select alan from magaza_tanitim where gonderim is not null")).map((r) => r.alan));
+// Feed'i zaten okunan mağazalara e-posta gerekmez.
+const feedli = new Set((await q<{ site: string }>("select site from magaza where kesif->>'feed' is not null")).map((r) => new URL(r.site).hostname.replace(/^www\./, "")));
 const ret = new Set((await q<{ eposta: string }>("select eposta from ileti_ret")).map((r) => r.eposta));
 
 const kac = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -40,7 +47,7 @@ Bir daha e-posta almak istemiyorsanız <a href="${ret_}">buraya tıklayın</a>.<
 
 let n = 0;
 for (const s of liste) {
-  if (!s.eposta || gonderilmis.has(s.alan) || ret.has(s.eposta)) continue;
+  if (!s.eposta || gonderilmis.has(s.alan) || feedli.has(s.alan) || ret.has(s.eposta)) continue;
   if (n >= limit) break;
   const { konu, govde } = metin(s.alan, s.eposta);
   if (!gonder) { if (n < 2) console.log(`--- ${s.eposta}\nKonu: ${konu}\n${govde.replace(/<[^>]+>/g, "").replace(/\n+/g, "\n")}`); n++; continue; }
