@@ -10,7 +10,11 @@ const site = process.env.SITE_URL ?? "http://localhost:3000";
 const dogrulama = {
   google: process.env.GOOGLE_SITE_VERIFICATION,
   yandex: process.env.YANDEX_VERIFICATION,
-  other: process.env.BING_VERIFICATION ? { "msvalidate.01": process.env.BING_VERIFICATION } : undefined,
+  other: {
+    // Admitad (Mitgo) reklam alanı doğrulaması
+    "mitgo-verification": "3ec4f0bf-a1b8-43d7-9a45-f7bbdaf82e93",
+    ...(process.env.BING_VERIFICATION ? { "msvalidate.01": process.env.BING_VERIFICATION } : {}),
+  },
 };
 
 export const metadata: Metadata = {
