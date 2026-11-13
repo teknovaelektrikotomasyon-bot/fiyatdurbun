@@ -28,7 +28,7 @@ const ADLAR: Record<string, string> = {
   narecza: "Narecza", proteinocean: "Protein Ocean", bkmkitap: "BKM Kitap", casper: "Casper", mudo: "Mudo", ttec: "ttec",
   petzzshop: "Petzzshop", dermokozmetika: "Dermokozmetika", kozmela: "Kozmela", mamaciteyze: "Mamacı Teyze", flormar: "Flormar",
   intersport: "Intersport", fakir: "Fakir", "gaming-gen": "Gaming.gen.tr", akilliphone: "Akıllı Phone", robotistan: "Robotistan",
-  direnc: "Direnc.net", dermoeczanem: "Dermoeczanem", petfix: "PetFix", petza: "Petza", ozdilekteyim: "Özdilekteyim",
+  direnc: "Direnc.net", robolinkmarket: "Robolink Market", motorobit: "Motorobit", robocombo: "Robocombo", komponentci: "Komponentci", dermoeczanem: "Dermoeczanem", petfix: "PetFix", petza: "Petza", ozdilekteyim: "Özdilekteyim",
 };
 if (db) for (const [slug, ad] of Object.entries(ADLAR)) await db.q("update magaza set ad=$2 where slug=$1 and kaynak='oto'", [slug, ad]);
 
@@ -123,7 +123,9 @@ async function dene(a: { alan: string; tur: string }) {
   const secili = urunlu.length ? urunlu : [yaprak.sort((x, y) => y.adresler.length - x.adresler.length)[0]];
   const havuzAdres = secili.flatMap((l) => l.adresler);
   const ipuclu = havuzAdres.filter((u) => URUN_YOL.test(new URL(u).pathname));
-  const kaynak = ipuclu.length >= 10 ? ipuclu : havuzAdres;
+  // Adres kalıbı ürün haritasının çoğunu kapsamıyorsa kullanılmaz (yoksa kataloğun çoğu dışarıda kalır).
+  const kalipli = ipuclu.length >= 10 && ipuclu.length >= havuzAdres.length * (urunlu.length ? 0.6 : 0.3);
+  const kaynak = kalipli ? ipuclu : havuzAdres;
   const ornek = [0.2, 0.45, 0.7, 0.9].map((r) => kaynak[Math.floor(kaynak.length * r)]);
   let fiyatli = 0, yollu = 0, tl = 0, engel = 0;
   let ornekAd = "";
@@ -149,7 +151,7 @@ async function dene(a: { alan: string; tur: string }) {
   const firmaOzet = [f.unvan && "unvan", f.vergi && "vergi", f.mersis && "MERSİS", f.etbis && "ETBİS"].filter(Boolean).join("+") || "yok";
   // Ürün haritası dosya adları: "sitemap_products_3.xml" → products; tek dosyaysa tam adı.
   const dosyaFiltre = urunlu.length ? URUN_DOSYA.source : secili.map((l) => l.dosya.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
-  const urlFiltre = `^https?://(www\\.)?${a.alan.replace(/\./g, "\\.")}/` + (ipuclu.length >= 10 ? `.*(${URUN_YOL.source.slice(1, -1)})` : "");
+  const urlFiltre = `^https?://(www\\.)?${a.alan.replace(/\./g, "\\.")}/` + (kalipli ? `.*(${URUN_YOL.source.slice(1, -1)})` : "");
   const kesif = { haritalar: kokler, dosyaFiltre, urlFiltre, tur: a.tur, tarih: new Date().toISOString().slice(0, 10) };
   const slug = a.alan.split(".")[0].replace(/[^a-z0-9-]/g, "") + (/\.gen\.tr$/.test(a.alan) ? "-gen" : "");
   const ad = ADLAR[slug] ?? siteAdi(ana.html, a.alan);
