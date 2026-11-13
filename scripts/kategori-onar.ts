@@ -59,7 +59,7 @@ for (const t of teklifler) {
   if (!h) {
     hamYok++;
     // Ham okuması yoksa en azından açıkça yanlış olanı ayıkla (adı bulunduğu bölümün yasak kelimesini taşıyor).
-    const ad = (await q<{ ad: string }>("select ad from urun where id=$1", [t.urun_id]))[0]?.ad ?? "";
+    const ad = (await q<{ ad: string }>("select concat_ws(' ', m.ad, u.model, u.varyant) ad from urun u join marka m on m.id=u.marka_id where u.id=$1", [t.urun_id]))[0]?.ad ?? "";
     if (t.magaza_sayisi === 1 && kategoriyeAykiri(katSlug.get(t.kategori_id)!, ad)) {
       const k = kokler.get(t.magaza) ?? [];
       const es = k.length ? kategoriEsle(undefined, ad, k) : null; // yalnız adla yeni yer
