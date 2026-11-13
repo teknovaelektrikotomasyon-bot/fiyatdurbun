@@ -4,7 +4,8 @@
 import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { MAGAZALAR, linkleriCikar, type MagazaTanimi } from "../lib/toplayici/magazalar.ts";
-import { KATEGORI_AGACI } from "../lib/katalog/agac.ts";
+import { tumKategoriler } from "../lib/katalog/agac.ts";
+import { TUR_KOK } from "../lib/toplayici/oto.ts";
 import { getir } from "../lib/toplayici/istek.ts";
 import { urunOku } from "../lib/toplayici/okuyucu.ts";
 import { robotsAl } from "../lib/toplayici/istek.ts";
@@ -27,16 +28,7 @@ const SON_AN = Date.now() + Number(arg("dakika") ?? 40) * 60_000;
 
 // Otomatik keşifle eklenen mağazalar (scripts/kesif.ts): veritabanındaki tanımdan genel mağaza olarak okunur.
 // Tüm ana bölümlere eşlenebilirler ama kategori yolu (breadcrumb) olmayan ürün alınmaz.
-// Mağaza türüne göre izinli ana bölümler (tümüne izin vermek "mobilyada mikser" gibi yanlış eşleşme doğurur).
-const TUR_KOK: Record<string, string[]> = {
-  elektronik: ["elektronik"], bilgisayar: ["elektronik"], telefon: ["elektronik"], aksesuar: ["elektronik"], robotik: ["elektronik", "kitap-muzik-hobi"],
-  "ev-aletleri": ["beyaz-esya-ev-aletleri", "ev-dekorasyon-mutfak"], ev: ["ev-dekorasyon-mutfak", "mobilya"], mobilya: ["mobilya", "ev-dekorasyon-mutfak"],
-  kozmetik: ["kozmetik-kisisel-bakim", "anne-bebek-oyuncak"], takviye: ["kozmetik-kisisel-bakim", "supermarket"], pet: ["pet-shop"],
-  bebek: ["anne-bebek-oyuncak"], oyuncak: ["anne-bebek-oyuncak"], market: ["supermarket", "kozmetik-kisisel-bakim", "anne-bebek-oyuncak"],
-  "yapi-market": ["yapi-market-bahce"], bahce: ["yapi-market-bahce"], kitap: ["kitap-muzik-hobi", "ofis-kirtasiye"], ofis: ["ofis-kirtasiye"],
-  spor: ["spor-ve-outdoor", "giyim-ayakkabi-aksesuar"], otomotiv: ["otomotiv"],
-};
-const KOKLER = KATEGORI_AGACI.map((d) => d.slug);
+const KOKLER = tumKategoriler().map((d) => d.slug); // izinli bölüm: herhangi bir kategori slug'ı
 type OtoKesif = { haritalar: string[]; dosyaFiltre: string; urlFiltre: string; tur?: string; kokler?: string[] };
 const otoMagazalar: MagazaTanimi[] = [];
 if (aktarim) {

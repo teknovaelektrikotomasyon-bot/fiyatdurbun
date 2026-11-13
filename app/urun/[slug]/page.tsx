@@ -104,7 +104,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
       <JsonLd veri={jsonld} />
       <nav className="yol" aria-label="Konum"><Link href="/">Ana sayfa</Link>{kategoriYolu(kat?.slug ?? "").map((y) => <span key={y.slug}> / <Link href={`/kategori/${y.slug}`}>{y.ad}</Link></span>)} / <Link href={`/kategori/${kat?.slug}?marka=${u.marka.toLowerCase()}`}>{u.marka}</Link> / <span aria-current="page">{u.model} {u.varyant}</span></nav>
       <section className="kutu urun-ust">
-        <div className="urun-gorsel">{u.gorsel ? <img src={u.gorsel} alt={`${ad} ${u.varyant ?? ""}`.trim()} fetchPriority="high" decoding="async" /> : <span className="soluk">görsel yok</span>}</div>
+        <div className="urun-gorsel">{u.gorsel ? <img src={u.gorsel} referrerPolicy="no-referrer" alt={`${ad} ${u.varyant ?? ""}`.trim()} fetchPriority="high" decoding="async" /> : <span className="soluk">görsel yok</span>}</div>
         <div className="urun-bilgi">
           <h1>{ad} {u.varyant}</h1>
           <ul className="anahtar-ozellikler">

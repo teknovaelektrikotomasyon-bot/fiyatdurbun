@@ -45,7 +45,7 @@ export default async function AnaSayfa() {
             <Link href={`/urun/${vitrin.slug}`} className="vitrin">
               <div className="vitrin-baslik">
                 <span>Bugün dürbünde</span>
-                {vitrin.gorsel && <img src={vitrin.gorsel} alt="" />}
+                {vitrin.gorsel && <img src={vitrin.gorsel} referrerPolicy="no-referrer" alt="" />}
               </div>
               <Olcek
                 fiyat={vitrin.fiyat}

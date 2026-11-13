@@ -28,7 +28,7 @@ export default async function Hesabim() {
           const fark = x.simdi != null && x.eklenme != null ? x.simdi - x.eklenme : null;
           return (
             <div key={x.id} className="liste-satir">
-              {x.gorsel ? <img src={x.gorsel} alt="" /> : <span />}
+              {x.gorsel ? <img src={x.gorsel} referrerPolicy="no-referrer" alt="" /> : <span />}
               <div>
                 <Link href={`/urun/${x.slug}`} style={{ fontWeight: 600 }}>{x.ad}</Link>
                 <div className="kucuk soluk">Eklerken {tl(x.eklenme)}{x.hedef ? `. Hedef ${tl(x.hedef)}` : ". Her düşüşte haber"}</div>

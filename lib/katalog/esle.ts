@@ -20,7 +20,7 @@ const ES_ANLAMLI: Record<string, string[]> = {
   "prototip-malzemesi": ["breadboard", "jumper", "jumper kablo", "pertinaks", "delikli plaket", "header", "konnektor", "klemens"],
   "lehim-olcum": ["lehim", "havya", "lehim istasyonu", "multimetre", "osiloskop", "olcu aleti", "pens ampermetre", "guc kaynagi laboratuvar"],
   "robotik-guc": ["lipo", "li ion", "18650", "pil", "batarya", "pil yuvasi", "voltaj regulatoru", "buck", "boost", "sarj modulu"],
-  "3d-filament": ["filament", "pla", "abs filament", "petg", "3d yazici parca", "nozzle", "hotend"],
+  "3d-filament": ["filament", "pla filament", "abs filament", "petg", "3d yazici parca", "nozzle", "hotend"],
   "drone-rc-parca": ["drone", "pervane", "ucus kontrol karti", "fpv", "rc araba", "kumanda alici"],
   "akilli-telefon": ["cep telefonu", "android telefon", "ios telefon", "iphone"],
   "dizustu-bilgisayar": ["laptop", "notebook"],
@@ -177,16 +177,18 @@ const YALNIZ: Record<string, string[]> = {
   "bahce-mobilyasi": ["bahce mobilyasi", "balkon takimi"],
 };
 
-type Aday = { slug: string; yol: string[]; derinlik: number; kelimeler: string[]; aksesuar: boolean };
+type Aday = { slug: string; yol: string[]; derinlik: number; kelimeler: string[]; aksesuar: boolean; altVar: boolean };
 const YOL_AKSESUAR = /\b(aksesuar\w*|yedek\w*|sarf\w*|hortum\w*|torba\w*|filtre\w*|kilif\w*)/;
 const AD_AKSESUAR = /\b(aksesuar\w*|yedek parca\w*|hortum\w*|kilifi?\b|yedek\b)/;
+const GENEL_KELIME = new Set(["aksesuar", "aksesuarlar", "aksesuarlari", "aksesuarlar", "urunler", "urunleri", "malzemeleri", "diger", "cesitleri", "yedek parca", "parcalari", "bakim", "setler", "setleri"]);
 const ADAYLAR: Aday[] = [];
 (function gez(liste: KategoriDugumu[], yol: string[], derinlik: number) {
   for (const d of liste) {
-    const parcalar = d.ad.split(/\s+ve\s+|,\s*/i).map(duzMetin).filter((x) => x.length >= 2);
+    // "Cep Telefonu ve Aksesuarları" → "aksesuarlari" tek başına kelime olmasın (her aksesuar buraya akıyordu).
+    const parcalar = d.ad.split(/\s+ve\s+|,\s*/i).map(duzMetin).filter((x) => x.length >= 2 && !GENEL_KELIME.has(x));
     const kelimeler = YALNIZ[d.slug] ?? [...parcalar, ...(ES_ANLAMLI[d.slug] ?? [])];
     const k = [...new Set(kelimeler.map(duzMetin))];
-    ADAYLAR.push({ slug: d.slug, yol: [...yol, d.slug], derinlik, kelimeler: k, aksesuar: k.some((x) => YOL_AKSESUAR.test(x) || AD_AKSESUAR.test(x)) || /aksesuar|kilif|kablo|tutucu|koruyucu|sarj|kordon/.test(duzMetin(d.ad)) });
+    ADAYLAR.push({ slug: d.slug, yol: [...yol, d.slug], derinlik, altVar: Boolean(d.alt?.length), kelimeler: k, aksesuar: k.some((x) => YOL_AKSESUAR.test(x) || AD_AKSESUAR.test(x)) || /aksesuar|kilif|kablo|tutucu|koruyucu|sarj|kordon/.test(duzMetin(d.ad)) });
     if (d.alt) gez(d.alt, [...yol, d.slug], derinlik + 1);
   }
 })(KATEGORI_AGACI, [], 0);
@@ -199,7 +201,13 @@ function gecer(metin: string, kelime: string) {
 
 export type EslemeSonucu = { slug: string; puan: number };
 
-/** Mağaza kategori yolu + ürün adı → kategori. `kokler`: mağazanın eşlenebileceği ana bölümler (slug). */
+/** Bazı bölümlere ürün girebilmesi için ad ya da mağaza yolunda o bölüme özgü bir bağlam kelimesi şart.
+ *  Örn. "1210 Kılıf SMD Kondansatör" kılıf kelimesi yüzünden telefon kılıfına düşmesin. */
+const BAGLAM: Record<string, RegExp> = {
+  "cep-telefonu-ve-aksesuarlari": /\b(telefon|cep|iphone|samsung|galaxy|xiaomi|redmi|huawei|oppo|realme|honor|vivo|poco|tecno|infinix|nokia|motorola|reeder|casper via|general mobile|magsafe|android|ios|gsm|smartphone|powerbank|power bank|tasinabilir sarj|sarj aleti|sarj cihazi|sarj adaptoru|hizli sarj|lightning|type c|usb c|ekran koruyucu|kablosuz sarj|arac ici tutucu)\b/,
+};
+
+/** Mağaza kategori yolu + ürün adı → kategori. `kokler`: mağazanın eşlenebileceği bölümler (ana bölüm ya da herhangi bir alt dalın slug'ı). */
 export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kokler: string[]): EslemeSonucu | null {
   const yol = (kategoriYolu ?? []).map(duzMetin).filter((x) => x && !/^(ana sayfa|anasayfa|home|tum urunler)$/.test(x));
   const urunDuz = duzMetin(ad);
@@ -212,10 +220,12 @@ export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kok
   // Aksesuar / yedek parça ürünü yalnızca aksesuar türü kategorilere konabilir
   // (ör. bulaşık makinesi hortumu ≠ bulaşık makinesi, iPhone kılıfı ≠ akıllı telefon).
   // Yalnızca yolun son halkasına bakılır: "Telefon & Aksesuarları > Şarj Cihazları > Powerbank" aksesuar değildir.
+  const baglamMetni = `${urun} | ${yol.join(" | ")}`;
   const urunAksesuar = YOL_AKSESUAR.test(son) || AD_AKSESUAR.test(urun);
   let enIyi: EslemeSonucu | null = null;
   for (const a of ADAYLAR) {
-    if (!kokler.includes(a.yol[0])) continue;
+    if (!a.yol.some((s) => kokler.includes(s))) continue; // mağazanın izinli bölümleri (ana bölüm ya da alt dal)
+    if (a.yol.some((s) => BAGLAM[s] && !BAGLAM[s].test(baglamMetni))) continue;
     if (a.derinlik === 0) continue; // ana bölümün kendisine ürün konmaz
     if (urunAksesuar && !a.aksesuar) continue;
     // Yolun son halkası en güçlü işaret; ürün adı ve üst halkalar onu destekler.
@@ -227,6 +237,9 @@ export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kok
       if (gecer(ikinci, k)) pIkinci = Math.max(pIkinci, 5 + 3 * uzunluk);
       if (gecer(onceki, k)) pUst = Math.max(pUst, 2 + 2 * uzunluk);
     }
+    // Alt kategorisi olan bir grup başlığına (ör. "Cep Telefonu ve Aksesuarları") ürün ancak mağazanın kendi
+    // son kategorisi de o başlıksa konur; yoksa uymayan her şey en genel başlığa yığılır.
+    if (a.altVar && !pSon) continue;
     const enBuyuk = Math.max(pSon, pAd, pIkinci, pUst);
     let puan = enBuyuk + 0.5 * (pSon + pAd + pIkinci + pUst - enBuyuk);
     if (!puan) continue;

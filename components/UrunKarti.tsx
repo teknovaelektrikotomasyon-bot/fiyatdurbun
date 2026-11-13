@@ -20,7 +20,7 @@ export function kisaOzet(o: UrunKart["ozellikler"]) {
 export function UrunKarti({ u }: { u: UrunKart }) {
   return (
     <Link href={`/urun/${u.slug}`} className="kart">
-      <div className="kart-gorsel">{u.gorsel ? <img src={u.gorsel} alt="" loading="lazy" /> : <span className="soluk kucuk">Görsel yok</span>}</div>
+      <div className="kart-gorsel">{u.gorsel ? <img src={u.gorsel} referrerPolicy="no-referrer" alt="" loading="lazy" /> : <span className="soluk kucuk">Görsel yok</span>}</div>
       <div className="kart-govde">
         <div className="kart-ad"><span className="kart-marka">{u.marka}</span> {u.model} {u.varyant && <span className="kart-varyant">{u.varyant}</span>}</div>
         <div className="kart-ozet">{kisaOzet(u.ozellikler)}</div>
