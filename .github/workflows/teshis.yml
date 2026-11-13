@@ -9,6 +9,7 @@ jobs:
     timeout-minutes: 15
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

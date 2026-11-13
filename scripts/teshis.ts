@@ -34,4 +34,11 @@ console.log("indirim eşikleri:", await q(`with gunluk as (select urun_id, gun, 
     count(*) filter (where n>=3 and fiyat<=min30 and fiyat<=med30*0.93)::int d7,
     count(*) filter (where max14 >= coalesce(eski, min30)*1.05 and fiyat <= max14*0.97)::int zam_sonra_dusus
   from i join s using (urun_id)`));
+// Giriş tanısı: tablolar var mı, Resend anahtarı ve alan adı doğrulaması
+console.log("giriş tabloları:", await q("select table_name from information_schema.tables where table_name in ('giris_jetonu','uye','takip','bildirim')"));
+if (process.env.RESEND_API_KEY) {
+  const r = await fetch("https://api.resend.com/domains", { headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}` } });
+  const j = await r.json() as { data?: { name: string; status: string }[] } & Record<string, unknown>;
+  console.log("resend alan adları:", r.status, JSON.stringify(j.data?.map((d) => ({ ad: d.name, durum: d.status })) ?? j));
+} else console.log("resend: RESEND_API_KEY yok");
 await kapat();
