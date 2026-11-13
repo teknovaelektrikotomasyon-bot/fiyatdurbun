@@ -2,6 +2,10 @@
 import { q, kapat } from "../lib/db.ts";
 import { enCokDusenler, populer, urunler, kategoriUrunSayilari } from "../lib/sorgular.ts";
 
+// Kapsam: bir ürün kaç mağazada var (hedef: çok satan ürünlerde 10+).
+console.log("ürün başına mağaza dağılımı", await q(`select n, count(*)::int urun from (select urun_id, count(distinct magaza_id)::int n from teklif where stokta and urun_id is not null group by urun_id) x group by n order by n`));
+console.log("en çok mağazalı ürünler", await q(`select u.slug, count(distinct t.magaza_id)::int n from teklif t join urun u on u.id=t.urun_id where t.stokta group by u.slug order by n desc limit 15`));
+console.log("mağaza başına teklif", await q(`select m.slug, m.kaynak, m.aktif, count(t.id)::int teklif from magaza m left join teklif t on t.magaza_id=m.id group by 1,2,3 order by teklif desc`));
 const olc = async (ad: string, f: () => Promise<unknown>) => { const t = Date.now(); try { await f(); console.log(`${ad}: ${Date.now() - t} ms`); } catch (e) { console.log(`${ad}: HATA ${(e as Error).message} (${Date.now() - t} ms)`); } };
 console.log(await q("select (select count(*) from urun) urun, (select count(*) from teklif) teklif, (select count(*) from fiyat_gecmisi) gecmis, (select count(*) from tiklama) tiklama"));
 console.log(await q("select indexname, indexdef from pg_indexes where tablename in ('fiyat_gecmisi','teklif','urun','tiklama') order by 1"));
