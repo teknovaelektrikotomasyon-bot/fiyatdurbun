@@ -515,3 +515,6 @@ main > .kap > .kapsam { margin-top: 0; }
   .ind-gorsel { width: 52px; height: 52px; }
   .ind-fiyat { grid-column: 2; align-items: flex-start; text-align: left; flex-direction: row; flex-wrap: wrap; align-items: center; }
 }
+
+/* Ana sayfada büyük arama kutusu varken üst bantdaki arama gizlenir (iki arama çubuğu görünmesin). */
+body:has(.buyuk-arama) .ust .arama { visibility: hidden; }
