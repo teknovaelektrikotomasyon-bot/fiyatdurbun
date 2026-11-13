@@ -168,6 +168,9 @@ export async function kaydetGenel(magazaSlug: string, t: Kayit, kokler: string[]
     await q(`update urun set gorsel = coalesce(gorsel, $2),
                gtin = case when $3::text is null or $3 = any(gtin) then gtin else array_append(gtin, $3) end
              where id=$1`, [urunId, t.gorsel ?? null, t.gtin ?? null]);
+    // Eşleyici düzeldikçe eski yanlış kategoriler de düzelsin: ürünü başka mağaza satmıyorsa kategorisi güncellenir.
+    await q(`update urun set kategori_id=$2 where id=$1 and kategori_id <> $2
+               and not exists (select 1 from teklif t where t.urun_id=$1 and t.magaza_id <> $3)`, [urunId, katId, mg.id]);
   }
 
   const kod = t.sku ?? t.url;
