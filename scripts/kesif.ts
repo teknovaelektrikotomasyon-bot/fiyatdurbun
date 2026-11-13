@@ -6,7 +6,7 @@
 import { appendFileSync, readFileSync } from "node:fs";
 import { getir, robotsAl } from "../lib/toplayici/istek.ts";
 import { urunOku, decode, type OkunanTeklif } from "../lib/toplayici/okuyucu.ts";
-import { feedBul } from "../lib/toplayici/feed.ts";
+import { feedBul, feedGetir, feedOku } from "../lib/toplayici/feed.ts";
 
 const arg = (ad: string) => { const i = process.argv.indexOf("--" + ad); return i > 0 ? process.argv[i + 1] : undefined; };
 const dbYaz = process.argv.includes("--db");
@@ -96,7 +96,7 @@ async function firmaBilgisi(site: string, anaHtml: string) {
     ?? yazi.match(/([A-ZÇĞİÖŞÜ0-9][A-ZÇĞİÖŞÜa-zçğıöşü0-9&.\- ]{3,90}?(?:A\.Ş\.|LTD\. ?ŞT[İI]\.|Ltd\. ?Şti\.|LİMİTED ŞİRKETİ|ANONİM ŞİRKETİ))/)?.[1])?.trim();
   const etbis = /etbis\.(?:eticaret|ticaret)\.gov\.tr/i.test(tum);
   const telefon = yazi.match(/(?:0\s?\(?850\)?|0\s?\(?[2-5]\d{2}\)?|444)\s?[\d\s]{7,10}/)?.[0].replace(/\s+/g, " ").trim();
-  return { mersis, vergi, unvan, etbis, telefon };
+  return { mersis, vergi, unvan, etbis, telefon, rakamlar: yazi.replace(/\D/g, "") };
 }
 
 function siteAdi(html: string, alan: string) {
@@ -127,7 +127,8 @@ async function feedDogrula(urunler: OkunanTeklif[]) {
 }
 
 const satirlar = ["| Aday | Tür | Sonuç | Harita | Fiyat/yol | Firma | Not |", "|---|---|---|---|---|---|---|"];
-const yaz = (...h: (string | number)[]) => { const t = `| ${h.join(" | ")} |`; satirlar.push(t); console.log(t); };
+const sonSonuc = new Map<string, string>(); // alan → son sonuç satırı (başvuru yanıtı için)
+const yaz = (...h: (string | number)[]) => { const t = `| ${h.join(" | ")} |`; satirlar.push(t); console.log(t); sonSonuc.set(String(h[0]), `${h[2]}${h[4] && h[4] !== "-" ? ": " + h[4] : ""}${h[6] ? " (" + h[6] + ")" : ""}`); };
 let eklenen = 0;
 
 if (feedModu && db) {
@@ -155,6 +156,41 @@ if (feedModu && db) {
   process.exit(0);
 }
 
+// --basvuru: "Mağazanızı ekleyin" formundan gelen bekleyen başvuruları işler, sonucu başvurana e-postayla bildirir.
+if (process.argv.includes("--basvuru") && db) {
+  const { basvuruTablosu } = await import("../lib/basvuru.ts");
+  const { epostaGonder } = await import("../lib/eposta.ts");
+  await basvuruTablosu();
+  const bekleyen = await db.q<Basvuru & { tur: string }>("select id, unvan, vergi_no, mersis_no, feed, eposta, yetkili, site, tur from magaza_basvuru where durum='bekliyor' order by id limit 20");
+  for (const b of bekleyen) {
+    const alan = new URL(b.site).hostname.replace(/^www\./, "");
+    let durum = "olmadi", sonuc = "";
+    if (KARA_LISTE.has(alan)) { durum = "reddedildi"; sonuc = "kara liste"; }
+    else if (mevcut.has(alan)) { durum = "eklendi"; sonuc = "Mağaza zaten listede."; }
+    else {
+      try { await dene({ alan, tur: b.tur, basvuru: b }); } catch (e) { yaz(alan, b.tur, "hata", "-", "-", "-", (e as Error).message.slice(0, 80)); }
+      sonuc = sonSonuc.get(alan) ?? "sonuç yok";
+      if (/^EKLENDİ/.test(sonuc)) durum = "eklendi";
+    }
+    await db.q("update magaza_basvuru set durum=$2, sonuc=$3, islenme=now() where id=$1", [b.id, durum, sonuc]);
+    const NEDEN: [RegExp, string][] = [
+      [/robots/, "Sitenizin robots.txt dosyası botumuzun sitenizi okumasına izin vermiyor. FiyatDurbunBot'a izin verirseniz yeniden başvurabilirsiniz."],
+      [/kapalı|engel/, "Sitenize erişemedik ya da botumuz engellendi (403/CAPTCHA). Botumuza izin verirseniz yeniden başvurabilirsiniz."],
+      [/firma bilgisi uyuşmadı/, "Başvurudaki vergi numarası ya da MERSİS numarası sitenizin iletişim, hakkımızda veya satış sözleşmesi sayfalarında bulunamadı. Bu bilgileri sitenize ekleyip yeniden başvurabilirsiniz."],
+      [/fiyat okunamıyor|harita yok|kategori yolu/, "Ürün sayfalarınızdan fiyat ve kategori bilgisini okuyamadık. Cimri, Akakçe ya da Google Merchant XML feed adresinizi yazarak yeniden başvurabilirsiniz."],
+    ];
+    const metin = durum === "eklendi"
+      ? `<p>Merhaba ${b.yetkili.replace(/[<>&"]/g, "")},</p><p>${b.site} Fiyat Dürbün'e eklendi. Ürünleriniz önümüzdeki toplama turlarında listelenmeye başlayacak.</p>`
+      : `<p>Merhaba ${b.yetkili.replace(/[<>&"]/g, "")},</p><p>${b.site} için başvurunuzu şu an kabul edemedik.</p><p>${(NEDEN.find(([r]) => r.test(sonuc))?.[1]) ?? "Sitenizi otomatik olarak okuyamadık. Ayrıntı için bu e-postayı yanıtlayabilirsiniz."}</p>`;
+    try { await epostaGonder(b.eposta, `Fiyat Dürbün başvurunuz: ${durum === "eklendi" ? "eklendi" : "sonuç"}`, metin + "<p>Fiyat Dürbün · Teknova Elektrik &amp; Otomasyon · info@teknovaelektrik.com</p>"); }
+    catch (e) { console.log("e-posta:", (e as Error).message); }
+    console.log(`başvuru #${b.id} ${alan}: ${durum} — ${sonuc}`);
+  }
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `# Mağaza başvuruları\n${bekleyen.length} başvuru işlendi\n\n` + satirlar.join("\n") + "\n");
+  await db.kapat();
+  process.exit(0);
+}
+
 // Adaylar 6'şar paralel denenir (her site kendi içinde yavaş ve aralıklı okunur).
 const havuz = [...adaylar];
 await Promise.all(Array.from({ length: 6 }, async () => {
@@ -164,7 +200,10 @@ await Promise.all(Array.from({ length: 6 }, async () => {
   }
 }));
 
-async function dene(a: { alan: string; tur: string }) {
+type Basvuru = { id: number; unvan: string; vergi_no: string; mersis_no: string | null; feed: string | null; eposta: string; yetkili: string; site: string };
+type Aday = { alan: string; tur: string; basvuru?: Basvuru };
+
+async function dene(a: Aday) {
   const site = `https://www.${a.alan}`;
   let ana = await getir(site, 1500);
   let kok = site;
@@ -173,7 +212,15 @@ async function dene(a: { alan: string; tur: string }) {
   kok = new URL(kok).origin;
   const robots = await robotsAl(kok);
   // Önce herkese açık ürün feed'i: varsa ve fiyatları sayfayla uyuşuyorsa site haritası gerekmez.
-  const feed = await feedBul(kok, robots.siteHaritalari);
+  let feed = await (async () => {
+    // Başvuruda verilen feed önce denenir
+    if (!a.basvuru?.feed) return null;
+    const f = await feedGetir(a.basvuru.feed, 120_000);
+    if (f.engel || !f.xml) { yaz(a.alan, a.tur, "başvurudaki feed okunamadı", "-", "-", "-", f.engel ?? "boş"); return null; }
+    const urunler = feedOku(f.xml, kok);
+    return urunler.length >= 10 ? { url: a.basvuru.feed, urunler } : null;
+  })();
+  feed ??= await feedBul(kok, robots.siteHaritalari);
   if (feed) {
     const d = await feedDogrula(feed.urunler);
     if (d.tamam) return kaydetMagaza(a, kok, ana.html, { haritalar: [], dosyaFiltre: "", urlFiltre: `^https?://(www\\.)?${a.alan.replace(/\./g, "\\.")}/`, feed: feed.url },
@@ -214,9 +261,16 @@ async function dene(a: { alan: string; tur: string }) {
   return kaydetMagaza(a, kok, ana.html, { haritalar: kokler, dosyaFiltre, urlFiltre }, haritaOzet, `${fiyatli}/4, yol ${yollu}`, ornekAd);
 }
 
-async function kaydetMagaza(a: { alan: string; tur: string }, kok: string, anaHtml: string,
+async function kaydetMagaza(a: Aday, kok: string, anaHtml: string,
   yontem: { haritalar: string[]; dosyaFiltre: string; urlFiltre: string; feed?: string }, haritaOzet: string | number, okumaOzet: string, ornekAd: string) {
   const f = await firmaBilgisi(kok, anaHtml);
+  if (a.basvuru) {
+    // Başvuruda yazılan vergi no ya da MERSİS sitenin kendi sayfalarında geçmeli (başkası adına başvuruyu önler).
+    const b = a.basvuru;
+    const uyusma = f.rakamlar.includes(b.vergi_no) || Boolean(b.mersis_no && f.rakamlar.includes(b.mersis_no));
+    if (!uyusma) return yaz(a.alan, a.tur, "firma bilgisi uyuşmadı", haritaOzet, okumaOzet, "-", "başvurudaki vergi no / MERSİS sitenin iletişim, hakkımızda ya da sözleşme sayfalarında bulunamadı");
+    f.unvan = b.unvan; f.vergi = b.vergi_no; f.mersis = b.mersis_no ?? f.mersis;
+  }
   // Firma bilgisi (vergi no, MERSİS, ETBİS; tanınmış markalarda unvan) bulunamayan mağaza da yayına çıkar ama ürün sayfasında
   // "Firma bilgisi bulunamadı" uyarısıyla gösterilir (karar: 2026-11-13). Şüpheli fiyat kontrolü ve kara liste geçerli.
   const kimlik = Boolean(f.mersis || f.vergi || f.etbis || (f.unvan && TANINMIS.has(a.alan)));

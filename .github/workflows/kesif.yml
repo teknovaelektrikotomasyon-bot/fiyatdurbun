@@ -12,6 +12,9 @@ on:
       feed:
         description: "Yalnız mevcut otomatik mağazalarda ürün feed'i ara (evet/boş)"
         required: false
+      basvuru:
+        description: "Yalnız bekleyen mağaza başvurularını işle (evet/boş)"
+        required: false
   schedule:
     - cron: "23 3 * * 1"
 permissions:
@@ -23,6 +26,8 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       SORGU_ZAMAN_ASIMI_MS: "60000"
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      SITE_URL: https://fiyatdurbun.com
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -36,4 +41,5 @@ jobs:
           [ -n "${{ inputs.aday }}" ] && EK="$EK --aday ${{ inputs.aday }}"
           [ "${{ inputs.yeniden }}" = "evet" ] && EK="$EK --yeniden"
           [ "${{ inputs.feed }}" = "evet" ] && EK="$EK --feed"
+          [ "${{ inputs.basvuru }}" = "evet" ] && EK="$EK --basvuru"
           node --experimental-strip-types scripts/kesif.ts $EK

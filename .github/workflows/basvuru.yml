@@ -1,0 +1,28 @@
+name: Mağaza başvuruları
+# "Mağazanızı ekleyin" formundan gelen başvuruları 3 saatte bir işler.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "41 */3 * * *"
+permissions:
+  contents: read
+concurrency:
+  group: basvuru
+  cancel-in-progress: false
+jobs:
+  basvuru:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SORGU_ZAMAN_ASIMI_MS: "60000"
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      SITE_URL: https://fiyatdurbun.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --experimental-strip-types scripts/kesif.ts --db --basvuru
