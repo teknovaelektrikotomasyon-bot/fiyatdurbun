@@ -19,9 +19,12 @@ const adaylar = readFileSync("db/kaynak/aday-magazalar.txt", "utf8").split("\n")
 
 const db = dbYaz ? await import("../lib/db.ts") : null;
 if (db) {
-  await db.q("alter table magaza add column if not exists kaynak text not null default 'elle'");
-  await db.q("alter table magaza add column if not exists kesif jsonb");
-  await db.q("alter table teklif add column if not exists supheli boolean not null default false");
+  // ALTER, sütun zaten varken bile tabloyu kilitlemeye çalışır ve süren toplama turunu bekleyip zaman aşımına düşer;
+  // bu yüzden yalnız sütun gerçekten yoksa çalıştırılır.
+  const sutunVar = async (t: string, c: string) => Boolean((await db!.q("select 1 from information_schema.columns where table_name=$1 and column_name=$2", [t, c])).length);
+  if (!(await sutunVar("magaza", "kaynak"))) await db.q("alter table magaza add column kaynak text not null default 'elle'");
+  if (!(await sutunVar("magaza", "kesif"))) await db.q("alter table magaza add column kesif jsonb");
+  if (!(await sutunVar("teklif", "supheli"))) await db.q("alter table teklif add column supheli boolean not null default false");
 }
 // Sitenin kendi adı başlıktan düzgün çıkmayan mağazalar.
 const ADLAR: Record<string, string> = {
