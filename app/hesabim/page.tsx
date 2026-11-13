@@ -9,7 +9,8 @@ import { cikisYap, takiptenCik } from "./islemler";
 export const metadata: Metadata = { title: "Takip listem", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-export default async function Hesabim() {
+export default async function Hesabim({ searchParams }: { searchParams: Promise<{ sifre?: string }> }) {
+  const sp = await searchParams;
   const ben = await uye();
   if (!ben) redirect("/giris?donus=/hesabim");
   const liste = await q<{ id: number; slug: string; ad: string; gorsel: string | null; hedef: number | null; eklenme: number | null; simdi: number | null }>(`
@@ -19,9 +20,10 @@ export default async function Hesabim() {
   return (
     <>
       <div className="kat-ust">
-        <div><h1>Takip listem</h1><p>{ben.eposta}. Fiyat düşünce ya da hedefinizin altına inince bu adrese yazarız.</p></div>
+        <div><h1>Takip listem</h1><p>{ben.ad ? `${ben.ad} · ` : ""}{ben.eposta}. Fiyat düşünce ya da hedefinizin altına inince bu adrese yazarız.</p></div>
         <form action={cikisYap}><button className="dugme ikincil">Çıkış yap</button></form>
       </div>
+      {sp.sifre === "yenilendi" && <p className="kutu" style={{ color: "var(--dusus)" }}>Şifreniz kaydedildi.</p>}
       <div className="kutu">
         {liste.length === 0 && <div className="bos">Henüz takip ettiğiniz ürün yok. Bir ürün sayfasında “Takip et” düğmesine basın.</div>}
         {liste.map((x) => {

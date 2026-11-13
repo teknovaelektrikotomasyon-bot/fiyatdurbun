@@ -1,26 +1,37 @@
 import type { Metadata } from "next";
-import { girisBaglantisiGonder } from "@/app/hesabim/islemler";
+import Link from "next/link";
+import { girisYap } from "./islemler";
 
 export const metadata: Metadata = { title: "Giriş yap", robots: { index: false } };
-type P = { searchParams: Promise<{ donus?: string; gonderildi?: string; hata?: string; neden?: string }> };
+type P = { searchParams: Promise<{ donus?: string; hata?: string; kimlik?: string }> };
+
+const HATA: Record<string, string> = {
+  bos: "E-posta ya da kullanıcı adı ile şifrenizi yazın.",
+  yanlis: "E-posta/kullanıcı adı ya da şifre hatalı.",
+  sinir: "Çok sayıda hatalı deneme yapıldı. 15 dakika sonra tekrar deneyin ya da şifrenizi yenileyin.",
+  baglanti: "Bağlantının süresi dolmuş ya da daha önce kullanılmış.",
+};
 
 export default async function Giris({ searchParams }: P) {
   const sp = await searchParams;
-  if (sp.gonderildi) return (
-    <div className="kutu dar">
-      <h1 style={{ fontSize: 26 }}>E-postanızı kontrol edin</h1>
-      <p>Giriş bağlantısını gönderdik. Bağlantı 15 dakika geçerli. Gelmediyse istenmeyen klasörüne bakın.</p>
-    </div>
-  );
+  const donus = sp.donus ?? "/hesabim";
   return (
-    <form className="kutu dar" action={girisBaglantisiGonder}>
-      <h1 style={{ fontSize: 26 }}>Giriş yap ya da üye ol</h1>
-      <p className="soluk">Şifre yok. E-posta adresinizi yazın, size giriş bağlantısı gönderelim. Takip ettiğiniz ürünler ucuzlayınca aynı adrese haber veririz.</p>
-      <input type="hidden" name="donus" value={sp.donus ?? "/hesabim"} />
-      <label className="kucuk" htmlFor="eposta">E-posta</label>
-      <input id="eposta" type="email" name="eposta" required autoComplete="email" placeholder="ornek@eposta.com" />
-      {sp.hata && <p className="kucuk" style={{ color: "var(--artis)" }}>{sp.hata === "gonderilemedi" ? <>Giriş e-postası şu an gönderilemedi. Birkaç dakika sonra tekrar deneyin.{sp.neden && <span className="soluk" style={{ display: "block", marginTop: 6 }}>Ayrıntı: {sp.neden}</span>}</> : "Geçerli bir e-posta adresi yazın."}</p>}
-      <button className="dugme" style={{ width: "100%" }}>Giriş bağlantısı gönder</button>
+    <form className="kutu dar uyelik" action={girisYap}>
+      <h1>Giriş yap</h1>
+      <input type="hidden" name="donus" value={donus} />
+      {sp.hata && HATA[sp.hata] && <p className="uyelik-hata" role="alert">{HATA[sp.hata]}</p>}
+      <label>E-posta ya da kullanıcı adı
+        <input name="kimlik" required autoComplete="username" defaultValue={sp.kimlik ?? ""} autoFocus />
+      </label>
+      <label>Şifre
+        <input name="sifre" type="password" required autoComplete="current-password" />
+      </label>
+      <div className="uyelik-satir">
+        <label className="uyelik-kutu"><input type="checkbox" name="hatirla" value="evet" defaultChecked /> Beni hatırla</label>
+        <Link href="/sifremi-unuttum">Şifremi unuttum</Link>
+      </div>
+      <button className="dugme">Giriş yap</button>
+      <p className="uyelik-alt">Hesabınız yok mu? <Link href={`/kayit?donus=${encodeURIComponent(donus)}`}>Kayıt olun</Link></p>
     </form>
   );
 }

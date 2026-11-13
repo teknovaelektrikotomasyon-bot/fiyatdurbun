@@ -603,3 +603,18 @@ main > .kap > .kapsam { margin-top: 0; }
 .hesap-liste a, .hesap-liste button { display: block; text-align: left; padding: 10px 12px; border-radius: var(--r-kucuk); color: var(--metin); font: inherit; font-size: 15px; background: none; border: 0; cursor: pointer; width: 100%; }
 .hesap-liste a:hover, .hesap-liste button:hover { background: var(--kagit); }
 .hesap-eposta { padding: 6px 12px 8px; font-size: 13px; color: var(--soluk); border-bottom: 1px solid var(--cizgi); margin-bottom: 4px; overflow-wrap: anywhere; }
+
+/* Üyelik formları */
+.uyelik h1 { font-size: 26px; margin: 0 0 8px; }
+.uyelik label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; margin: 12px 0; }
+.uyelik input:not([type=checkbox]) { height: 46px; border: 1px solid var(--cizgi-koyu); border-radius: 10px; padding: 0 14px; font: inherit; width: 100%; }
+.uyelik input:focus { outline: 2px solid var(--pirinc); outline-offset: 1px; }
+.uyelik .uyelik-kutu { flex-direction: row; align-items: flex-start; gap: 8px; margin: 10px 0; }
+.uyelik .uyelik-kutu input { margin-top: 3px; flex: none; }
+.uyelik-satir { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; margin: 4px 0 14px; }
+.uyelik-satir .uyelik-kutu { margin: 0; }
+.uyelik .dugme { width: 100%; margin-top: 6px; }
+.uyelik-alt { text-align: center; font-size: 14px; margin: 16px 0 4px; }
+.uyelik-hata { color: var(--artis); background: var(--artis-zemin); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin: 10px 0; }
+.uyelik-hata p { margin: 2px 0; }
+.uyelik input[type=email] { margin: 0; }
