@@ -6,7 +6,7 @@
 // Kullanım: node --experimental-strip-types scripts/kategori-onar.ts <okunan-klasörü> [--uygula]
 import { readdirSync, readFileSync } from "node:fs";
 import { q, kapat } from "../lib/db.ts";
-import { kategoriEsle } from "../lib/katalog/esle.ts";
+import { kategoriEsle, kategoriyeAykiri } from "../lib/katalog/esle.ts";
 import { tumKategoriler } from "../lib/katalog/agac.ts";
 import { MAGAZALAR } from "../lib/toplayici/magazalar.ts";
 import { TUR_KOK } from "../lib/toplayici/oto.ts";
@@ -44,12 +44,37 @@ const teklifler = await q<{ id: number; url: string; magaza: string; urun_id: nu
     (select count(distinct t2.magaza_id)::int from teklif t2 where t2.urun_id=t.urun_id) magaza_sayisi
   from teklif t join magaza m on m.id=t.magaza_id join urun u on u.id=t.urun_id`);
 
+async function teklifSil(t: { id: number; urun_id: number }) {
+  await q("delete from eslesme_kuyrugu where teklif_id=$1", [t.id]);
+  const tik = await q("select 1 from tiklama where teklif_id=$1 limit 1", [t.id]);
+  if (tik.length) await q("update teklif set urun_id=null, stokta=false where id=$1", [t.id]);
+  else { await q("delete from fiyat_gecmisi where urun_id=$1 and magaza_id=(select magaza_id from teklif where id=$2)", [t.urun_id, t.id]); await q("delete from teklif where id=$1", [t.id]); }
+}
+
 let tasinan = 0, silinen = 0, ayni = 0, hamYok = 0, cokMagazali = 0;
 const ornek: string[] = [];
 for (const t of teklifler) {
   if (TELEFON_MAGAZALARI.has(t.magaza)) continue;
   const h = ham.get(t.url);
-  if (!h) { hamYok++; continue; }
+  if (!h) {
+    hamYok++;
+    // Ham okuması yoksa en azından açıkça yanlış olanı ayıkla (adı bulunduğu bölümün yasak kelimesini taşıyor).
+    const ad = (await q<{ ad: string }>("select ad from urun where id=$1", [t.urun_id]))[0]?.ad ?? "";
+    if (t.magaza_sayisi === 1 && kategoriyeAykiri(katSlug.get(t.kategori_id)!, ad)) {
+      const k = kokler.get(t.magaza) ?? [];
+      const es = k.length ? kategoriEsle(undefined, ad, k) : null; // yalnız adla yeni yer
+      if (es && katId.has(es.slug)) {
+        if (ornek.length < 80) ornek.push(`TAŞI* ${t.magaza}: ${ad.slice(0, 50)} — ${yolAdi.get(katSlug.get(t.kategori_id)!)} → ${yolAdi.get(es.slug)}`);
+        if (uygula) { try { await q("update urun set kategori_id=$2 where id=$1", [t.urun_id, katId.get(es.slug)]); } catch { await teklifSil(t); } }
+        tasinan++;
+      } else {
+        if (ornek.length < 80) ornek.push(`SİL* ${t.magaza}: ${ad.slice(0, 50)} (${yolAdi.get(katSlug.get(t.kategori_id)!)})`);
+        if (uygula) await teklifSil(t);
+        silinen++;
+      }
+    }
+    continue;
+  }
   const k = kokler.get(t.magaza);
   if (!k?.length) continue;
   // Oto mağazalarda kategori yolu zorunlu (toplayıcıyla aynı kural)
@@ -57,12 +82,7 @@ for (const t of teklifler) {
   const eski = katSlug.get(t.kategori_id)!;
   if (!es) {
     if (ornek.length < 60) ornek.push(`SİL  ${t.magaza}: ${h.ad.slice(0, 50)} (${yolAdi.get(eski)})`);
-    if (uygula) {
-      await q("delete from eslesme_kuyrugu where teklif_id=$1", [t.id]);
-      const tik = await q("select 1 from tiklama where teklif_id=$1 limit 1", [t.id]);
-      if (tik.length) await q("update teklif set urun_id=null, stokta=false where id=$1", [t.id]);
-      else { await q("delete from fiyat_gecmisi where urun_id=$1 and magaza_id=(select magaza_id from teklif where id=$2)", [t.urun_id, t.id]); await q("delete from teklif where id=$1", [t.id]); }
-    }
+    if (uygula) await teklifSil(t);
     silinen++;
     continue;
   }

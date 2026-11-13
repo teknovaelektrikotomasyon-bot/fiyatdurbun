@@ -211,6 +211,10 @@ export type EslemeSonucu = { slug: string; puan: number };
 /** Bazı bölümlere ürün girebilmesi için ad ya da mağaza yolunda o bölüme özgü bir bağlam kelimesi şart.
  *  Örn. "1210 Kılıf SMD Kondansatör" kılıf kelimesi yüzünden telefon kılıfına düşmesin. */
 const OZEL_DAL = new Set(["elektronik-hobi"]);
+/** Bu bölümlere asla girmemesi gerekenler (bağlam kelimesi tesadüfen geçse bile; ör. "Samsung 47pF SMD Kondansatör"). */
+const ENGEL: Record<string, RegExp> = {
+  "cep-telefonu-ve-aksesuarlari": /\b(smd|kondansator|direnc|diyot|transistor|entegre|mosfet|trimpot|ethernet|cat ?[5-8]e?|rj ?45|vga|dvi|hdmi|displayport|kvm|sata|ses karti|rca|aux|ses kablosu|sim karti? okuyucu|arac kamerasi|park modu|hava pompasi|akilli saat|bileklik|kordon|band \d)\b/,
+};
 const BAGLAM: Record<string, RegExp> = {
   "cep-telefonu-ve-aksesuarlari": /\b(telefon|cep|iphone|samsung|galaxy|xiaomi|redmi|huawei|oppo|realme|honor|vivo|poco|tecno|infinix|nokia|motorola|reeder|casper via|general mobile|magsafe|android|ios|gsm|smartphone|powerbank|power bank|tasinabilir sarj|sarj aleti|sarj cihazi|sarj adaptoru|hizli sarj|lightning|type c|usb c|ekran koruyucu|kablosuz sarj|arac ici tutucu)\b/,
 };
@@ -237,6 +241,7 @@ export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kok
     // "buton" gibi genel kelimelerle fener, oyuncak vb. buraya düşer.
     if (a.yol.some((s) => OZEL_DAL.has(s)) && !a.yol.some((s) => OZEL_DAL.has(s) && kokler.includes(s))) continue;
     if (a.yol.some((s) => BAGLAM[s] && !BAGLAM[s].test(baglamMetni))) continue;
+    if (a.yol.some((s) => ENGEL[s]?.test(urun))) continue;
     if (a.derinlik === 0) continue; // ana bölümün kendisine ürün konmaz
     if (urunAksesuar && !a.aksesuar) continue;
     // Yolun son halkası en güçlü işaret; ürün adı ve üst halkalar onu destekler.
@@ -256,4 +261,12 @@ export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kok
   }
   if (!enIyi || enIyi.puan < 6) return null;
   return enIyi;
+}
+
+/** Ürün adı, bulunduğu kategorinin yasak kelimelerinden birini taşıyor mu? (Ham okuması olmayan eski kayıtları ayıklamak için.) */
+export function kategoriyeAykiri(kategoriSlug: string, ad: string): boolean {
+  const a = ADAYLAR.find((x) => x.slug === kategoriSlug);
+  if (!a) return false;
+  const urun = duzMetin(ad);
+  return a.yol.some((s) => ENGEL[s]?.test(urun) || (BAGLAM[s] && !BAGLAM[s].test(urun)));
 }
