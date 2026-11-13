@@ -10,7 +10,7 @@ const arg = (ad: string) => { const i = process.argv.indexOf("--" + ad); return 
 const gonder = process.argv.includes("--gonder");
 const limit = Number(arg("limit") ?? 90);
 const KIMDEN = "Fiyat Dürbün <magaza@fiyatdurbun.com>";
-const YANIT = process.env.TANITIM_YANIT ?? "";
+const YANIT = process.env.TANITIM_YANIT || "info@teknovaelektrik.com"; // mağazaların cevapları buraya gelir
 
 const ham = JSON.parse(readFileSync(arg("liste") ?? "veri/iletisim.json", "utf8")) as { alan: string; eposta: string | null }[];
 // Temizlik: HTML kaçışı kalıntısı (u003e), takip alt alan adları (info@t.site.com), şüpheli adresler; aynı firmanın ikinci alan adı.
