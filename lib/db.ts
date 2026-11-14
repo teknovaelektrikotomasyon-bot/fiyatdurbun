@@ -13,7 +13,12 @@ async function motorKur(): Promise<Motor> {
   let m: Motor;
   if (url) {
     const postgres = (await import("postgres")).default;
-    const sql = postgres(url, { max: 5, prepare: false, idle_timeout: 20, connect_timeout: 10, max_lifetime: 60 * 5 });
+    // Uzun süren betikler (GitHub Actions) Supabase havuzunun oturum kipini (5432) kullanır. İşlem kipinde (6543)
+    // aynı bağlantıdan art arda gönderilen sorguların cevapları karışabiliyor: "olmayan marka" yabancı anahtar
+    // hatası ve "string bekleniyordu, sayı geldi" gibi rastgele hatalar bundandı. Site (Vercel) işlem kipinde kalır.
+    const hedef = !process.env.VERCEL && process.env.DB_ISLEM_KIPI !== "1" && /pooler\.supabase\.com:6543\b/.test(url)
+      ? url.replace(":6543", ":5432") : url;
+    const sql = postgres(hedef, { max: 5, prepare: false, idle_timeout: 20, connect_timeout: 10, max_lifetime: 60 * 5 });
     m = { sorgu: (t, p) => sql.unsafe(t, p as never[]) as unknown as Promise<Satir[]>, kapat: () => sql.end() };
   } else {
     const { PGlite } = await import("@electric-sql/pglite");
