@@ -44,6 +44,8 @@ async function sureli<T>(is: Promise<T>, ms: number): Promise<T> {
 }
 
 export async function q<T = Satir>(metin: string, p: unknown[] = []): Promise<T[]> {
+  // postgres.js undefined parametreyi reddeder (UNDEFINED_VALUE); eksik alanlar NULL olarak yazılır.
+  p = p.map((v) => (v === undefined ? null : v));
   // Bağlantı koparsa (Supabase havuzu ara sıra bağlantıyı kapatır) yeni bağlantıyla 3 kez, artan beklemeyle yeniden dener.
   for (let deneme = 0; ; deneme++) {
     try {

@@ -12,11 +12,11 @@ import { robotsAl } from "../lib/toplayici/istek.ts";
 import { haritaAdresleri } from "../lib/toplayici/haritalar.ts";
 import { feedGetir, feedOku, sadeAdres } from "../lib/toplayici/feed.ts";
 
-// Supabase havuzunun kopardığı bir bağlantı, beklenmeyen yerde reddedilen bir sorguya dönüşürse tur çökmesin: kaydet ve devam et.
+// Beklenmeyen yerde reddedilen bir sorgu (kopan bağlantı vb.) turu çökertmesin.
 process.on("unhandledRejection", (e) => {
   const m = (e as Error)?.message ?? String(e);
-  if (/CONNECTION_ENDED|ECONNRESET|CONNECTION_CLOSED|terminating connection/.test(m)) { console.log("bağlantı koptu, devam ediliyor:", m.slice(0, 120)); return; }
-  console.error(e); process.exit(1);
+  // Tek bir kayıttaki hata (bağlantı kopması, beklenmedik değer) tüm turu düşürmesin: yazılır, tur devam eder.
+  console.log("beklenmeyen hata, devam ediliyor:", m.slice(0, 200));
 });
 
 const arg = (ad: string) => { const i = process.argv.indexOf("--" + ad); return i > 0 ? process.argv[i + 1] : undefined; };
