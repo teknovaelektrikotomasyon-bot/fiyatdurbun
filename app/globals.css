@@ -621,3 +621,29 @@ main > .kap > .kapsam { margin-top: 0; }
 .kunye-tablo { border-collapse: collapse; margin: 12px 0 18px; }
 .kunye-tablo th { text-align: left; font-weight: 600; padding: 6px 18px 6px 0; vertical-align: top; color: var(--soluk); }
 .kunye-tablo td { padding: 6px 0; }
+
+/* ===== Mobil düzeltmeler (2026-11-14) ===== */
+@media (max-width: 720px) {
+  .ust .arama + .ust-ikon { margin-left: auto; }      /* zil ve kişi simgeleri sağa yaslanır */
+  .ust-ikon svg { width: 24px; height: 24px; }
+  .hizli { margin: -8px 0 12px; gap: 8px; }
+  .hizli-kart { min-height: 74px; font-size: 12.5px; padding: 10px 6px; border-radius: 12px; }
+  .firsat-panel { padding: 14px 12px 14px; border-radius: 14px; }
+  .firsat-bas { flex-wrap: wrap; gap: 6px 10px; margin-bottom: 10px; }
+  .firsat-bas h2 { font-size: 20px; }
+  /* Kartlar yana kaymak yerine 2 sütunlu ızgara; son kart tam genişlik */
+  .firsat-kartlar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; overflow: visible; padding: 0; }
+  .firsat-kart { min-height: 112px; padding: 12px 10px 10px; border-radius: 12px; }
+  .firsat-kart:last-child { grid-column: 1 / -1; min-height: 0; }
+  .firsat-ad { font-size: 14.5px; }
+  .firsat-alt { font-size: 12px; max-width: 100%; }
+  .firsat-eylem { font-size: 12px; padding: 3px 10px; }
+  .firsat-simge svg { width: 26px; height: 26px; }
+  .firsat-simge { right: 8px; bottom: 8px; opacity: .55; }
+  .alarm-bant { gap: 10px; padding: 10px 12px; }
+  .alarm-bant > div { flex-basis: calc(100% - 54px); font-size: 13.5px; }
+  .alarm-bant .dugme { width: 100%; text-align: center; }
+  .slayt { padding: 20px 18px; }
+  .slayt p { font-size: 14.5px; margin-bottom: 14px; }
+  .kapsam { font-size: 14px; }
+}
