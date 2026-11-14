@@ -9,7 +9,7 @@ import { q, kapat } from "../lib/db.ts";
 import { kategoriEsle, kategoriyeAykiri } from "../lib/katalog/esle.ts";
 import { tumKategoriler } from "../lib/katalog/agac.ts";
 import { MAGAZALAR } from "../lib/toplayici/magazalar.ts";
-import { TUR_KOK } from "../lib/toplayici/oto.ts";
+import { MAGAZA_KOK, TUR_KOK } from "../lib/toplayici/oto.ts";
 import { katalogHazirla } from "../lib/aktarim.ts";
 
 const klasor = process.argv[2];
@@ -32,7 +32,7 @@ const kokler = new Map<string, string[]>();
 for (const m of MAGAZALAR) { const g = m.kesif.genel; if (g?.tur === "genel") kokler.set(m.slug, g.kokler); }
 for (const r of await q<{ slug: string; kesif: unknown }>("select slug, kesif from magaza where kaynak='oto' and kesif is not null")) {
   const k = (typeof r.kesif === "string" ? JSON.parse(r.kesif) : r.kesif) as { tur?: string; kokler?: string[] };
-  kokler.set(r.slug, k.kokler ?? TUR_KOK[k.tur ?? ""] ?? []);
+  kokler.set(r.slug, MAGAZA_KOK[r.slug] ?? k.kokler ?? TUR_KOK[k.tur ?? ""] ?? []);
 }
 const otoMi = new Set((await q<{ slug: string }>("select slug from magaza where kaynak='oto'")).map((r) => r.slug));
 const katId = new Map((await q<{ id: number; slug: string }>("select id, slug from kategori")).map((r) => [r.slug, r.id]));

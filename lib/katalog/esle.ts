@@ -23,10 +23,7 @@ const ES_ANLAMLI: Record<string, string[]> = {
   "sensor-modul": ["sensor", "sensorler", "modul", "moduller", "role", "role karti", "lcd ekran", "oled", "rfid", "gps modul", "bluetooth modul", "wifi modul", "kamera modulu"],
   "motor-surucu": ["servo", "servo motor", "step motor", "dc motor", "motor surucu", "redektorlu motor", "motor driver", "esc"],
   "robot-kiti": ["robot kiti", "robot kitleri", "stem", "egitim seti", "kodlama seti", "robotik set", "lego education", "mbot"],
-  "elektronik-komponent": ["direnc", "kondansator", "transistor", "diyot", "led", "entegre", "potansiyometre", "buton", "regulator", "mosfet", "komponent", "pasif komponent", "yari iletken"],
-  "prototip-malzemesi": ["breadboard", "jumper", "jumper kablo", "pertinaks", "delikli plaket", "header", "konnektor", "klemens"],
   "lehim-olcum": ["lehim", "havya", "lehim istasyonu", "multimetre", "osiloskop", "olcu aleti", "pens ampermetre", "guc kaynagi laboratuvar"],
-  "robotik-guc": ["lipo", "li ion", "18650", "pil", "batarya", "pil yuvasi", "voltaj regulatoru", "buck", "boost", "sarj modulu"],
   "3d-filament": ["filament", "pla filament", "abs filament", "petg", "3d yazici parca", "nozzle", "hotend"],
   "drone-rc-parca": ["drone", "pervane", "ucus kontrol karti", "fpv", "rc araba", "kumanda alici"],
   "akilli-telefon": ["cep telefonu", "android telefon", "ios telefon", "iphone"],
@@ -58,7 +55,7 @@ const ES_ANLAMLI: Record<string, string[]> = {
   "bardak-kupa": ["bardak", "kupa", "fincan", "kadeh"],
   "saklama-kabi": ["saklama", "erzak"],
   "caydanlik": ["caydanlik", "demlik"],
-  "nevresim": ["nevresim takimi", "carsaf", "pike", "yatak ortusu"],
+  "nevresim": ["nevresim takimi", "carsaf", "pike", "yatak ortusu", "alez", "uyku pedi", "yatak koruyucu", "yastik kilifi"],
   "yorgan-battaniye": ["yorgan", "battaniye", "uyku seti"],
   "yastik": ["yastik"],
   "hali": ["kilim", "paspas", "yolluk"],
@@ -163,14 +160,68 @@ const ES_ANLAMLI: Record<string, string[]> = {
   "telefon-tutucu": ["telefon tutucu", "arac ici tutucu", "tutucu", "stand"],
   "akilli-saat": ["akilli saat", "smartwatch"],
   "avize": ["avize", "aplik", "sarkit", "tavan lambasi"],
-  "havlu-bornoz": ["havlu", "bornoz", "pestamal", "kurulama bezi", "mutfak havlusu"],
+  "havlu-bornoz": ["havlu", "bornoz", "banyo tekstili", "pestamal", "kurulama bezi", "mutfak havlusu"],
   "termos": ["termos", "matara", "karaf termos"],
   "mum-oda-kokusu": ["mum", "oda kokusu", "difuzor", "kokulu kese", "koku"],
+  // 14 Kasım: giyim ağacı genişletildi (marka mağazaları). Cinsiyet ayrımı kategoriEsle'deki CINSIYET kuralıyla yapılır.
+  "elbise": ["elbise", "tulum", "abiye"],
+  "kadin-tisort": ["tisort", "t shirt", "tshirt", "atlet", "polo yaka", "crop", "body", "bustiyer atlet"],
+  "erkek-tisort": ["tisort", "t shirt", "tshirt", "atlet", "polo", "polo yaka", "forma"],
+  "kadin-gomlek-bluz": ["gomlek", "bluz", "tunik"],
+  "erkek-gomlek": ["gomlek", "klasik gomlek", "spor gomlek", "keten gomlek"],
+  "kadin-kazak": ["kazak", "hirka", "triko", "kardigan", "suveter", "yelek"],
+  "erkek-kazak": ["kazak", "hirka", "triko", "kardigan", "suveter", "yelek", "balikci yaka"],
+  "kadin-sweatshirt": ["sweatshirt", "sweat", "hoodie", "kapusonlu"],
+  "erkek-sweatshirt": ["sweatshirt", "sweat", "hoodie", "kapusonlu"],
+  "kadin-ceket": ["ceket", "blazer", "kot ceket", "deri ceket"],
+  "erkek-ceket": ["ceket", "blazer", "kot ceket", "deri ceket", "takim ceketi"],
+  "kadin-mont": ["mont", "kaban", "parka", "palto", "trenckot", "yagmurluk", "sisme mont", "kaz tuyu"],
+  "erkek-mont": ["mont", "kaban", "parka", "palto", "trenckot", "yagmurluk", "sisme mont", "kaz tuyu"],
+  "kadin-pantolon": ["pantolon", "jean", "kot pantolon", "chino", "kumas pantolon", "alt giyim"],
+  "erkek-pantolon": ["pantolon", "jean", "kot pantolon", "chino", "kumas pantolon", "alt giyim"],
+  "etek": ["etek"],
+  "kadin-sort": ["sort", "bermuda"],
+  "erkek-sort": ["sort", "bermuda", "deniz sortu"],
+  "kadin-esofman": ["esofman", "tayt", "jogger", "spor giyim", "aktif giyim"],
+  "erkek-esofman": ["esofman", "jogger", "spor giyim", "aktif giyim"],
+  "takim-elbise": ["takim elbise", "smokin", "yelekli takim"],
+  "kadin-ic-giyim": ["ic giyim", "kulot", "slip", "korse", "jartiyer", "termal", "atlet ic", "fanila", "babydoll", "string"],
+  "sutyen": ["sutyen", "bustiyer", "bralet"],
+  "erkek-ic-giyim": ["ic giyim", "boxer", "slip", "fanila", "termal", "atlet"],
+  "kadin-pijama": ["pijama", "gecelik", "ev giyim", "sabahlik", "pijama takimi"],
+  "erkek-pijama": ["pijama", "ev giyim", "sabahlik", "pijama takimi"],
+  "kadin-mayo": ["mayo", "bikini", "plaj giyim", "pareo", "haşema", "hasema"],
+  "kadin-corap": ["corap", "soket", "kulotlu corap", "patik corap", "dizalti corap"],
+  "erkek-corap": ["corap", "soket", "patik corap"],
+  "cocuk-ust-giyim": ["tisort", "sweatshirt", "kazak", "hirka", "gomlek", "bluz", "mont", "ceket", "elbise", "body", "zibin", "yagmurluk", "parka", "yelek", "polar", "atlet"],
+  "cocuk-alt-giyim": ["pantolon", "esofman", "etek", "sort", "tayt", "jean", "tulum"],
+  "cocuk-ayakkabi": ["ayakkabi", "sneaker", "bot", "terlik", "sandalet", "panduf"],
+  "cocuk-ic-giyim": ["corap", "kulotlu corap", "ic giyim", "kulot", "boxer", "atlet", "pijama"],
+  "cocuk-mayo": ["mayo", "bikini", "deniz sortu", "plaj"],
+  "spor-ayakkabi": ["sneaker", "sneakers", "spor ayakkabi", "kosu ayakkabisi", "yuruyus ayakkabisi", "antrenman ayakkabisi"],
+  "gunluk-ayakkabi": ["casual ayakkabi", "gunluk ayakkabi", "deri ayakkabi", "oxford"],
+  "klasik-ayakkabi": ["klasik ayakkabi", "kundura", "deri klasik"],
+  "loafer": ["loafer", "makosen", "babet", "mokasen"],
+  "topuklu-ayakkabi": ["topuklu", "stiletto", "dolgu topuk", "platform topuk"],
+  "bot-cizme": ["bot", "cizme", "chelsea", "postal", "kar botu"],
+  "sandalet-terlik": ["sandalet", "terlik", "parmak arasi", "plaj terligi", "panduf", "ev terligi", "slipper"],
+  "kravat": ["kravat", "papyon", "fular", "kusak"],
+  "kemer": ["kemer"],
+  "sapka-bere": ["sapka", "bere", "kasket", "boyunluk", "kep"],
+  "atki-eldiven": ["atki", "sal", "eldiven", "esarp"],
+  "kol-dugmesi": ["kol dugmesi", "yaka cicegi", "cep mendili", "yaka igne", "kravat ignesi"],
+  "bijuteri": ["kupe", "kolye", "bileklik", "yuzuk", "toka", "sac aksesuari", "bijuteri"],
+  "omuz-cantasi": ["omuz cantasi", "capraz canta", "postaci canta", "baget canta"],
+  "bel-cantasi": ["bel cantasi"],
+  "baza-karyola": ["baza", "karyola", "baslik", "yatak basligi", "baza baslik", "baza seti"],
+  "yatak": ["yatak", "yataklar", "ortopedik yatak", "visco yatak"],
   "akvaryum": ["akvaryum", "balik yemi", "hava motoru", "akvaryum filtre", "su duzenleyici"],
 };
 
 // Otomatik kelimeleri tamamen değiştirenler (genel kelimeyi başka kategoriye bırakmak için).
 const YALNIZ: Record<string, string[]> = {
+  // "Mama ve Su Kabı" adındaki tek başına "mama" her mama ürününü buraya çekiyordu.
+  "mama-su-kabi": ["mama kabi", "su kabi", "mama ve su kabi", "otomatik mamalik", "mamalik", "su pinari", "suluk"],
   "bilgisayar-kulakligi": ["oyuncu kulakligi", "gaming kulaklik", "oyuncu mikrofonu"],
   "kablosuz-kulaklik": ["kablosuz kulaklik", "bluetooth kulaklik", "tws"],
   "telefon-kilifi": ["telefon kilifi", "kilif", "kiliflar"],
@@ -219,6 +270,15 @@ const BAGLAM: Record<string, RegExp> = {
   "cep-telefonu-ve-aksesuarlari": /\b(telefon|cep|iphone|samsung|galaxy|xiaomi|redmi|huawei|oppo|realme|honor|vivo|poco|tecno|infinix|nokia|motorola|reeder|casper via|general mobile|magsafe|android|ios|gsm|smartphone|powerbank|power bank|tasinabilir sarj|sarj aleti|sarj cihazi|sarj adaptoru|hizli sarj|lightning|type c|usb c|micro usb|sarj kablosu|data kablosu|sarj ve data|ekran koruyucu|kablosuz sarj|arac ici tutucu)\b/,
 };
 
+const CINSIYET_KOK: Record<string, "kadin" | "erkek" | "cocuk"> = { "kadin-giyim": "kadin", "erkek-giyim": "erkek", "cocuk-giyim": "cocuk" };
+const cinsiyet = (yol: string[]) => { for (const s of yol) if (CINSIYET_KOK[s]) return CINSIYET_KOK[s]; return null; };
+function baglamCinsiyet(m: string) {
+  const cocuk = /\b(cocuk|kiz cocuk|erkek cocuk|kids?|junior|jr|girls?|boys?|bebek|genc kiz|genc erkek)\b/.test(m);
+  const kadin = /\b(kadin|bayan|women|woman|womens|kiz)\b/.test(m);
+  const erkek = /\b(erkek|men|man|mens|bay)\b/.test(m.replace(/erkek cocuk/g, ""));
+  return { cocuk, kadin, erkek };
+}
+
 /** Mağaza kategori yolu + ürün adı → kategori. `kokler`: mağazanın eşlenebileceği bölümler (ana bölüm ya da herhangi bir alt dalın slug'ı). */
 export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kokler: string[]): EslemeSonucu | null {
   const yol = (kategoriYolu ?? []).map(duzMetin).filter((x) => x && !/^(ana sayfa|anasayfa|home|tum urunler)$/.test(x));
@@ -234,6 +294,7 @@ export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kok
   // Yalnızca yolun son halkasına bakılır: "Telefon & Aksesuarları > Şarj Cihazları > Powerbank" aksesuar değildir.
   const baglamMetni = `${urun} | ${yol.join(" | ")}`;
   const urunAksesuar = YOL_AKSESUAR.test(son) || AD_AKSESUAR.test(urun);
+  const bag = baglamCinsiyet(baglamMetni);
   let enIyi: EslemeSonucu | null = null;
   for (const a of ADAYLAR) {
     if (!a.yol.some((s) => kokler.includes(s))) continue; // mağazanın izinli bölümleri (ana bölüm ya da alt dal)
@@ -244,6 +305,13 @@ export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kok
     if (a.yol.some((s) => ENGEL[s]?.test(urun))) continue;
     if (a.derinlik === 0) continue; // ana bölümün kendisine ürün konmaz
     if (urunAksesuar && !a.aksesuar) continue;
+    // Cinsiyet / yaş: "Kadın > Çorap" erkek çorabına, "Kız Çocuk > Tayt" kadın taytına düşmesin.
+    const c = cinsiyet(a.yol);
+    let cBonus = 0;
+    if (c) {
+      if (bag.cocuk ? c !== "cocuk" : (c === "cocuk" || (c === "kadin" && bag.erkek && !bag.kadin) || (c === "erkek" && bag.kadin && !bag.erkek))) continue;
+      if ((c === "cocuk" && bag.cocuk) || (c === "kadin" && bag.kadin) || (c === "erkek" && bag.erkek)) cBonus = 2;
+    }
     // Yolun son halkası en güçlü işaret; ürün adı ve üst halkalar onu destekler.
     let pSon = 0, pAd = 0, pUst = 0, pIkinci = 0;
     for (const k of a.kelimeler) {
@@ -254,12 +322,15 @@ export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kok
       if (gecer(onceki, k)) pUst = Math.max(pUst, 2 + 2 * uzunluk);
     }
     const enBuyuk = Math.max(pSon, pAd, pIkinci, pUst);
-    let puan = enBuyuk + 0.5 * (pSon + pAd + pIkinci + pUst - enBuyuk);
+    // Alt dalı olan üst kategori ("Ayakkabı") genel kelimesi her yerde geçtiği için ek puan toplamasın;
+    // yoksa "Ayakkabı > Spor Ayakkabı > X Ayakkabı" yaprağa değil üst bölüme düşer.
+    let puan = a.altVar ? enBuyuk : enBuyuk + 0.5 * (pSon + pAd + pIkinci + pUst - enBuyuk);
     if (!puan) continue;
-    puan += a.derinlik * 1; // aynı puanda daha özgül (yaprak) kategori
+    puan += a.derinlik * 1 + cBonus; // aynı puanda daha özgül (yaprak) kategori
     if (!enIyi || puan > enIyi.puan) enIyi = { slug: a.slug, puan };
   }
-  if (!enIyi || enIyi.puan < 6) return null;
+  // Mağaza kategori yolu vermiyorsa (yalnız "Anasayfa > Ürün adı") karar ürün adına kalır: eşik daha yüksek.
+  if (!enIyi || enIyi.puan < (yol.length ? 6 : 7)) return null;
   return enIyi;
 }
 

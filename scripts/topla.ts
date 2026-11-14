@@ -5,7 +5,7 @@ import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { MAGAZALAR, linkleriCikar, type MagazaTanimi } from "../lib/toplayici/magazalar.ts";
 import { tumKategoriler } from "../lib/katalog/agac.ts";
-import { TUR_KOK } from "../lib/toplayici/oto.ts";
+import { MAGAZA_KOK, TUR_KOK, YABANCI_DIL } from "../lib/toplayici/oto.ts";
 import { getir } from "../lib/toplayici/istek.ts";
 import { urunOku } from "../lib/toplayici/okuyucu.ts";
 import { robotsAl } from "../lib/toplayici/istek.ts";
@@ -48,7 +48,7 @@ if (aktarim) {
       // jsonb sürücüye göre metin olarak gelebilir
       if (typeof r.kesif === "string") r.kesif = JSON.parse(r.kesif);
       otoMagazalar.push({ slug: r.slug, ad: r.ad, site: r.site, durum: "acik", bekleme: 3000,
-      kesif: { genel: { tur: "genel", filtre: new RegExp(r.kesif.urlFiltre), kokler: (r.kesif.kokler ?? TUR_KOK[r.kesif.tur ?? ""] ?? []).filter((k) => KOKLER.includes(k)), butce: Number(arg("oto-butce") ?? 1200),
+      kesif: { genel: { tur: "genel", filtre: new RegExp(r.kesif.urlFiltre), kokler: (MAGAZA_KOK[r.slug] ?? r.kesif.kokler ?? TUR_KOK[r.kesif.tur ?? ""] ?? []).filter((k) => KOKLER.includes(k)), butce: Number(arg("oto-butce") ?? 1200),
         haritalar: r.kesif.haritalar, dosyaFiltre: new RegExp(r.kesif.dosyaFiltre || "x^", "i"), yolZorunlu: true, feed: r.kesif.feed } } });
     }
     console.log(`otomatik mağaza: ${otoMagazalar.length}`, otoMagazalar.map((m) => `${m.slug}:${(m.kesif.genel as { kokler: string[] }).kokler.join("+")}`).join(" "));
@@ -117,7 +117,8 @@ async function magazaTopla(m: MagazaTanimi) {
     }
     if (kesif.tur === "genel") {
       const robots = await robotsAl(m.site);
-      const tumu = await haritaAdresleri(m.site, kesif.haritalar ?? robots.siteHaritalari, kesif.filtre, 200000, m.bekleme, 60, kesif.dosyaFiltre);
+      const tumu = (await haritaAdresleri(m.site, kesif.haritalar ?? robots.siteHaritalari, kesif.filtre, 200000, m.bekleme, 60, kesif.dosyaFiltre))
+        .filter((u) => !YABANCI_DIL.test(u)); // yalnız Türkçe sayfalar (yabancı dil kopyaları aynı ürünün İngilizce/Almanca adıyla gelir)
       const gorulen = aktarim ? await aktarim.okunmusAdresler(m.slug) : new Map<string, number>();
       // Önce hiç okunmamış adresler (karışık sırayla), sonra en eski okunanlar.
       const yeni = tumu.filter((u) => !gorulen.has(u)).sort(() => Math.random() - 0.5);

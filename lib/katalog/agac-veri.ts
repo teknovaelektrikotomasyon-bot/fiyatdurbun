@@ -104,10 +104,7 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
       { ad: "Sensör ve Modül", slug: "sensor-modul", g: 3702 },
       { ad: "Motor ve Motor Sürücü", slug: "motor-surucu", g: 3702 },
       { ad: "Robot Kiti ve STEM Seti", slug: "robot-kiti", g: 3625 },
-      { ad: "Elektronik Komponent", slug: "elektronik-komponent", g: 3702 },
-      { ad: "Breadboard, Jumper ve Prototip", slug: "prototip-malzemesi", g: 3889 },
       { ad: "Lehim ve Ölçüm Aletleri", slug: "lehim-olcum", g: 1236 },
-      { ad: "Pil, Batarya ve Güç Modülü", slug: "robotik-guc", g: 276 },
       { ad: "3D Yazıcı Filamenti ve Parçası", slug: "3d-filament", g: 499682 },
       { ad: "Drone ve RC Parçaları", slug: "drone-rc-parca", g: 2546 }
     ] },
@@ -451,29 +448,73 @@ export const KATEGORI_AGACI: KategoriDugumu[] = [
   ] },
   { ad: "Giyim, Ayakkabı ve Aksesuar", slug: "giyim-ayakkabi-aksesuar", g: 166, alt: [
     { ad: "Kadın Giyim", slug: "kadin-giyim", g: 1604, alt: [
-      { ad: "Elbise", slug: "elbise", g: 2271 },
+      { ad: "Elbise ve Tulum", slug: "elbise", g: 2271 },
+      { ad: "Kadın Tişört ve Atlet", slug: "kadin-tisort", g: 212 },
+      { ad: "Kadın Gömlek ve Bluz", slug: "kadin-gomlek-bluz", g: 212 },
+      { ad: "Kadın Kazak ve Hırka", slug: "kadin-kazak", g: 5441 },
+      { ad: "Kadın Sweatshirt", slug: "kadin-sweatshirt", g: 1604 },
+      { ad: "Kadın Ceket ve Blazer", slug: "kadin-ceket", g: 5598 },
       { ad: "Kadın Mont ve Kaban", slug: "kadin-mont", g: 203 },
-      { ad: "Kadın Pantolon ve Jean", slug: "kadin-pantolon", g: 204 }
+      { ad: "Kadın Pantolon ve Jean", slug: "kadin-pantolon", g: 204 },
+      { ad: "Etek", slug: "etek", g: 1581 },
+      { ad: "Kadın Şort", slug: "kadin-sort", g: 207 },
+      { ad: "Kadın Eşofman ve Tayt", slug: "kadin-esofman", g: 5322 },
+      { ad: "Kadın İç Giyim", slug: "kadin-ic-giyim", g: 213 },
+      { ad: "Sütyen", slug: "sutyen", g: 214 },
+      { ad: "Kadın Pijama ve Ev Giyimi", slug: "kadin-pijama", g: 208 },
+      { ad: "Kadın Mayo ve Bikini", slug: "kadin-mayo", g: 211 },
+      { ad: "Kadın Çorap", slug: "kadin-corap", g: 209 }
     ] },
     { ad: "Erkek Giyim", slug: "erkek-giyim", g: 1604, alt: [
-      { ad: "Erkek Mont ve Kaban", slug: "erkek-mont", g: 203 },
+      { ad: "Erkek Tişört ve Polo", slug: "erkek-tisort", g: 212 },
       { ad: "Erkek Gömlek", slug: "erkek-gomlek", g: 212 },
-      { ad: "Erkek Pantolon ve Jean", slug: "erkek-pantolon", g: 204 }
+      { ad: "Erkek Kazak ve Hırka", slug: "erkek-kazak", g: 5441 },
+      { ad: "Erkek Sweatshirt", slug: "erkek-sweatshirt", g: 1604 },
+      { ad: "Takım Elbise", slug: "takim-elbise", g: 1594 },
+      { ad: "Erkek Ceket ve Blazer", slug: "erkek-ceket", g: 5598 },
+      { ad: "Erkek Mont ve Kaban", slug: "erkek-mont", g: 203 },
+      { ad: "Erkek Pantolon ve Jean", slug: "erkek-pantolon", g: 204 },
+      { ad: "Erkek Şort ve Deniz Şortu", slug: "erkek-sort", g: 207 },
+      { ad: "Erkek Eşofman", slug: "erkek-esofman", g: 5322 },
+      { ad: "Erkek İç Giyim ve Boxer", slug: "erkek-ic-giyim", g: 213 },
+      { ad: "Erkek Pijama ve Ev Giyimi", slug: "erkek-pijama", g: 208 },
+      { ad: "Erkek Çorap", slug: "erkek-corap", g: 209 }
+    ] },
+    { ad: "Çocuk Giyim", slug: "cocuk-giyim", g: 1604, alt: [
+      { ad: "Çocuk Üst Giyim", slug: "cocuk-ust-giyim", g: 1604 },
+      { ad: "Çocuk Alt Giyim", slug: "cocuk-alt-giyim", g: 1604 },
+      { ad: "Çocuk Ayakkabı", slug: "cocuk-ayakkabi", g: 187 },
+      { ad: "Çocuk İç Giyim ve Çorap", slug: "cocuk-ic-giyim", g: 213 },
+      { ad: "Çocuk Mayo ve Plaj", slug: "cocuk-mayo", g: 211 }
     ] },
     { ad: "Ayakkabı", slug: "ayakkabi", g: 187, alt: [
-      { ad: "Spor Ayakkabı", slug: "spor-ayakkabi", g: 187 },
+      { ad: "Spor Ayakkabı ve Sneaker", slug: "spor-ayakkabi", g: 187 },
+      { ad: "Günlük Ayakkabı", slug: "gunluk-ayakkabi", g: 187 },
+      { ad: "Klasik Ayakkabı", slug: "klasik-ayakkabi", g: 187 },
+      { ad: "Loafer ve Babet", slug: "loafer", g: 187 },
+      { ad: "Topuklu Ayakkabı", slug: "topuklu-ayakkabi", g: 187 },
       { ad: "Bot ve Çizme", slug: "bot-cizme", g: 187 },
-      { ad: "Klasik Ayakkabı", slug: "klasik-ayakkabi", g: 187 }
+      { ad: "Sandalet ve Terlik", slug: "sandalet-terlik", g: 187 }
+    ] },
+    { ad: "Giyim Aksesuarı", slug: "giyim-aksesuari", g: 167, alt: [
+      { ad: "Kravat ve Papyon", slug: "kravat", g: 176 },
+      { ad: "Kemer", slug: "kemer", g: 169 },
+      { ad: "Şapka ve Bere", slug: "sapka-bere", g: 173 },
+      { ad: "Atkı, Şal ve Eldiven", slug: "atki-eldiven", g: 177 },
+      { ad: "Kol Düğmesi ve Yaka Aksesuarı", slug: "kol-dugmesi", g: 167 }
     ] },
     { ad: "Saat ve Takı", slug: "saat-taki", g: 188, alt: [
       { ad: "Kol Saati", slug: "kol-saati", g: 201 },
       { ad: "Altın", slug: "altin", g: 188 },
-      { ad: "Gümüş Takı", slug: "gumus-taki", g: 188 }
+      { ad: "Gümüş Takı", slug: "gumus-taki", g: 188 },
+      { ad: "Bijuteri", slug: "bijuteri", g: 188 }
     ] },
     { ad: "Çanta ve Valiz", slug: "canta-valiz", g: 5181, alt: [
       { ad: "Sırt Çantası", slug: "sirt-cantasi", g: 100 },
       { ad: "Valiz", slug: "valiz", g: 107 },
       { ad: "El Çantası", slug: "el-cantasi", g: 3032 },
+      { ad: "Omuz ve Çapraz Çanta", slug: "omuz-cantasi", g: 3032 },
+      { ad: "Bel Çantası", slug: "bel-cantasi", g: 5181 },
       { ad: "Cüzdan", slug: "cuzdan", g: 2668 }
     ] },
     { ad: "Gözlük", slug: "gozluk", g: 178, alt: [

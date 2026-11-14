@@ -6,6 +6,7 @@ import { TELEFON_OZELLIKLERI, bellekBul, eslesmeAnahtari, markaBul, modelBul, oz
 import { MAGAZALAR } from "./toplayici/magazalar.ts";
 import { tumKategoriler } from "./katalog/agac.ts";
 import { duzMetin, kategoriEsle } from "./katalog/esle.ts";
+import { YABANCI_DIL } from "./toplayici/oto.ts";
 import { createHash } from "node:crypto";
 
 const KATEGORILER = [{ slug: "akilli-telefon", ad: "Akıllı Telefon", aciklama: "Akıllı telefon fiyatlarını mağaza mağaza karşılaştır." }];
@@ -29,7 +30,14 @@ async function kategoriAgaciniEsitle() {
            from unnest($1::text[], $2::text[]) as x(slug, ust) left join kategori u on u.slug = x.ust
            where c.slug = x.slug and c.ust_id is distinct from u.id`,
     [k.map((x) => x.slug), k.map((x) => x.ust)]);
+  // Ağaçtan kaldırılan kategorilerdeki ürünler (ör. tekil elektronik komponentler) listelerde görünmesin.
+  await q(`update teklif set stokta=false where stokta and urun_id in
+           (select u.id from urun u join kategori c on c.id=u.kategori_id where c.slug = any($1::text[]))`, [KALDIRILAN_KATEGORILER]);
+  // Mağazaların yabancı dil sayfalarından okunmuş teklifler (İngilizce/Almanca ürün adları).
+  await q(`update teklif set stokta=false where stokta and url ~* $1`, [YABANCI_DIL.source]);
 }
+/** Ağaçtan çıkarılan kategoriler: içlerindeki ürünler gizlenir. */
+const KALDIRILAN_KATEGORILER = ["elektronik-komponent", "prototip-malzemesi", "robotik-guc"];
 
 export async function katalogHazirla() {
   await kategoriAgaciniEsitle();
