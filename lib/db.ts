@@ -44,16 +44,20 @@ async function sureli<T>(is: Promise<T>, ms: number): Promise<T> {
 }
 
 export async function q<T = Satir>(metin: string, p: unknown[] = []): Promise<T[]> {
-  try {
-    return (await sureli((await motor()).sorgu(metin, p), SORGU_SURESI)) as T[];
-  } catch (e) {
-    const err = e as { zamanAsimi?: boolean; code?: string };
-    const baglantiHatasi = err.zamanAsimi || ["ECONNRESET", "EPIPE", "CONNECTION_CLOSED", "CONNECTION_ENDED", "CONNECTION_DESTROYED"].includes(err.code ?? "");
-    if (!baglantiHatasi || !process.env.DATABASE_URL) throw e;
-    const eski = g.__fdMotor;
-    g.__fdMotor = undefined;
-    eski?.then((m) => m.kapat()).catch(() => {});
-    return (await sureli((await motor()).sorgu(metin, p), SORGU_SURESI)) as T[];
+  // Bağlantı koparsa (Supabase havuzu ara sıra bağlantıyı kapatır) yeni bağlantıyla 3 kez, artan beklemeyle yeniden dener.
+  for (let deneme = 0; ; deneme++) {
+    try {
+      return (await sureli((await motor()).sorgu(metin, p), SORGU_SURESI)) as T[];
+    } catch (e) {
+      const err = e as { zamanAsimi?: boolean; code?: string; message?: string };
+      const baglantiHatasi = err.zamanAsimi || ["ECONNRESET", "EPIPE", "ETIMEDOUT", "CONNECTION_CLOSED", "CONNECTION_ENDED", "CONNECTION_DESTROYED"].includes(err.code ?? "")
+        || /CONNECTION_ENDED|ECONNRESET|terminating connection/.test(err.message ?? "");
+      if (!baglantiHatasi || !process.env.DATABASE_URL || deneme >= 3) throw e;
+      const eski = g.__fdMotor;
+      g.__fdMotor = undefined;
+      eski?.then((m) => m.kapat()).catch(() => {});
+      await new Promise((r) => setTimeout(r, [2000, 5000, 10000][deneme]));
+    }
   }
 }
 export async function q1<T = Satir>(metin: string, p: unknown[] = []): Promise<T | undefined> {
