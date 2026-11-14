@@ -23,6 +23,7 @@ jobs:
       SITE_URL: https://fiyatdurbun.com
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      PAYLASIM_EPOSTA: ${{ secrets.PAYLASIM_EPOSTA }}
       X_API_KEY: ${{ secrets.X_API_KEY }}
       X_API_SECRET: ${{ secrets.X_API_SECRET }}
       X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
