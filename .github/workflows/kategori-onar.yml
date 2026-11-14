@@ -14,7 +14,7 @@ concurrency:
 jobs:
   onar:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       SORGU_ZAMAN_ASIMI_MS: "60000"

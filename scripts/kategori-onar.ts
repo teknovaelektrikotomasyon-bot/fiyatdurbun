@@ -39,10 +39,15 @@ const katId = new Map((await q<{ id: number; slug: string }>("select id, slug fr
 const katSlug = new Map([...katId].map(([s, i]) => [i, s]));
 const yolAdi = new Map(tumKategoriler().map((k) => [k.slug, k.ad]));
 
-const teklifler = await q<{ id: number; url: string; magaza: string; urun_id: number; kategori_id: number; magaza_sayisi: number }>(`
-  select t.id, t.url, m.slug magaza, t.urun_id, u.kategori_id,
-    (select count(distinct t2.magaza_id)::int from teklif t2 where t2.urun_id=t.urun_id) magaza_sayisi
-  from teklif t join magaza m on m.id=t.magaza_id join urun u on u.id=t.urun_id`);
+console.time("teklifler");
+const teklifler = await q<{ id: number; url: string; magaza: string; urun_id: number; kategori_id: number; magaza_sayisi: number; ad: string }>(`
+  with ms as (select urun_id, count(distinct magaza_id)::int n from teklif where urun_id is not null group by urun_id)
+  select t.id, t.url, m.slug magaza, t.urun_id, u.kategori_id, ms.n magaza_sayisi,
+    concat_ws(' ', mk.ad, u.model, u.varyant) ad
+  from teklif t join magaza m on m.id=t.magaza_id join urun u on u.id=t.urun_id
+  join ms on ms.urun_id=t.urun_id left join marka mk on mk.id=u.marka_id`);
+console.timeEnd("teklifler");
+console.log(`teklif: ${teklifler.length}`);
 
 async function teklifSil(t: { id: number; urun_id: number }) {
   await q("delete from eslesme_kuyrugu where teklif_id=$1", [t.id]);
@@ -59,7 +64,7 @@ for (const t of teklifler) {
   if (!h) {
     hamYok++;
     // Ham okuması yoksa en azından açıkça yanlış olanı ayıkla (adı bulunduğu bölümün yasak kelimesini taşıyor).
-    const ad = (await q<{ ad: string }>("select concat_ws(' ', m.ad, u.model, u.varyant) ad from urun u join marka m on m.id=u.marka_id where u.id=$1", [t.urun_id]))[0]?.ad ?? "";
+    const ad = t.ad ?? "";
     if (t.magaza_sayisi === 1 && kategoriyeAykiri(katSlug.get(t.kategori_id)!, ad)) {
       const k = kokler.get(t.magaza) ?? [];
       const es = k.length ? kategoriEsle(undefined, ad, k) : null; // yalnız adla yeni yer
