@@ -267,7 +267,16 @@ export async function markaUrunleri(markaId: number, kategoriSlug: string | unde
 
 /** Ana sayfa vitrinleri: her grup için (grup → kategori slug'ları) görseli olan ve en çok mağazada satılan ilk `adet` ürün.
  *  Önce hafif bir sorguyla ürün kimlikleri seçilir, ağır fiyat geçmişi hesabı (URUN_TABAN) yalnız o birkaç ürün için yapılır. */
+let vitrinOnbellek: { anahtar: string; zaman: number; veri: Record<string, UrunKart[]> } | null = null;
+/** Vitrinler 10 dakika bellekte tutulur (ana sayfanın her açılışında ağır sorgu çalışmasın). */
 export async function vitrinler(gruplar: Record<string, { sluglar: string[]; adet: number }>) {
+  const anahtar = JSON.stringify(gruplar);
+  if (vitrinOnbellek && vitrinOnbellek.anahtar === anahtar && Date.now() - vitrinOnbellek.zaman < 10 * 60_000) return vitrinOnbellek.veri;
+  const veri = await vitrinHesapla(gruplar);
+  vitrinOnbellek = { anahtar, zaman: Date.now(), veri };
+  return veri;
+}
+async function vitrinHesapla(gruplar: Record<string, { sluglar: string[]; adet: number }>) {
   const slug: string[] = [], grup: string[] = [], adet: number[] = [];
   for (const [g, v] of Object.entries(gruplar)) for (const s of v.sluglar) { slug.push(s); grup.push(g); adet.push(v.adet); }
   const secim = await q<{ grup: string; urun_id: number; rn: number }>(`
@@ -281,10 +290,19 @@ export async function vitrinler(gruplar: Record<string, { sluglar: string[]; ade
       join unnest($1::text[], $2::text[], $3::int[]) as v(slug, grup, adet) on v.slug = k.slug
       where tk.stokta and not tk.supheli and u.gorsel is not null and u.gorsel <> ''
       group by v.grup, v.adet, tk.urun_id
-    ) z where rn <= adet`, [slug, grup, adet]);
+    ) z where rn <= adet * 4`, [slug, grup, adet]);
   if (!secim.length) return {} as Record<string, UrunKart[]>;
+  // Aynı modelin renk/hafıza seçenekleri vitrini doldurmasın: her modelden bir ürün (seçim sorgusu fazladan aday getirir).
   const kartlar = new Map((await q<UrunKart>(`select * from (${URUN_TABAN}) x where id = any($1::int[])`, [[...new Set(secim.map((r) => r.urun_id))]])).map((u) => [u.id, u]));
   const sonuc: Record<string, UrunKart[]> = {};
-  for (const r of secim.sort((a, b) => a.rn - b.rn)) { const u = kartlar.get(r.urun_id); if (u?.fiyat != null) (sonuc[r.grup] ??= []).push(u); }
+  const gorulen = new Set<string>();
+  for (const r of secim.sort((a, b) => a.rn - b.rn)) {
+    const u = kartlar.get(r.urun_id);
+    if (u?.fiyat == null) continue;
+    const anahtar = `${r.grup}|${u.marka}|${u.model}`.toLocaleLowerCase("tr");
+    if (gorulen.has(anahtar) || (sonuc[r.grup]?.length ?? 0) >= gruplar[r.grup].adet) continue;
+    gorulen.add(anahtar);
+    (sonuc[r.grup] ??= []).push(u);
+  }
   return sonuc;
 }

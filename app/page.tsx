@@ -48,9 +48,9 @@ export default async function AnaSayfa() {
     markaListesi(5).then((l) => l.sort((a, b) => b.n - a.n).slice(0, 24)).catch(() => []),
     sureSinirli(vitrinler({
       telefon: { sluglar: ["akilli-telefon"], adet: 10 },
-      bilgisayar: { sluglar: altSluglar("bilgisayar"), adet: 10 },
+      bilgisayar: { sluglar: ["dizustu-bilgisayar", "masaustu-bilgisayar", "all-in-one-bilgisayar", "oyun-bilgisayari", "mini-pc", "tablet"], adet: 10 },
       telefonKart: { sluglar: ["akilli-telefon"], adet: 3 },
-      robotik: { sluglar: altSluglar("elektronik-hobi"), adet: 3 },
+      robotik: { sluglar: ["gelistirme-karti", "sensor-modul", "motor-surucu", "robot-kiti"], adet: 3 },
       pet: { sluglar: altSluglar("pet-shop"), adet: 3 },
       kozmetik: { sluglar: altSluglar("kozmetik-kisisel-bakim"), adet: 3 },
     }), 4000, {} as Record<string, UrunKart[]>),
