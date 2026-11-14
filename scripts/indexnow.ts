@@ -16,8 +16,12 @@ if (i > 0) {
   const r = await q<{ slug: string }>(`select distinct u.slug from urun u join teklif t on t.urun_id = u.id where t.guncelleme >= now() - ($1 || ' hours')::interval`, [String(saat)]);
   adresler = r.map((x) => `${site}/urun/${x.slug}`);
 } else {
-  const xml = await (await fetch(`${site}/sitemap.xml`)).text();
-  adresler = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/&amp;/g, "&"));
+  // /sitemap.xml bir dizin: içindeki parça haritaları da okunur.
+  const locs = (xml: string) => [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/&amp;/g, "&"));
+  const kok = await (await fetch(`${site}/sitemap.xml`)).text();
+  adresler = [];
+  if (/<sitemapindex/i.test(kok)) { for (const h of locs(kok)) adresler.push(...locs(await (await fetch(h)).text())); }
+  else adresler = locs(kok);
 }
 await kapat();
 
