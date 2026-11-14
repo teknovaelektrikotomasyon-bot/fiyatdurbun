@@ -56,6 +56,8 @@ async function teklifSil(t: { id: number; urun_id: number }) {
   else { await q("delete from fiyat_gecmisi where urun_id=$1 and magaza_id=(select magaza_id from teklif where id=$2)", [t.urun_id, t.id]); await q("delete from teklif where id=$1", [t.id]); }
 }
 
+const ozetSay: Record<string, number> = {};
+const say = (k: string) => { ozetSay[k] = (ozetSay[k] ?? 0) + 1; };
 let tasinan = 0, silinen = 0, ayni = 0, hamYok = 0, cokMagazali = 0;
 const ornek: string[] = [];
 for (const t of teklifler) {
@@ -75,7 +77,7 @@ for (const t of teklifler) {
       } else {
         if (ornek.length < 80) ornek.push(`SİL* ${t.magaza}: ${ad.slice(0, 50)} (${yolAdi.get(katSlug.get(t.kategori_id)!)})`);
         if (uygula) await teklifSil(t);
-        silinen++;
+        silinen++; say(`SİL* ${t.magaza} / ${yolAdi.get(katSlug.get(t.kategori_id)!)}`);
       }
     }
     continue;
@@ -88,7 +90,7 @@ for (const t of teklifler) {
   if (!es) {
     if (ornek.length < 60) ornek.push(`SİL  ${t.magaza}: ${h.ad.slice(0, 50)} (${yolAdi.get(eski)})`);
     if (uygula) await teklifSil(t);
-    silinen++;
+    silinen++; say(`SİL ${t.magaza} / ${yolAdi.get(eski)}`);
     continue;
   }
   if (es.slug === eski) { ayni++; continue; }
@@ -98,8 +100,9 @@ for (const t of teklifler) {
     try { await q("update urun set kategori_id=$2 where id=$1", [t.urun_id, katId.get(es.slug)]); }
     catch (e) { console.log("taşınamadı", t.urun_id, (e as Error).message.slice(0, 80)); continue; }
   }
-  tasinan++;
+  tasinan++; say(`TAŞI ${yolAdi.get(eski)} → ${yolAdi.get(es.slug)}`);
 }
 console.log(ornek.join("\n"));
+console.log("\nÖZET:\n" + Object.entries(ozetSay).sort((a, b) => b[1] - a[1]).slice(0, 80).map(([k, v]) => `${v} ${k}`).join("\n"));
 console.log(`\n${uygula ? "UYGULANDI" : "DENEME (değişiklik yok)"}: taşınan ${tasinan}, silinen teklif ${silinen}, aynı ${ayni}, çok mağazalı (dokunulmadı) ${cokMagazali}, ham okuması yok ${hamYok}`);
 await kapat();
