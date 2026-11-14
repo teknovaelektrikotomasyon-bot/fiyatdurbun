@@ -664,16 +664,3 @@ main > .kap > .kapsam { margin-top: 0; }
 .urun-marka { margin: -4px 0 12px; }
 .marka-serit-ana { margin: 0; }
 @media (max-width: 860px) { .marka-serit-ana { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; } }
-
-/* Fırsat kartlarında gerçek ürün görselleri (çizim simgesi yerine) */
-.firsat-gorseller { position: absolute; right: 10px; bottom: 10px; display: flex; }
-.firsat-gorseller img { width: 46px; height: 46px; object-fit: contain; background: #fff; border-radius: 10px; border: 1px solid #ffffffe0; box-shadow: 0 1px 4px #10293a1f; padding: 3px; }
-.firsat-gorseller img + img { margin-left: -12px; }
-.firsat-kart:hover .firsat-gorseller img { transform: translateY(-2px); transition: transform .15s; }
-@media (prefers-reduced-motion: reduce) { .firsat-kart:hover .firsat-gorseller img { transform: none; } }
-@media (max-width: 600px) {
-  .firsat-gorseller { right: 8px; bottom: 8px; }
-  .firsat-gorseller img { width: 34px; height: 34px; border-radius: 8px; padding: 2px; }
-  .firsat-gorseller img + img { margin-left: -10px; }
-  .firsat-gorseller img:nth-child(3) { display: none; }
-}
