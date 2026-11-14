@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { q } from "@/lib/db";
 import { siteAdresi } from "@/lib/eposta";
 import { agacSayilari, tumKategoriler } from "@/lib/katalog/agac.ts";
-import { kategoriUrunSayilari } from "@/lib/sorgular.ts";
+import { kategoriUrunSayilari, markaListesi } from "@/lib/sorgular.ts";
 
 // Fiyatlar gün içinde değiştiği için her istekte veritabanından üretilir.
 export const dynamic = "force-dynamic";
@@ -22,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
      where exists (select 1 from teklif t where t.urun_id = u.id and t.stokta)
      group by k.slug, lower(mk.ad) having count(*) >= 2`,
   );
+  const markalar = await markaListesi(3);
   // Yalnızca en az bir mağazada fiyatı olan ürünler.
   const urunler = await q<Satir>(
     `select u.slug, max(t.guncelleme) as son
@@ -44,6 +45,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${site}/magazanizi-ekleyin`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${site}/bot`, changeFrequency: "monthly", priority: 0.2 },
     { url: `${site}/kategoriler`, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${site}/markalar`, changeFrequency: "weekly", priority: 0.6 },
+    ...markalar.map((m) => ({ url: `${site}/marka/${m.slug}`, lastModified: simdi, changeFrequency: "daily" as const, priority: 0.7 })),
     ...kategoriler.map((k) => ({
       url: `${site}/kategori/${k.slug}`,
       lastModified: simdi,

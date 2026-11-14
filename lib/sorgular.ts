@@ -3,7 +3,7 @@ import { q, q1 } from "./db.ts";
 
 export type Ozellik = { anahtar: string; ad: string; tur: string; birim: string | null; filtre: string; grup: string | null };
 export type UrunKart = {
-  id: number; slug: string; model: string; varyant: string | null; marka: string; gorsel: string | null; gtin?: string | null;
+  id: number; slug: string; model: string; varyant: string | null; marka: string; marka_slug?: string; gorsel: string | null; gtin?: string | null;
   ozellikler: Record<string, string | number | boolean>;
   fiyat: number | null; magaza_sayisi: number; once30: number | null; enDusuk30: number | null; enYuksek30: number | null;
 };
@@ -34,7 +34,7 @@ const URUN_TABAN = `
       (select max(dm) from (select min(f4.fiyat) as dm from fiyat_gecmisi f4 where f4.urun_id = f.urun_id and f4.gun >= current_date - 30 group by f4.gun) z)::float8 as en_yuksek30
     from fiyat_gecmisi f group by urun_id
   )
-  select u.id, u.slug, u.model, u.varyant, mk.ad as marka, u.gorsel, u.ozellikler, u.gtin, t.fiyat, coalesce(t.magaza_sayisi,0) as magaza_sayisi,
+  select u.id, u.slug, u.model, u.varyant, mk.ad as marka, mk.slug as marka_slug, u.gorsel, u.ozellikler, u.gtin, t.fiyat, coalesce(t.magaza_sayisi,0) as magaza_sayisi,
          g.once30 as "once30", g.en_dusuk30 as "enDusuk30", g.en_yuksek30 as "enYuksek30", u.kategori_id
   from urun u join marka mk on mk.id = u.marka_id
   left join t on t.urun_id = u.id left join g on g.urun_id = u.id`;
@@ -233,4 +233,34 @@ export async function sahteIndirimler(limit = 48) {
 /** Fiyat geçmişinin başladığı gün (indirim sayfasında boş liste açıklaması için). */
 export async function gecmisBaslangic() {
   return (await q1<{ ilk: string | null }>("select min(gun)::text ilk from fiyat_gecmisi"))?.ilk ?? null;
+}
+
+// ---- Markalar ----
+export type MarkaSatiri = { id: number; slug: string; ad: string };
+export async function markaBul(slug: string) {
+  return q1<MarkaSatiri>("select id, slug, ad from marka where slug=$1", [slug]);
+}
+
+/** Stokta fiyatı olan en az `enAz` ürünü bulunan markalar (A-Z sayfası ve site haritası için). */
+export async function markaListesi(enAz = 3) {
+  return q<{ slug: string; ad: string; n: number }>(
+    `select mk.slug, mk.ad, count(distinct u.id)::int n from marka mk join urun u on u.marka_id = mk.id
+     where exists (select 1 from teklif t join magaza m on m.id = t.magaza_id where t.urun_id = u.id and t.stokta and m.aktif)
+     group by mk.slug, mk.ad having count(distinct u.id) >= $1 order by mk.ad collate "C"`, [enAz]);
+}
+
+export async function markaKategorileri(markaId: number) {
+  return q<{ slug: string; ad: string; n: number }>(
+    `select k.slug, k.ad, count(distinct u.id)::int n from urun u join kategori k on k.id = u.kategori_id
+     where u.marka_id = $1 and exists (select 1 from teklif t where t.urun_id = u.id and t.stokta)
+     group by k.slug, k.ad order by n desc, k.ad`, [markaId]);
+}
+
+export async function markaUrunleri(markaId: number, kategoriSlug: string | undefined, sirala = "fiyat", limit = 48, atla = 0) {
+  const sira = sirala === "pahali" ? "fiyat desc" : sirala === "dusen" ? "(fiyat - coalesce(once30, fiyat)) / nullif(once30,0) asc nulls last" : sirala === "magaza" ? "magaza_sayisi desc, fiyat" : "fiyat asc";
+  const p: unknown[] = [markaId];
+  let kat = "";
+  if (kategoriSlug) { p.push(kategoriSlug); kat = " and kategori_id = (select id from kategori where slug=$2)"; }
+  return q<UrunKart>(`select * from (${URUN_TABAN}) x where id in (select id from urun where marka_id=$1)${kat} and fiyat is not null
+    order by ${sira}, id limit ${Number(limit)} offset ${Math.max(0, Number(atla) || 0)}`, p);
 }

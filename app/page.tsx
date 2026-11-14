@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { UrunKarti } from "@/components/UrunKarti";
 import { Kaydirici } from "@/components/Kaydirici";
-import { enCokDusenler, populer } from "@/lib/sorgular.ts";
+import { enCokDusenler, markaListesi, populer } from "@/lib/sorgular.ts";
 import { q1 } from "@/lib/db.ts";
 import { JsonLd } from "@/components/JsonLd";
 import { organizasyonJsonLd, siteJsonLd } from "@/lib/seo.ts";
@@ -36,10 +36,11 @@ const FIRSATLAR = [
 ];
 
 export default async function AnaSayfa() {
-  const [dusen, pop, say, ben] = await Promise.all([
+  const [dusen, pop, say, ben, markalar] = await Promise.all([
     enCokDusenler(10), populer(10),
     q1<{ urun: number; magaza: number }>(`select (select count(*)::int from urun u where exists (select 1 from teklif t where t.urun_id=u.id and t.stokta)) as urun, (select count(*)::int from magaza where aktif) as magaza`),
     uye(),
+    markaListesi(5).then((l) => l.sort((a, b) => b.n - a.n).slice(0, 24)).catch(() => []),
   ]);
   const alarmAdres = ben ? "/hesabim" : "/giris?donus=/hesabim";
 
@@ -107,6 +108,14 @@ export default async function AnaSayfa() {
         <div className="serit-baslik"><h2>En çok mağazada satılanlar</h2><Link href="/kategoriler">Tüm kategoriler</Link></div>
         {pop.length ? <div className="izgara">{pop.map((u) => <UrunKarti key={u.id} u={u} />)}</div> : <div className="kutu bos">Henüz fiyat okunmadı.</div>}
       </section>
+      {markalar.length > 0 && (
+        <section className="serit">
+          <div className="serit-baslik"><h2>Popüler markalar</h2><Link href="/markalar">Tüm markalar</Link></div>
+          <nav className="marka-serit marka-serit-ana" aria-label="Popüler markalar">
+            {markalar.map((m) => <Link key={m.slug} href={`/marka/${m.slug}`}>{m.ad}</Link>)}
+          </nav>
+        </section>
+      )}
       <section className="serit">
         <div className="serit-baslik"><h2>Kategoriler</h2><Link href="/kategoriler">Tüm kategoriler</Link></div>
         <div className="kok-kartlar">

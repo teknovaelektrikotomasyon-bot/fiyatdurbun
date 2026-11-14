@@ -108,6 +108,7 @@ export default async function UrunSayfasi({ params, searchParams }: P) {
         <div className="urun-gorsel">{u.gorsel ? <img src={u.gorsel} referrerPolicy="no-referrer" alt={`${ad} ${u.varyant ?? ""}`.trim()} fetchPriority="high" decoding="async" /> : <span className="soluk">görsel yok</span>}</div>
         <div className="urun-bilgi">
           <h1>{ad} {u.varyant}</h1>
+          {u.marka_slug && <p className="urun-marka kucuk"><Link href={`/marka/${u.marka_slug}`}>Tüm {u.marka} ürünleri</Link></p>}
           <ul className="anahtar-ozellikler">
             {o.ram_gb && <li><b>{String(o.ram_gb)} GB</b> RAM</li>}
             {o.ekran_inc && <li><b>{String(o.ekran_inc)}″</b> {String(o.ekran_tipi ?? "ekran")}</li>}

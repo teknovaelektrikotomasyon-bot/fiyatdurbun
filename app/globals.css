@@ -647,3 +647,20 @@ main > .kap > .kapsam { margin-top: 0; }
   .slayt p { font-size: 14.5px; margin-bottom: 14px; }
   .kapsam { font-size: 14px; }
 }
+
+/* Markalar dizini */
+.harf-serit { display: flex; flex-wrap: wrap; gap: 4px; margin: -4px 0 24px; }
+.harf-serit a { min-width: 34px; text-align: center; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--cizgi); background: var(--yuzey); text-decoration: none; font-weight: 600; font-size: 14px; }
+.harf-serit a:hover { border-color: var(--cizgi-koyu); }
+.marka-dizin { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px 32px; }
+.marka-dizin section { break-inside: avoid; }
+.marka-dizin h2 { font-size: 20px; margin: 12px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--cizgi); }
+.marka-dizin ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.marka-dizin li a { text-decoration: none; }
+.marka-dizin li a:hover { text-decoration: underline; }
+.kart-marka-link { color: inherit; text-decoration: none; }
+.kart-marka-link:hover { text-decoration: underline; }
+@media (max-width: 600px) { .marka-dizin { grid-template-columns: 1fr 1fr; gap: 6px 16px; } }
+.urun-marka { margin: -4px 0 12px; }
+.marka-serit-ana { margin: 0; }
+@media (max-width: 860px) { .marka-serit-ana { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; } }

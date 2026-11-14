@@ -75,6 +75,7 @@ export default async function Kok({ children }: { children: React.ReactNode }) {
           <nav className="kap alt-kategoriler-serit" aria-label="Kategoriler">
             {KATEGORI_AGACI.map((k) => <Link key={k.slug} href={`/kategori/${k.slug}`}>{k.ad}</Link>)}
             <Link href="/kategoriler">Tüm kategoriler</Link>
+            <Link href="/markalar">Tüm markalar</Link>
           </nav>
           <div className="kap">
             <span>Fiyat Dürbün satış yapmaz; fiyatları mağazaların herkese açık sayfalarından okur ve mağazaların güvenilirliği için güvence vermez. Satın almadan önce mağazadaki fiyatı kontrol edin. Amazon Ortağı olarak, uygun alışverişlerden gelir elde ediyoruz; bazı mağaza bağlantıları ortaklık bağlantısıdır ve size ek maliyet getirmez.</span>

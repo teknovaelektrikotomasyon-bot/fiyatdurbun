@@ -49,6 +49,7 @@ export function KategoriMenusu() {
                 <span>Kategoriler</span>
                 <button type="button" className="cekmece-kapat" data-kapat aria-label="Menüyü kapat">×</button>
                 <Link href="/kategoriler" className="cekmece-tumu">Tümünü bir sayfada gör</Link>
+                <Link href="/markalar" className="cekmece-tumu">Markalar</Link>
               </div>
               <ul className="cekmece-liste">
                 {KATEGORI_AGACI.map((k) => (
