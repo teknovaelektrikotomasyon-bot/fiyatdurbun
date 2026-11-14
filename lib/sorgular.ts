@@ -264,3 +264,27 @@ export async function markaUrunleri(markaId: number, kategoriSlug: string | unde
   return q<UrunKart>(`select * from (${URUN_TABAN}) x where id in (select id from urun where marka_id=$1)${kat} and fiyat is not null
     order by ${sira}, id limit ${Number(limit)} offset ${Math.max(0, Number(atla) || 0)}`, p);
 }
+
+/** Ana sayfa vitrinleri: her grup için (grup → kategori slug'ları) görseli olan ve en çok mağazada satılan ilk `adet` ürün.
+ *  Önce hafif bir sorguyla ürün kimlikleri seçilir, ağır fiyat geçmişi hesabı (URUN_TABAN) yalnız o birkaç ürün için yapılır. */
+export async function vitrinler(gruplar: Record<string, { sluglar: string[]; adet: number }>) {
+  const slug: string[] = [], grup: string[] = [], adet: number[] = [];
+  for (const [g, v] of Object.entries(gruplar)) for (const s of v.sluglar) { slug.push(s); grup.push(g); adet.push(v.adet); }
+  const secim = await q<{ grup: string; urun_id: number; rn: number }>(`
+    select grup, urun_id, rn from (
+      select v.grup, v.adet, tk.urun_id,
+        row_number() over (partition by v.grup order by count(distinct tk.magaza_id) desc, max(tk.guncelleme) desc, tk.urun_id) rn
+      from teklif tk
+      join magaza m on m.id = tk.magaza_id and m.aktif and m.durum <> 'kapali'
+      join urun u on u.id = tk.urun_id
+      join kategori k on k.id = u.kategori_id
+      join unnest($1::text[], $2::text[], $3::int[]) as v(slug, grup, adet) on v.slug = k.slug
+      where tk.stokta and not tk.supheli and u.gorsel is not null and u.gorsel <> ''
+      group by v.grup, v.adet, tk.urun_id
+    ) z where rn <= adet`, [slug, grup, adet]);
+  if (!secim.length) return {} as Record<string, UrunKart[]>;
+  const kartlar = new Map((await q<UrunKart>(`select * from (${URUN_TABAN}) x where id = any($1::int[])`, [[...new Set(secim.map((r) => r.urun_id))]])).map((u) => [u.id, u]));
+  const sonuc: Record<string, UrunKart[]> = {};
+  for (const r of secim.sort((a, b) => a.rn - b.rn)) { const u = kartlar.get(r.urun_id); if (u?.fiyat != null) (sonuc[r.grup] ??= []).push(u); }
+  return sonuc;
+}

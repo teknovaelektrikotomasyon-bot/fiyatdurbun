@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { UrunKarti } from "@/components/UrunKarti";
 import { Kaydirici } from "@/components/Kaydirici";
-import { enCokDusenler, markaListesi, populer } from "@/lib/sorgular.ts";
+import { enCokDusenler, markaListesi, populer, vitrinler, type UrunKart } from "@/lib/sorgular.ts";
 import { q1 } from "@/lib/db.ts";
 import { JsonLd } from "@/components/JsonLd";
 import { organizasyonJsonLd, siteJsonLd } from "@/lib/seo.ts";
-import { KATEGORI_AGACI } from "@/lib/katalog/agac.ts";
+import { KATEGORI_AGACI, altSluglar } from "@/lib/katalog/agac.ts";
 import { uye } from "@/lib/oturum.ts";
 
 export const dynamic = "force-dynamic";
@@ -28,20 +28,35 @@ const Simge = {
 };
 
 const FIRSATLAR = [
-  { ad: "Telefon fırsatları", alt: "Fiyatı düşen modeller", href: "/kategori/akilli-telefon?sirala=dusen", eylem: "Düşenler", simge: Simge.telefon, renk: "f-kirmizi" },
-  { ad: "Robotik ve elektronik", alt: "Arduino, sensör, modül: öğrenciler için", href: "/kategori/elektronik-hobi", eylem: "Karşılaştır", simge: Simge.devre, renk: "f-mavi" },
-  { ad: "Pet shop", alt: "Mama, kum, ödül", href: "/kategori/pet-shop?sirala=dusen", eylem: "Fiyatı düşenler", simge: Simge.pati, renk: "f-sari" },
-  { ad: "Kozmetik ve bakım", alt: "Dermokozmetik, cilt bakımı", href: "/kategori/kozmetik-kisisel-bakim?sirala=dusen", eylem: "İndirimleri gör", simge: Simge.damla, renk: "f-mor" },
-  { ad: "Bu indirim gerçek mi?", alt: "Zamlanıp indirime girenler", href: "/gercek-indirimler", eylem: "Kontrol et", simge: Simge.yuzde, renk: "f-yesil" },
+  { ad: "Telefon fırsatları", alt: "Fiyatı düşen modeller", href: "/kategori/akilli-telefon?sirala=dusen", eylem: "Düşenler", simge: Simge.telefon, renk: "f-kirmizi", grup: "telefonKart" },
+  { ad: "Robotik ve elektronik", alt: "Arduino, sensör, modül: öğrenciler için", href: "/kategori/elektronik-hobi", eylem: "Karşılaştır", simge: Simge.devre, renk: "f-mavi", grup: "robotik" },
+  { ad: "Pet shop", alt: "Mama, kum, ödül", href: "/kategori/pet-shop?sirala=dusen", eylem: "Fiyatı düşenler", simge: Simge.pati, renk: "f-sari", grup: "pet" },
+  { ad: "Kozmetik ve bakım", alt: "Dermokozmetik, cilt bakımı", href: "/kategori/kozmetik-kisisel-bakim?sirala=dusen", eylem: "İndirimleri gör", simge: Simge.damla, renk: "f-mor", grup: "kozmetik" },
+  { ad: "Bu indirim gerçek mi?", alt: "Zamlanıp indirime girenler", href: "/gercek-indirimler", eylem: "Kontrol et", simge: Simge.yuzde, renk: "f-yesil", grup: "dusen" },
 ];
 
+/** Vitrin sorgusu yavaşlarsa ana sayfa beklemez: süre dolunca ya da hata olursa vitrinsiz açılır. */
+function sureSinirli<T>(p: Promise<T>, ms: number, yedek: T): Promise<T> {
+  return Promise.race([p.catch(() => yedek), new Promise<T>((r) => setTimeout(() => r(yedek), ms))]);
+}
+
 export default async function AnaSayfa() {
-  const [dusen, pop, say, ben, markalar] = await Promise.all([
+  const [dusen, pop, say, ben, markalar, vit] = await Promise.all([
     enCokDusenler(10), populer(10),
     q1<{ urun: number; magaza: number }>(`select (select count(*)::int from urun u where exists (select 1 from teklif t where t.urun_id=u.id and t.stokta)) as urun, (select count(*)::int from magaza where aktif) as magaza`),
     uye(),
     markaListesi(5).then((l) => l.sort((a, b) => b.n - a.n).slice(0, 24)).catch(() => []),
+    sureSinirli(vitrinler({
+      telefon: { sluglar: ["akilli-telefon"], adet: 10 },
+      bilgisayar: { sluglar: altSluglar("bilgisayar"), adet: 10 },
+      telefonKart: { sluglar: ["akilli-telefon"], adet: 3 },
+      robotik: { sluglar: altSluglar("elektronik-hobi"), adet: 3 },
+      pet: { sluglar: altSluglar("pet-shop"), adet: 3 },
+      kozmetik: { sluglar: altSluglar("kozmetik-kisisel-bakim"), adet: 3 },
+    }), 4000, {} as Record<string, UrunKart[]>),
   ]);
+  // Kart küçük görselleri: telefon kartı vitrindekilerle aynı olmasın diye telefon vitrininin sonundan alınır.
+  const kucukler = (g: string) => (g === "dusen" ? dusen.filter((u) => u.gorsel) : g === "telefonKart" ? (vit.telefon ?? []).slice(-3) : vit[g] ?? []).slice(0, 3);
   const alarmAdres = ben ? "/hesabim" : "/giris?donus=/hesabim";
 
   const slaytlar = [
@@ -81,7 +96,11 @@ export default async function AnaSayfa() {
               <span className="firsat-ad">{f.ad}</span>
               <span className="firsat-alt">{f.alt}</span>
               <span className="firsat-eylem">{f.eylem}</span>
-              <span className="firsat-simge">{f.simge}</span>
+              {kucukler(f.grup).length ? (
+                <span className="firsat-gorseller" aria-hidden="true">
+                  {kucukler(f.grup).map((u) => <img key={u.id} src={u.gorsel!} referrerPolicy="no-referrer" alt="" loading="lazy" />)}
+                </span>
+              ) : <span className="firsat-simge">{f.simge}</span>}
             </Link>
           ))}
         </div>
@@ -98,6 +117,18 @@ export default async function AnaSayfa() {
         Şu an <b>{say?.magaza ?? 0} mağazada</b> satılan <b>{(say?.urun ?? 0).toLocaleString("tr-TR")} ürünü</b> izliyoruz. Fiyatlar günde birkaç kez okunuyor. <Link href="/magazalar">Hangi mağazalar?</Link>
       </p>
 
+      {(vit.telefon?.length ?? 0) > 0 && (
+        <section className="serit">
+          <div className="serit-baslik"><h2>Cep telefonları</h2><Link href="/kategori/akilli-telefon">Tüm telefonlar</Link></div>
+          <div className="izgara">{vit.telefon!.map((u) => <UrunKarti key={u.id} u={u} />)}</div>
+        </section>
+      )}
+      {(vit.bilgisayar?.length ?? 0) > 0 && (
+        <section className="serit">
+          <div className="serit-baslik"><h2>Bilgisayarlar</h2><Link href="/kategori/bilgisayar">Tüm bilgisayarlar</Link></div>
+          <div className="izgara">{vit.bilgisayar!.map((u) => <UrunKarti key={u.id} u={u} />)}</div>
+        </section>
+      )}
       {dusen.length > 0 && (
         <section className="serit" id="dusenler">
           <div className="serit-baslik"><h2>Son 30 günde en çok düşenler</h2><Link href="/gercek-indirimler">Gerçek indirimler</Link></div>
