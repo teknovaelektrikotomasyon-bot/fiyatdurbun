@@ -264,3 +264,22 @@ export async function markaUrunleri(markaId: number, kategoriSlug: string | unde
   return q<UrunKart>(`select * from (${URUN_TABAN}) x where id in (select id from urun where marka_id=$1)${kat} and fiyat is not null
     order by ${sira}, id limit ${Number(limit)} offset ${Math.max(0, Number(atla) || 0)}`, p);
 }
+
+/** Ana sayfa vitrinleri tek sorguda: her grup için (grup → kategori slug'ları) görseli olan, en çok mağazada satılan
+ *  ve fiyatı düşenleri öne alan ilk `adet` ürün. URUN_TABAN ağır olduğu için ayrı ayrı çağırmak yerine bir kez çalışır. */
+export async function vitrinler(gruplar: Record<string, { sluglar: string[]; adet: number }>) {
+  const slug: string[] = [], grup: string[] = [], adet: number[] = [];
+  for (const [g, v] of Object.entries(gruplar)) for (const s of v.sluglar) { slug.push(s); grup.push(g); adet.push(v.adet); }
+  const satirlar = await q<UrunKart & { grup: string }>(`
+    select * from (
+      select x.*, v.grup, v.adet, row_number() over (partition by v.grup order by x.magaza_sayisi desc,
+        (x.fiyat - coalesce(x.once30, x.fiyat)) / nullif(x.once30, 0) asc nulls last, x.id) sira
+      from (${URUN_TABAN}) x
+      join kategori k on k.id = x.kategori_id
+      join unnest($1::text[], $2::text[], $3::int[]) as v(slug, grup, adet) on v.slug = k.slug
+      where x.fiyat is not null and x.gorsel is not null and x.gorsel <> ''
+    ) z where sira <= adet order by grup, sira`, [slug, grup, adet]);
+  const sonuc: Record<string, UrunKart[]> = {};
+  for (const r of satirlar) (sonuc[r.grup] ??= []).push(r);
+  return sonuc;
+}
