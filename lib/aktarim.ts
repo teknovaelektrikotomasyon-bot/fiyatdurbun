@@ -72,8 +72,9 @@ export async function kaydet(magazaSlug: string, kategoriSlug: string, t: Kayit,
 
   if (!urunId && anahtar && marka && model && depolama) {
     const mSlug = slugla(marka);
-    await q("insert into marka (slug, ad) values ($1,$2) on conflict (slug) do nothing", [mSlug, marka]);
-    const mk = await q1<{ id: number }>("select id from marka where slug=$1", [mSlug]);
+    // Tek ifadede ekle-ya da-getir: ayrı sorgularla alınan kimliğin başka bir satıra kayma riski kalmaz.
+    const mk = await q1<{ id: number }>(
+      "insert into marka (slug, ad) values ($1,$2) on conflict (slug) do update set slug=excluded.slug returning id", [mSlug, marka]);
     const varyant = depolama >= 1024 ? `${depolama / 1024} TB` : `${depolama} GB`;
     const slug = slugla(`${marka} ${model} ${varyant}`);
     const y = await q1<{ id: number }>(
@@ -152,8 +153,9 @@ export async function kaydetGenel(magazaSlug: string, t: Kayit, kokler: string[]
   if (!urunId) urunId = (await q1<{ id: number }>("select id from urun where eslesme_anahtari=$1", [anahtar]))?.id;
   if (!urunId) {
     const mSlug = slugla(marka);
-    await q("insert into marka (slug, ad) values ($1,$2) on conflict (slug) do nothing", [mSlug, marka]);
-    const mk = await q1<{ id: number }>("select id from marka where slug=$1", [mSlug]);
+    // Tek ifadede ekle-ya da-getir: ayrı sorgularla alınan kimliğin başka bir satıra kayma riski kalmaz.
+    const mk = await q1<{ id: number }>(
+      "insert into marka (slug, ad) values ($1,$2) on conflict (slug) do update set slug=excluded.slug returning id", [mSlug, marka]);
     const taban = slugla(`${marka} ${model}`).slice(0, 90).replace(/-+$/, "");
     const ek = createHash("sha1").update(anahtar).digest("hex").slice(0, 6);
     for (const slug of [taban, `${taban}-${ek}`]) {

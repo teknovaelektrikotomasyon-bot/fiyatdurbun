@@ -56,13 +56,18 @@ if (aktarim) {
 }
 
 await Promise.all([...MAGAZALAR, ...otoMagazalar].filter((m) => m.durum === "acik" && (!sadece || m.slug === sadece)).map(async (m) => {
+  // Bir mağazadaki beklenmeyen hata yalnız o mağazayı durdurur; diğerleri ve turun sonraki adımları sürer.
+  try { await magazaTopla(m); } catch (e) { console.log(`${m.slug} MAĞAZA HATASI ${(e as Error).message}`); ozet.push(`| ${m.ad} | - | - | - | hata: ${(e as Error).message.slice(0, 80)} |`); }
+}));
+
+async function magazaTopla(m: MagazaTanimi) {
   for (const [kategori, kesif] of Object.entries(m.kesif)) {
     if (kesif.tur === "ozel") {
       let teklifler: Awaited<ReturnType<typeof kesif.oku>> = [];
       try { teklifler = await kesif.oku(m.bekleme); } catch (e) { ozet.push(`| ${m.ad} | - | 0 | - | ${(e as Error).message} |`); continue; }
       for (const t of teklifler) {
         appendFileSync(cikti, JSON.stringify({ magaza: m.slug, kategori, gun, ...t }) + "\n");
-        if (aktarim) await aktarim.kaydet(m.slug, kategori, t, gun);
+        if (aktarim) try { await aktarim.kaydet(m.slug, kategori, t, gun); } catch (e) { console.log(`${m.slug} KAYIT HATASI ${(e as Error).message}`); continue; }
         console.log(`${m.slug} ${t.fiyat} TL ${t.ad}`);
       }
       ozet.push(`| ${m.ad} | ${teklifler.length} | ${teklifler.length} | 0 | 0 |`);
@@ -133,8 +138,10 @@ await Promise.all([...MAGAZALAR, ...otoMagazalar].filter((m) => m.durum === "aci
         if (!t) { say.fiyatsiz = (say.fiyatsiz ?? 0) + 1; continue; }
         const kayit = { ...t, url }; // site haritasındaki adres (kademeli taramada "okundu" bilgisi bununla tutulur)
         appendFileSync(cikti, JSON.stringify({ magaza: m.slug, kategori, gun, ...kayit }) + "\n");
-        const r = aktarim ? await aktarim.kaydetGenel(m.slug, kayit, kesif.kokler, gun, kesif.yolZorunlu) : { durum: "kuru" };
-        say[r.durum] = (say[r.durum] ?? 0) + 1;
+        try {
+          const r = aktarim ? await aktarim.kaydetGenel(m.slug, kayit, kesif.kokler, gun, kesif.yolZorunlu) : { durum: "kuru" };
+          say[r.durum] = (say[r.durum] ?? 0) + 1;
+        } catch (e) { say.hata = (say.hata ?? 0) + 1; if (say.hata < 3) console.log(`${m.slug} KAYIT HATASI ${(e as Error).message}`); }
       }
       console.log(`${m.slug}: haritada ${tumu.length}, yeni ${yeni.length}, okunan ${secilen.length}`, say);
       ozet.push(`| ${m.ad} | ${tumu.length} (yeni ${yeni.length}) | ${say.kaydedildi ?? 0}${say.telefon ? ` +${say.telefon} tel` : ""} | ${say.fiyatsiz ?? 0} fiyatsız, ${say.kategorisiz ?? 0} kategorisiz | ${engel} |`);
@@ -156,13 +163,13 @@ await Promise.all([...MAGAZALAR, ...otoMagazalar].filter((m) => m.durum === "aci
       if (!t) { fiyatsiz++; continue; }
       const kayit = { ...t, ozellikHam: m.ozellikOku?.(y.html) };
       appendFileSync(cikti, JSON.stringify({ magaza: m.slug, kategori, gun, ...kayit }) + "\n");
-      if (aktarim) await aktarim.kaydet(m.slug, kategori, kayit, gun);
+      if (aktarim) try { await aktarim.kaydet(m.slug, kategori, kayit, gun); } catch (e) { console.log(`${m.slug} KAYIT HATASI ${(e as Error).message}`); continue; }
       okundu++;
       console.log(`${m.slug} ${okundu}/${linkler.length} ${t.fiyat} TL ${t.ad.slice(0, 60)}`);
     }
     ozet.push(`| ${m.ad} | ${linkler.length} | ${okundu} | ${fiyatsiz} | ${engel} |`);
   }
-}));
+}
 
 // Dolandırıcılık ve yanlış eşleşmeye karşı: aynı ürünü en az 2 başka mağaza satarken onların medyanının yarısından
 // ucuz olan teklif "şüpheli" işaretlenir; en ucuz fiyat hesabına girmez, sayfada uyarıyla en altta görünür.
