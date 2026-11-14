@@ -43,7 +43,7 @@ export function organizasyonJsonLd() {
     areaServed: "TR",
     knowsLanguage: "tr",
     // Sosyal hesaplar açıldıkça buraya eklenir (Google'ın markayı tanıması için).
-    sameAs: [] as string[],
+    sameAs: ["https://x.com/fiyatdurbun"] as string[],
   };
 }
 
