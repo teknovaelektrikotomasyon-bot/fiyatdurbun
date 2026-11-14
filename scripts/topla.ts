@@ -32,7 +32,7 @@ if (aktarim) await aktarim.katalogHazirla();
 const ozet: string[] = ["| Mağaza | Link | Okundu | Fiyatsız | Engel/hata |", "|---|---|---|---|---|"];
 const gun = new Date().toISOString().slice(0, 10);
 // Bir mağaza en çok bu kadar süre okunur; robots.txt'de uzun bekleme isteyen siteler işi zaman aşımına sokmasın.
-const SON_AN = Date.now() + Number(arg("dakika") ?? 90) * 60_000;
+const SON_AN = Date.now() + Number(arg("dakika") ?? 75) * 60_000;
 
 // Otomatik keşifle eklenen mağazalar (scripts/kesif.ts): veritabanındaki tanımdan genel mağaza olarak okunur.
 // Tüm ana bölümlere eşlenebilirler ama kategori yolu (breadcrumb) olmayan ürün alınmaz.
@@ -187,3 +187,5 @@ if (aktarim) {
 console.log(ozet.join("\n"));
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, "# Toplama " + gun + "\n" + ozet.join("\n") + "\n");
 if (aktarim) await (await import("../lib/db.ts")).kapat();
+// Açık kalan bağlantı ya da zamanlayıcı süreci bekletmesin (bildirim ve veri adımlarına zaman kalsın).
+process.exit(0);
