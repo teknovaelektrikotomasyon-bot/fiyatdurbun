@@ -1,11 +1,14 @@
 // X (Twitter) hesabında doğrulanmış gerçek indirimleri paylaşır.
-// Kullanım: node --experimental-strip-types scripts/x-paylas.ts [--adet 1] [--deneme]
-// Anahtarlar yoksa ya da --deneme verilirse hiçbir şey göndermez, yalnızca gönderi metnini yazar.
+// Kullanım: node --experimental-strip-types scripts/x-paylas.ts [--adet 3] [--deneme]
+// Ücretsiz mod (X anahtarları yoksa): hazır gönderileri "X'te paylaş" bağlantılarıyla e-postayla yollar;
+//   tek dokunuşla paylaşılır, API ücreti yoktur. Alıcı: PAYLASIM_EPOSTA (varsayılan info@teknovaelektrik.com).
+// --deneme: hiçbir şey göndermez, yalnızca metni yazar.
 // Gerekli ortam değişkenleri (X Developer Console > uygulama > Keys and tokens, "Read and write" izni):
 //   X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET
-// Not: X API kullandıkça ücretlidir (bağlantılı gönderi ~0,20 $). Günde 3 gönderi ≈ ayda 18 $.
+// Not: API modu ücretlidir (bağlantılı gönderi ~0,20 $); anahtar tanımlanmazsa ücretsiz e-posta modu çalışır.
 import { createHmac, randomBytes } from "node:crypto";
 import { q, kapat } from "../lib/db.ts";
+import { epostaGonder } from "../lib/eposta.ts";
 import { gercekIndirimler, type IndirimSatiri } from "../lib/sorgular.ts";
 
 const site = (process.env.SITE_URL ?? "https://fiyatdurbun.com").replace(/\/$/, "");
@@ -15,7 +18,9 @@ const anahtar = {
   key: process.env.X_API_KEY, secret: process.env.X_API_SECRET,
   token: process.env.X_ACCESS_TOKEN, tokenSecret: process.env.X_ACCESS_SECRET,
 };
-const deneme = process.argv.includes("--deneme") || !anahtar.key || !anahtar.secret || !anahtar.token || !anahtar.tokenSecret;
+const deneme = process.argv.includes("--deneme");
+const apiVar = Boolean(anahtar.key && anahtar.secret && anahtar.token && anahtar.tokenSecret);
+const alici = process.env.PAYLASIM_EPOSTA || "info@teknovaelektrik.com";
 
 const tl = (n: number) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(Math.round(n));
 
@@ -79,18 +84,31 @@ const adaylar = (await gercekIndirimler(60)).filter((u) => {
 });
 
 if (!adaylar.length) console.log("Paylaşılacak doğrulanmış indirim yok; bu tur atlandı.");
-for (const u of adaylar.slice(0, adet)) {
-  const t = metin(u);
-  if (deneme) { console.log("— DENEME (gönderilmedi) —\n" + t + "\n"); continue; }
-  try {
-    const id = await gonder(t);
-    await q(`insert into x_paylasim (urun_id, fiyat, tweet_id) values ($1, $2, $3)`, [u.id, u.fiyat, id]);
-    console.log(`Gönderildi: ${id} · ${u.slug}`);
-  } catch (e) {
-    console.error(String(e));
-    process.exitCode = 1;
-    break;
+const secilen = adaylar.slice(0, adet);
+if (deneme) {
+  for (const u of secilen) console.log("— DENEME (gönderilmedi) —\n" + metin(u) + "\n");
+} else if (apiVar) {
+  for (const u of secilen) {
+    try {
+      const id = await gonder(metin(u));
+      await q(`insert into x_paylasim (urun_id, fiyat, tweet_id) values ($1, $2, $3)`, [u.id, u.fiyat, id]);
+      console.log(`Gönderildi: ${id} · ${u.slug}`);
+    } catch (e) { console.error(String(e)); process.exitCode = 1; break; }
   }
+} else if (secilen.length) {
+  const kac = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
+  const kartlar = secilen.map((u, i) => {
+    const t = metin(u);
+    return `<div style="border:1px solid #ddd;border-radius:10px;padding:14px;margin:0 0 14px">
+      <div style="white-space:pre-wrap;font:15px/1.45 sans-serif">${kac(t)}</div>
+      <p style="margin:12px 0 0"><a href="https://x.com/intent/post?text=${encodeURIComponent(t)}"
+        style="background:#000;color:#fff;padding:9px 16px;border-radius:20px;text-decoration:none;font:600 14px sans-serif">${i + 1}. gönderiyi X'te paylaş</a></p></div>`;
+  }).join("");
+  await epostaGonder(alici, `Bugünün X gönderileri (${secilen.length})`,
+    `<p style="font:15px sans-serif">Butona dokun, X açılır, metin hazır gelir; <b>Gönder</b>'e basman yeterli. Gönderileri gün içine yay (sabah, öğle, akşam).</p>${kartlar}`,
+    { kimden: "Fiyat Dürbün <magaza@fiyatdurbun.com>" });
+  for (const u of secilen) await q(`insert into x_paylasim (urun_id, fiyat) values ($1, $2)`, [u.id, u.fiyat]);
+  console.log(`${secilen.length} hazır gönderi ${alici} adresine yollandı.`);
 }
 await kapat();
 process.exit(process.exitCode ?? 0);

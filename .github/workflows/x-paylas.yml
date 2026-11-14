@@ -1,8 +1,8 @@
 name: X paylaşımı
-# Doğrulanmış gerçek indirimleri X hesabında paylaşır. Anahtarlar tanımlı değilse yalnızca deneme metni yazar.
+# Doğrulanmış gerçek indirimleri hazır X gönderisi olarak e-postayla yollar (ücretsiz). X API anahtarları tanımlanırsa doğrudan paylaşır.
 on:
   schedule:
-    - cron: "7 7,11,17 * * *" # Türkiye saatiyle 10:07, 14:07, 20:07
+    - cron: "7 6 * * *" # Türkiye saatiyle 09:07, günde bir e-posta
   workflow_dispatch:
     inputs:
       deneme:
@@ -11,7 +11,7 @@ on:
         default: true
       adet:
         description: "Gönderi sayısı"
-        default: "1"
+        default: "3"
 permissions:
   contents: read
 concurrency: x-paylas
@@ -22,6 +22,7 @@ jobs:
     env:
       SITE_URL: https://fiyatdurbun.com
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       X_API_KEY: ${{ secrets.X_API_KEY }}
       X_API_SECRET: ${{ secrets.X_API_SECRET }}
       X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
@@ -33,4 +34,4 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --experimental-strip-types scripts/x-paylas.ts --adet "${{ inputs.adet || '1' }}" ${{ inputs.deneme && '--deneme' || '' }}
+      - run: node --experimental-strip-types scripts/x-paylas.ts --adet "${{ inputs.adet || '3' }}" ${{ inputs.deneme && '--deneme' || '' }}
