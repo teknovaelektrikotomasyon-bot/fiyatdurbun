@@ -330,7 +330,7 @@ export function kategoriEsle(kategoriYolu: string[] | undefined, ad: string, kok
     if (!enIyi || puan > enIyi.puan) enIyi = { slug: a.slug, puan };
   }
   // Mağaza kategori yolu vermiyorsa (yalnız "Anasayfa > Ürün adı") karar ürün adına kalır: eşik daha yüksek.
-  if (!enIyi || enIyi.puan < (yol.length ? 6 : 7)) return null;
+  if (!enIyi || enIyi.puan < 6) return null;
   return enIyi;
 }
 
